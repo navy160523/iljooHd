@@ -1,0 +1,115 @@
+/** ✏️ LOGIN PAGE CSS  */
+
+.loginView {
+  height: calc(100vh - 100px);
+  > .v-card{
+    transform: translateY(50px);
+  }
+  //----------------------------------------------------------------------------------------------
+  // text-field
+  //----------------------------------------------------------------------------------------------
+  .v-input--density-default {
+    --v-input-control-height: 50px !important;
+  }
+  .v-field__input {
+    min-height: 50px !important;
+  }
+  .v-field--variant-solo,
+  .v-field--variant-solo-filled {
+    box-shadow: none !important;
+  }
+
+  //----------------------------------------------------------------------------------------------
+  // 로그인 타이틀 및 바로가기 관련
+  //----------------------------------------------------------------------------------------------
+  .logintitleText {
+    font-size: 35px;
+    height: 42px;
+    font-weight: bold;
+  }
+
+  .loginText {
+    margin-top: 84px;
+    margin-bottom: 76px;
+
+    padding: 0;
+
+    > span {
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 27px;
+    }
+
+    > P {
+      font-size: 20px;
+      font-weight: 300;
+      margin-top: 4px;
+    }
+  }
+
+  .loginAction {
+    margin-top: 76px;
+    padding: 0;
+
+    .v-btn {
+      font-size: 18px;
+      line-height: 21px;
+      color: rgb(var(--v-theme-secondary));
+      letter-spacing: 0.05px;
+      padding-left: 8px !important;
+    }
+  }
+
+  //----------------------------------------------------------------------------------------------
+  // 로그인 입력 및 버튼 관련
+  //----------------------------------------------------------------------------------------------
+  .loginUserArea {
+    padding: 0;
+    font-weight: 400;
+    font-size: 18px;
+    color: rgb(var(--v-theme-textMain));
+
+    .v-text-field {
+      margin-top: 4px;
+      margin-bottom: 6px;
+      padding: 0;
+    }
+
+    .v-btn {
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 21px;
+    }
+
+    .v-radio-group {
+      font-weight: 400;
+      line-height: 21px;
+      .v-label {
+        font-size: 18px !important;
+        opacity: 1;
+      }
+    }
+
+    .loginAddBtnGroup {
+      padding: 0;
+
+      .dividerWidth {
+        height: 12px;
+        align-self: center;
+      }
+
+      .v-btn {
+        font-weight: 400;
+        letter-spacing: 0.05px;
+      }
+    }
+  }
+
+  .loginUserAreaDetail {
+    margin-left: 110px;
+  }
+
+  .loginUserInputArea {
+    padding: 80px 0 0 0;
+  }
+}

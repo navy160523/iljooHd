@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="<%= BASE_URL %>favicon.png" />
+    <title>HDxBuilder Short Link Page</title>
+    <style>
+        body {
+            background-color: "#f4f5fa";
+        }
+    </style>
+
+    <script src="external/axios.min.js"></script>
+    <script language="JavaScript">
+      function getParams(key){
+        var url = window.location.search.replace('?','');
+        var params = {};
+        var urlArray = url.split('&');
+        return urlArray[0]
+        // for(var i in urlArray)
+        // {
+        //   var param = urlArray[i].split('=');
+        //   params[param[0]] = param[1];
+        // }
+        // return params;
+      }
+
+      function request() {
+        const param = getParams()
+
+        if (param === '') {
+          // parameter가 없을 때
+        } else {
+          axios.get(`/hse/sl/${param}`).then(res => {
+              window.location.href = res.data.orgLinkUrl
+            }
+          ).catch(msg => {
+            //요청한 id로 주소가 없을 때
+            const normalDiv = document.getElementById('normalDiv')
+            normalDiv.style.display ='none'
+            const item = document.getElementById('exceptionDiv')
+            item.style.display ='block'
+            const result = msg.response.data.result || ''
+            const progress = document.getElementsByClassName('v-progress-linear')[0]
+            progress.style.visibility = 'hidden'
+            if (result !== '') {
+              const text = document.getElementById('exceptionText')
+              text.innerText = result.desc
+            }
+          })
+        }
+      }
+      setTimeout( () => {
+        request()
+      }, 1000)
+
+    </script>
+</head>
+<body>
+  <div style="height: 100%">
+    <div style="margin: 0 auto; margin-top: 35vh; width: 500px;flex-direction: column; align-content: center" class="card">
+      <div class="v-progress-linear">
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__active long"></div>
+        <div class="v-progress-linear__active short"></div>
+      </div>
+      <h3 style="display: flex; justify-content: center; align-items: center">
+        <img width="16px" height="16px" src="favicon.ico"/>
+        <span style="margin-left: 6px">HDxBuilder Web Link Page</span>
+      </h3>
+      <p id="normalDiv" style="text-align: center"> 요청하신 URL로 이동 중입니다.</p>
+      <div id="exceptionDiv" style="display: none">
+        <p style="text-align: center; font-weight: bold"> 요청하신 URL로 이동할 수 없습니다.</p>
+        <div class="line"></div>
+        <p id="exceptionText"></p>
+      </div>
+    </div>
+  </div>
+
+</body>
+<style>
+    .card {
+        color: rgba(94,86,105,.68)!important;
+        display: block;
+        max-width: 100%;
+        outline: none;
+        text-decoration: none;
+        transition-property: box-shadow,opacity;
+        overflow-wrap: break-word;
+        position: relative;
+        white-space: normal;
+        box-sizing: inherit;
+        border: thin solid rgba(94,86,105,.14);
+        border-radius: 6px;
+        padding: 12px;
+    }
+    .line {
+        display: block;
+        flex: 1 1 0px;
+        max-width: 100%;
+        height: 0px;
+        max-height: 0px;
+        border: solid;
+        border-width: thin 0 0 0;
+        transition: inherit;
+        border-color: rgba(94, 86, 105, 0.14);
+    }
+    .v-progress-linear {
+        height: 4px;
+        background: transparent;
+        overflow: hidden;
+        position: relative;
+        transition: .2s cubic-bezier(.4,0,.6,1);
+        width: 100%;
+        color: rgba(60,0,0,.87);
+    }
+    .v-progress-linear__active {
+        bottom: 0;
+        position: absolute;
+        top: 0;
+        transition: inherit;
+        background-color: #fbc02d!important;
+        border-color: #fbc02d!important;
+        opacity: 0.8;
+        left: 0;
+        width: 40%;
+    }
+
+    .long {
+        animation-name: aaaa;
+        animation-duration: 2.5s;
+        animation-iteration-count: infinite;
+    }
+
+    .short {
+        animation-name: bbbb;
+        animation-duration: 2.5s;
+        animation-iteration-count: infinite;
+    }
+    .v-progress-linear__background {
+        bottom: 0;
+        position: absolute;
+        top: 0;
+        transition: inherit;
+        background-color: #fbc02d!important;
+        border-color: #fbc02d!important;
+        opacity: 0.3;
+        left: 0;
+        width: 100%;
+    }
+
+    @keyframes aaaa {
+        0% {
+            left: -90%;
+            right: 100%;
+        }
+        60% {
+            left: -90%;
+            right: 100%;
+        }
+
+        100% {
+            left: 100%;
+            right: -35%;
+        }
+    }
+    @keyframes bbbb {
+        0% {
+            left: -200%;
+            right: 100%
+        }
+
+        60% {
+            left: 107%;
+            right: -8%
+        }
+
+        to {
+            left: 107%;
+            right: -8%
+        }
+    }
+</style>
+</html>

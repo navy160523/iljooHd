@@ -1,0 +1,388 @@
+<!--
+  화면명 : 보건위험성 보정
+  화면개요 : 보건위험성 보정 > 직무별 직업병 요관찰/유소견 현황 > 공정,직종설정
+-->
+<script setup>
+import { ref, reactive, getCurrentInstance, onMounted } from 'vue'
+import { useUserStore } from '@hiway/stores/user'
+import { useI18n } from 'vue-i18n'
+import { isEmpty } from '@/@core/utils'
+import { commonSearchApi, commonExecuteApi, getCodeList, commonRequest, commonSendApi } from '@hiway/api/commonApi'
+import { startDragging, handleDragging, stopDragging } from '@/utils/useDrag.js'
+import IGridTitle from '@/components/IGridTitle.vue'
+import queryFlowHelper from '@/utils/searchFlowHelper'
+import saveFlowHelper from '@/utils/saveFlowHelper'
+import dayjs from 'dayjs'
+import Message from '@hiway/utils/notify'
+import RealGrid from '@/components/RealGrid.vue'
+
+const emit = defineEmits(['after-search'])
+const dialog = ref(null)
+const userStore = useUserStore()
+const vm = getCurrentInstance().proxy //다이얼로그관련
+const t = useI18n().t //다국어
+const grdMain = ref(null)
+const menuTitle = ref(null)
+
+const searchParams = reactive({
+  CMPNY_DIV: userStore.cmpnyDiv,
+  BSNS_CD: '',
+  DEPT_CD: '',
+  ASGN_CD: '',
+  YEAR: '',
+  GBN_NO: '',
+  PROCESS_CD: '',
+  COMBO_LIST: [],
+  NO_ADJUST: '',
+  ADJUST_YN: 'Y',
+  STATUS: ''
+})
+
+const codeList = reactive({
+  GBN_NO: [
+    {COD: 'A', TXT: '화학물질노출'},
+    {COD: 'B', TXT: '소음노출'},
+    {COD: 'C', TXT: '화학물질노출'},
+  ], 
+  PROCESS_CD: [
+  ]
+  
+})
+
+//그리드 속성셋팅
+const grdMainProps = reactive({
+  gridViewOption: { checkBar: { visible: true }, edit: { editable: true }, stateBar: { visible: false } },
+  keys: [],
+  fields: [
+    { fieldName: 'DEPT_NM', width: '80', editable: false, dataType: 'text', header: { text: t('부서명') }, },
+    { fieldName: 'ASGN_NM', width: '80', editable: false, dataType: 'text', header: { text: t('소속 과') }, },
+    { fieldName: 'EMP_NO', width: '50', editable: false, dataType: 'text', header: { text: t('사번') }, },
+    { fieldName: 'KOR_NM', width: '50', editable: false, dataType: 'text', header: { text: t('이름') }, },
+    { fieldName: 'JOB_TIT_NM', width: '50', editable: false, dataType: 'text', header: { text: t('직위') }, },
+    { fieldName: 'STD_DUTY_NM', width: '60', editable: false, dataType: 'text', header: { text: t('직무') }, },
+    { fieldName: 'DIAGNOSIS_CD', width: '40', editable: false, dataType: 'text', header: { text: t('유소견(D1)') }, },
+    { fieldName: 'DISEASE_NM', width: '100', editable: false, dataType: 'text', header: { text: t('질환명') }, },
+    { fieldName: 'GBN_NO', width: '50', editable: false, dataType: 'text', header: { text: t('위험 구분') }, lookupDisplay: true },
+    { fieldName: 'PROCESS_CD', width: '80', editable: true, dataType: 'text', styleName: 'editable_column', header: { text: t('대상 공정/직종 선택') }, editor: { type: 'dropdown' }, lookupDisplay: true,
+      'styleCallback': function(grid, dataCell){
+        var ret = { editable : true, styleName : 'editable_column', enabled: true }
+        var dropList = { COD: [], TXT: [] }
+        var gbnNo = grid.getValue(dataCell.index.itemIndex, 'GBN_NO')
+
+        dropList.COD = searchParams.COMBO_LIST[gbnNo].map(item => item.COD)
+        dropList.TXT = searchParams.COMBO_LIST[gbnNo].map(item => item.TXT)
+        ret.editor = {
+          type: 'dropdown',
+          values: dropList.COD,
+          labels: dropList.TXT,
+          editable : true, 
+          styleName : 'editable_column', 
+          enabled: true
+        }
+        return ret
+      }
+    },
+    { fieldName: 'EXCLUDED', width: '60', editable: false, dataType: 'boolean', renderer: { type: "check" }, styleName: 'editable_column change_back_check', header: { text: t('보정 제외') }, },
+    { fieldName: 'EXCLUDED_REASON', width: '60', editable: true, dataType: 'text', styleName: 'editable_column', header: { text: t('제외 사유') }, },
+    { fieldName: 'ADJUST_USER', width: '60', editable: false, dataType: 'text', header: { text: t('보정자') },
+      mergeRule: { criteria: 'value' },
+      renderer: {
+        type: "html",
+        callback: function (grid, cell, w, h) {
+          var str = 
+          `<p style="text-align:center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${isEmpty(cell.value) ? ' ': cell.value.replaceAll('&lt;br&gt;', '<br>')}</p>`
+          return str
+        },
+      }
+    },
+    
+    { fieldName: 'CMPNY_DIV', dataType: 'text', header: { text: t('회사') }, visible: false },
+    { fieldName: 'SAVE_YN', dataType: 'text', header: { text: t('저장여부') }, visible: false },
+    { fieldName: 'YEAR', dataType: 'text', header: { text: t('년도') }, visible: false },
+    { fieldName: 'BSNS_CD', dataType: 'text', header: { text: t('사업부코드') }, visible: false },
+    { fieldName: 'DEPT_CD', dataType: 'text', header: { text: t('부서코드') }, visible: false },
+    { fieldName: 'ASGN_CD', dataType: 'text', header: { text: t('부서코드') }, visible: false },
+    { fieldName: 'DISEASE_CD', dataType: 'text', header: { text: t('질병코드') }, visible: false },
+    { fieldName: 'STD_DUTY_CD', dataType: 'text', header: { text: t('직무코드') }, visible: false },
+    { fieldName: 'STATUS', dataType: 'text', header: { text: t('상태') }, visible: false },
+  
+  ],
+  columns: [],
+})
+
+grdMainProps.columns = grdMainProps.fields
+
+const openPopup = (params) => {
+  searchParams.BSNS_CD = params.BSNS_CD
+  searchParams.DEPT_CD = params.DEPT_CD
+  searchParams.ASGN_CD = params.ASGN_CD
+  searchParams.YEAR = params.YEAR
+  searchParams.COMBO_LIST = params.COMBO_LIST
+  searchParams.GBN_NO = params.GBN_NO
+  searchParams.STATUS = params.STATUS
+
+  if(searchParams.STATUS == '보정 완료') {
+    menuTitle.value.disableBtn('btnConfirm', true)
+    menuTitle.value.disableBtn('btnCancelConfirm', false)
+    searchParams.ADJUST_YN = 'N'
+  } else {
+    menuTitle.value.disableBtn('btnConfirm', false)
+    menuTitle.value.disableBtn('btnCancelConfirm', true)
+    searchParams.ADJUST_YN = 'Y'
+  }
+  for(let c in searchParams.COMBO_LIST) {
+    for(let cd of searchParams.COMBO_LIST[c]) {
+      if(!codeList.PROCESS_CD.includes(cd)) {
+        codeList.PROCESS_CD.push(cd)
+      }
+    }
+  }
+  grdMain.value.getDataProvider().setRows([])
+  grdMain.value.setBindingColumn('GBN_NO', codeList.GBN_NO, 'COD', 'TXT') 
+  grdMain.value.setBindingColumn('PROCESS_CD', codeList.PROCESS_CD, 'COD', 'TXT') 
+  onButtonsClick({ id: 'btnSearch' })
+  dialog.value = true
+}
+
+const closePopup = () => {
+  emit('after-search')
+  dialog.value = false
+}
+
+const onButtonsClick = (btn) => {
+  if (btn.id === 'btnClose') {
+    closePopup()
+  } else if (btn.id === 'btnSearch') {
+    getData()
+  } else if (btn.id === 'btnUpdate') { 
+    new saveFlowHelper(vm, t)
+      .setTargetGridRow([{ grid:grdMain, row: 'check' }])
+      .setGridList([grdMain])
+      .setBefore(beforeSave)
+      .setQuery(saveData)
+      .setAfter(afterSaveData)
+      .run()
+  } else if (btn.id === 'btnConfirm') {
+    new saveFlowHelper(vm, t)
+      .setConfirmMessage(t('확정 하시겠습니까?'))
+      .setBefore(beforeConfirm)
+      .setQuery(confirmData)
+      .setAfter(afterConfirmData)
+      .run()
+  } else if (btn.id === 'btnCancelConfirm') {
+    new saveFlowHelper(vm, t)
+      .setConfirmMessage(t('확정취소 하시겠습니까?'))
+      .setQuery(cancelData)
+      .setAfter(afterCancelData)
+      .run()
+  }
+}
+
+// 그리드 데이터 가져오기
+const getData = () => {
+  new queryFlowHelper(vm, t)
+    .setQuery(searchData)
+    .setAfter(afterSearch)
+    .showMessage(true)
+    .run()
+}
+
+//  조회
+const searchData = () => {
+  return commonSearchApi({ queryId: 'HLTAB0010_SEARCH_05', param: searchParams })
+}
+
+// 조회 후
+const afterSearch = (res) => {
+  console.log(res)
+  grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
+
+  if(res.ORESULT_CUR2.length == 1) { 
+    searchParams.NO_ADJUST = res.ORESULT_CUR2[0].NO_ADJUST + '명'
+  }
+
+  // 해당 인원이 없을 시 보정완료, 확정 및 취소 불가
+  if(res.ORESULT_CUR.length == 0) {
+    menuTitle.value.disableBtn('btnConfirm', true)
+    menuTitle.value.disableBtn('btnCancelConfirm', true)
+  }
+}
+
+// 저장 전
+const beforeSave = () => {
+  // check 항목이 없을 시 return
+  let checkedRows = grdMain.value.getGridView().getCheckedRows(true)
+
+  // validation 체크
+  if(checkedRows.length == 0) {
+    return Message.warn(t('저장할 데이터가 없습니다.'))
+  }
+
+  for (let rowIdx of checkedRows) {
+    let data = grdMain.value.getDataProvider().getJsonRow(rowIdx)
+    if(!data.EXCLUDED && isEmpty(data.PROCESS_CD)){
+      return Message.warn(t('공정을 선택하셔야 합니다.'))
+    }
+  }
+  return true
+}
+
+const saveData = () => {
+  let saveParams = []
+  let checkedRows = grdMain.value.getGridView().getCheckedRows(true)
+ 
+  for (let rowIdx of checkedRows) {
+    let data = grdMain.value.getDataProvider().getJsonRow(rowIdx)
+    let prcNm = searchParams.COMBO_LIST[data.GBN_NO].find(item => item.COD == data.PROCESS_CD) 
+    if(!isEmpty(prcNm)) {
+      data.PROCESS_NM = prcNm.TXT
+    }
+    if(isEmpty(data.STATUS)) {
+      data.STATUS = '1'
+    }
+    data.ADJUST_USER = `${userStore.userName} ${userStore.jobTitNm} <br>${dayjs().format('YYYY.MM.DD')}`
+    saveParams.push(data)
+  }
+  return commonExecuteApi({ queryId : 'HLTAB0010_SAVE_02', list: saveParams })
+}
+
+const afterSaveData = () => {
+  Message.success(t('성공적으로 저장되었습니다'))
+  getData()
+}
+
+const beforeConfirm = () => {
+  if(searchParams.NO_ADJUST.replaceAll('명','') != '0') {
+    return Message.warn(t('미보정 유소견자 수가 존재합니다.'))
+  }
+  return true
+}
+
+const confirmData = () => {
+  let saveParams = []
+ 
+  for (let data of grdMain.value.getGridView().getJsonRows()) {
+    let prcNm = searchParams.COMBO_LIST[data.GBN_NO].find(item => item.COD == data.PROCESS_CD) 
+    if(!isEmpty(prcNm)) {
+      data.PROCESS_NM = prcNm.TXT
+    }
+    data.STATUS = '2'
+    data.ADJUST_USER = `${userStore.userName} ${userStore.jobTitNm} <br>${dayjs().format('YYYY.MM.DD')}`
+    saveParams.push(data)
+  }
+  return Promise.all([
+    commonExecuteApi({ queryId : 'HLTAB0010_SAVE_02', list: saveParams }),
+    commonExecuteApi({ queryId : 'HLTAB0010_SAVE_03', list: [searchParams] })
+  ]).then(res => {
+    getData()
+  })
+}
+
+const afterConfirmData = () => {
+  Message.success(t('성공적으로 저장되었습니다'))
+  menuTitle.value.disableBtn('btnConfirm', true)
+  menuTitle.value.disableBtn('btnCancelConfirm', false)
+  searchParams.ADJUST_YN = 'N'
+}
+
+const cancelData = () => {
+  let saveParams = []
+ 
+  for (let data of grdMain.value.getGridView().getJsonRows()) {
+    let prcNm = searchParams.COMBO_LIST[data.GBN_NO].find(item => item.COD == data.PROCESS_CD) 
+    if(!isEmpty(prcNm)) {
+      data.PROCESS_NM = prcNm.TXT
+    }
+    data.STATUS = '1'
+    data.ADJUST_USER = ''
+    saveParams.push(data)
+  }
+  return Promise.all([
+    commonExecuteApi({ queryId : 'HLTAB0010_SAVE_02', list: saveParams }),
+    commonExecuteApi({ queryId : 'HLTAB0010_SAVE_03', list: [searchParams] })
+  ]).then(res => {
+    getData()
+  })
+}
+
+const afterCancelData = () => {
+  Message.success(t('성공적으로 취소되었습니다'))
+  menuTitle.value.disableBtn('btnConfirm', false)
+  menuTitle.value.disableBtn('btnCancelConfirm', true)
+  serachParams.ADJUST_YN = 'Y'
+  
+}
+
+const onEditCommit = async (grid, index, oldValue, newValue) => {
+  await nextTick()
+  searchParams.NO_ADJUST = grdMain.value.getDataProvider().getJsonRows().filter(item => isEmpty(item.PROCESS_CD) && !item.EXCLUDED).length + '명'
+}
+
+defineExpose({
+  openPopup,
+})
+</script>
+
+<template>
+  <v-dialog
+    v-model="dialog"
+    eager
+    persistent
+    width="1400"
+    height="600"
+    class="p-absolute user-select-none"
+    @mousemove="handleDragging"
+    @mouseup="stopDragging"
+  >
+    <v-sheet
+      color="primarySub" 
+      height="50"
+      class="px-4 d-flex align-center rounded-t-5 cursor-move"
+      @mousedown="startDragging"
+    > 
+      <span>보건 위험성 세부 보정</span>
+    </v-sheet>
+    <v-card class="pa-0 rounded-b-5">
+      <v-card-title class="pa-4 pb-2">
+        <IGridTitle
+          ref="menuTitle"
+          :title="$t('직무별 직업병 요관찰/유소견 현황')"
+          :button-list="['btnConfirm', 'btnCancelConfirm', 'btnUpdate', 'btnClose']"
+          :use-permission="false"
+          @click-button="onButtonsClick"
+        />
+      </v-card-title>
+      <div class="d-flex fill-height"> 
+        <v-card-text class="pa-4 pt-0 content-area">
+          <div class="d-flex flex-column fill-height">
+            <v-sheet class="searchArea flex-column">
+              <RealGrid 
+                ref="grdMain"
+                style="height: 350px;"
+                :grid-view-option="grdMainProps.gridViewOption"
+                :keys="grdMainProps.keys"
+                :fields="grdMainProps.fields"
+                :columns="grdMainProps.columns"
+                @onEditCommit="onEditCommit"
+              />
+            </v-sheet>
+          </div>
+        </v-card-text>
+      </div>
+      <v-sheet class="ma-4 mt-0 pt-0 searchArea">
+        <div class="d-flex mt-2">
+          <i-input
+            :label="$t('위험성 미보정 유소견자 수')"
+            width="350px" 
+            label-width="150px"
+            v-model="searchParams.NO_ADJUST"
+            readonly
+          ></i-input> 
+          <div class="mt-2"> 
+            모든 인원에 ‘공정 지정’ 또는 ‘보정  제외’ 처리 후 ‘확정’ 버튼을 클릭해주세요. 일부 인원만 지정하신 경우에는 ‘저장‘  버튼을 눌러 ‘부분 저장‘ 하실 수 있습니다. 
+          </div>
+        </div>
+      </v-sheet>
+    </v-card>
+  </v-dialog>
+</template>

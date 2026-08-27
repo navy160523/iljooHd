@@ -1,0 +1,204 @@
+@charset "UTF-8";
+
+.multiline-editor {
+  white-space: pre-wrap;
+}
+
+.multiline-editor-left {
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.multiline-editor-pre {
+  white-space: pre;
+}
+
+.multiline-editor-nowrap {
+  white-space: nowrap;
+}
+
+.multiline-editor-pre-line {
+  white-space: pre-line;
+}
+
+/* 2024.03.19 박용훈 헤더 줄바꿈(\n) 추가 */
+.header_column {
+  white-space: pre-wrap;
+}
+
+.right-column {
+  text-align: right;
+}
+
+/* 2024.04.23 차동운 CELL 에러 값 표시 */
+.right-error-column {
+  color: red;
+  text-align: end;
+}
+
+.left-column {
+  text-align: left;
+}
+
+.center-column {
+  text-align: center;
+}
+
+.editable_column {
+  background-color: #eff8fd;
+}
+.non-editable-add-DataRow {
+  background-color: #ff8a8a;
+}
+
+.editable_column-left {
+  background-color: #eff8fd;
+  text-align: left;
+}
+
+.editable_column-center {
+  background-color: #eff8fd;
+  text-align: center;
+}
+
+.editable_column-right {
+  background-color: #eff8fd;
+  text-align: right;
+}
+
+.editable_multiline_column-left {
+  background-color: #eff8fd;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.editable_multiline_column {
+  background-color: #eff8fd;
+}
+
+.error_column {
+  background-color: #f0c2c2;
+}
+
+.success_column {
+  background-color: #58ed8e;
+}
+
+.created_column {
+  background-color: #fffccf;
+}
+
+.updated_column {
+  background-color: #c6f0c2;
+}
+
+.rg-popup-item {
+  height: 30px;
+}
+
+.rg-cell-buttons {
+  margin-right: 3px;
+}
+
+/* 2024.01.09 염인식 */
+.rg_underLine {
+  text-decoration: underline;
+}
+
+.rg_pointer {
+  cursor: pointer;
+}
+
+/* 2024.01.09 염인식 */
+.rg_blue {
+  color: #0000ff;
+}
+
+/* 2024.01.10 염인식 */
+.excelTitle {
+  border: 1px solid black;
+  text-align: center;
+  font-size: 28pt;
+  font-weight: bold;
+}
+
+/* 2024.01.10 염인식 */
+.export_header_style {
+  border: 1px solid black;
+  background-color: lightgray;
+}
+
+/* 2024.01.10 염인식 */
+.export_style {
+  border: 1px solid black;
+  background-color: white;
+  text-align: center;
+}
+
+/* 2024.01.12 염인식 */
+.header_validit > .rg-header-renderer {
+  display: inline;
+}
+
+/* 2024.01.12 염인식 */
+.header_validit::after {
+  content: "*";
+  color: red;
+}
+
+/* 2024.02.22 염인식 */
+.footer-font {
+  font-size: 12pt;
+  /* font-weight: bold; */
+}
+
+/* 2024.03.08 박용훈 그룹푸터 추가 */
+.group_footer {
+  background-color: #ffffff;
+}
+
+/* 2024.03.20 박용훈 SUM컬럼 색상 추가 */
+.sum-column {
+  background-color: #ffe0c0;
+}
+
+/* cell data 여러줄 표시하기 */
+.data_wrap {
+  word-wrap: break-word;
+  white-space: normal;
+  padding: 0px;
+}
+
+.cursor_pointer {
+  cursor: pointer;
+}
+
+.rg-data-cell {
+  div {
+    overflow: hidden;
+  }
+}
+
+/* 2024.07.04 이상걸 readonly의 체크박스가 체크인지 아닌지 구분이 안된다 하여 추가 */
+.change_back_check {
+  input[type="checkbox"] {
+    background: white !important;
+  }
+  input[type="checkbox"]:checked {
+    background: #0012ff !important;
+    color: white !important;
+  }
+  input[type="checkbox"]::after {
+    background-image: url("data:image/svg+xml,%3Csvg width='9' height='6' viewBox='0 0 9 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M8.4188 0.140506C8.61735 0.332431 8.62271 0.648968 8.43079 0.847512L3.59745 5.84751C3.50203 5.94622 3.37022 6.00135 3.23294 5.99998C3.09566 5.9986 2.96498 5.94083 2.87156 5.84023L0.704894 3.50689C0.516993 3.30454 0.52871 2.98817 0.731066 2.80027C0.933421 2.61237 1.24979 2.62409 1.43769 2.82644L3.24525 4.77305L7.7118 0.152489C7.90372 -0.0460538 8.22026 -0.0514188 8.4188 0.140506Z' fill='%23ffffff'/%3E%3C/svg%3E%0A") !important;
+  }
+}
+
+/* 2025.01.02 이상걸 pk컬럼 색 변경 */
+.pk_column {
+  background-color: #fefde8;
+}
+
+/* 2025.03.06 이상걸 지역별 온도 현황 ifram화면 헤더 색 변경 */
+#XX08 .rg-header .rg-table tr td.temp-header.rg-header-cell {
+  background-color: #eaf1fd !important;
+}

@@ -1,0 +1,97 @@
+@font-face {
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:250;
+    src:local('Roboto Thin'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Thin.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face {
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:250;
+    src:local('Roboto Thin'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-ThinItalic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face {
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:300;
+    src:local('Roboto Light'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Light.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face{
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:300;
+    src:local('Roboto Light'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-LightItalic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face {
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:400;
+    src:local('Roboto'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Regular.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+
+@font-face {
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:400;
+    src:local('Roboto'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Italic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face{
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:500;
+    src:local('Roboto Medium'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Medium.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face{
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:500;
+    src:local('Roboto Medium'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-MediumItalic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face {
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:700;
+    src:local('Roboto'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Bold.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face {
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:700;
+    src:local('Roboto'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-BoldItalic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face{
+    font-family:'Roboto';
+    font-style:normal;
+    font-weight:900;
+    src:local('Roboto Black'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-Black.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}
+@font-face{
+    font-family:'Roboto';
+    font-style:italic;
+    font-weight:900;
+    src:local('Roboto Black'),
+    url('https://fonts.cdnfonts.com/s/12165/Roboto-BlackItalic.woff') format('woff');
+    unicode-range: U+0041-005A, U+0061-007A;    // 영어 대문자, 소문자
+}

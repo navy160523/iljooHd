@@ -1,0 +1,12 @@
+npm verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+npm info using npm@11.11.0
+npm info using node@v24.14.1
+npm verbose title npm install
+npm verbose argv "install" "--registry" "https://registry.npmjs.org/" "--loglevel" "verbose"
+npm verbose logfile logs-max:10 dir:C:\Users\YJ\AppData\Local\npm-cache\_logs\2026-08-27T12_22_10_291Z-
+npm verbose logfile C:\Users\YJ\AppData\Local\npm-cache\_logs\2026-08-27T12_22_10_291Z-debug-0.log
+npm http cache @casl/ability@http://10.100.39.222/nexus/repository/npm-group/@casl/ability/-/ability-6.3.2.tgz 1ms (cache hit)
+npm http fetch GET http://10.100.39.222/nexus/repository/npm-group/@casl/ability/-/ability-6.3.2.tgz attempt 1 failed with ETIMEDOUT
+npm http fetch GET http://10.100.39.222/nexus/repository/npm-group/@casl/ability/-/ability-6.3.2.tgz attempt 2 failed with ETIMEDOUT
+npm http fetch GET http://10.100.39.222/nexus/repository/npm-group/@casl/ability/-/ability-6.3.2.tgz attempt 3 failed with ETIMEDOUT
+npm http cache @casl/vue@http://10.100.39.222/nexus/repository/npm-group/@casl/vue/-/vue-2.2.0.tgz 0ms (cache hit)

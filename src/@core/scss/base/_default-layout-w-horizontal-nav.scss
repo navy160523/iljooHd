@@ -1,0 +1,56 @@
+@use "vuetify/lib/styles/tools/elevation" as elevation;
+@use "@core/scss/base/placeholders" as *;
+@use "@core/scss/template/placeholders" as *;
+
+.layout-wrapper.layout-nav-type-horizontal {
+
+  .layout-weather-container {
+    width:100%; 
+    height: 45px; 
+    background-color: #fff;
+  }
+
+  .layout-navbar-and-nav-container {
+    @extend %default-layout-horizontal-nav-navbar-and-nav-container;
+    box-shadow: none;
+  }
+
+  // 👉 Navbar
+  .layout-navbar {
+    @extend %default-layout-horizontal-nav-navbar;
+  
+  }
+
+  // 👉 Layout content container
+  .navbar-content-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    block-size: 100%;
+    box-shadow: none;
+  }
+
+  .layout-horizontal-nav {
+    @extend %default-layout-horizontal-nav-nav;
+
+    .nav-items {
+      @extend %default-layout-horizontal-nav-nav-items-list;
+    }
+  }
+
+  // 👉 App footer
+  .layout-footer {
+    @at-root {
+      .layout-footer-sticky#{&} {
+        background-color: rgb(var(--v-theme-surface));
+
+        @include elevation.elevation(3);
+      }
+    }
+  }
+
+  // TODO: Use Vuetify grid sass variable here
+  // . {
+  //   padding-block: 0.5rem;
+  // }
+}

@@ -1,0 +1,372 @@
+/** ✏️ 영역별 CSS  */
+@import '@/assets/style/base/index.scss';
+@import '@/assets/style/components/index.scss';
+@import '@/assets/style/layout/index.scss';
+@import '@/assets/style/layout/index.scss';
+@import '@/assets/font/webfont.scss';
+
+/** ✏️ 전체 CSS  */
+html {
+  font-family: 'Pretendard', 'Roboto', 'Spoqa Han Sans Neo', sans-serif !important;
+  overflow: auto;
+}
+
+$position-values: absolute, relative, fixed;
+@each $value in $position-values {
+  .p-#{$value} {
+    position: $value;
+  }
+}
+
+$cursor-values: auto, default, grab, grabbing, help, move, none, not-allowed,
+  pointer, progress, text, wait;
+@each $value in $cursor-values {
+  .cursor-#{$value} {
+    cursor: $value;
+  }
+}
+
+@for $value from 0 through 100 {
+  $rounded: $value + px;
+  .rounded-#{$value} {
+    border-radius: $value !important;
+  }
+  .rounded-t-#{$value} {
+    border-radius: $rounded $rounded 0 0 !important;
+  }
+  .rounded-b-#{$value} {
+    border-radius: 0 0 $rounded $rounded !important;
+  }
+  .rounded-l-#{$value} {
+    border-radius: $rounded 0 0 $rounded !important;
+  }
+  .rounded-r-#{$value} {
+    border-radius: 0 $rounded $rounded 0 !important;
+  }
+}
+
+$user-select-values: auto, none;
+@each $value in $user-select-values {
+  .user-select-#{$value} {
+    user-select: $value;
+  }
+}
+
+// 1px 단위 Custom padding / margin  ex(mT-32 = margin-top: 32px)
+// Vuetify는 4px 단위 증가 ex(mt-1 = margin-top:4px, mt-2 = margin-top: 8px)
+
+@for $w from 100 through 900 {
+  .w-#{$w} {
+    font-weight: $w !important;
+  }
+}
+
+@for $t from 1 through 99 {
+  $value: $t * 1px !important;
+  .f-#{$t} {
+    font-size: $value;
+  }
+}
+
+@for $m from 1 through 99 {
+  $value: $m * 1px;
+  .mR-#{$m} {
+    margin-right: $value;
+  }
+  .mB-#{$m} {
+    margin-bottom: $value;
+  }
+  .mL-#{$m} {
+    margin-left: $value;
+  }
+  .mT-#{$m} {
+    margin-top: $value;
+  }
+  .mX-#{$m} {
+    margin-left: $value;
+    margin-right: $value;
+  }
+  .mY-#{$m} {
+    margin-top: $value;
+    margin-bottom: $value;
+  }
+  .pR-#{$m} {
+    padding-right: $value;
+  }
+  .pB-#{$m} {
+    padding-bottom: $value;
+  }
+  .pL-#{$m} {
+    padding-left: $value !important;
+  }
+  .pT-#{$m} {
+    padding-top: $value;
+  }
+  .pX-#{$m} {
+    padding-left: $value;
+    padding-right: $value;
+  }
+  .pY-#{$m} {
+    padding-top: $value;
+    padding-bottom: $value;
+  }
+}
+
+/*
+ * ============================================================================================================================================================
+ * TEXT
+ * ============================================================================================================================================================
+ */
+
+// v-data-table 공통
+.v-table.v-table--fixed-header > .v-table__wrapper > table > thead > tr > th {
+  box-shadow: none !important;
+  font-size: 14px;
+}
+.v-table > .v-table__wrapper > table > thead > tr > th {
+  color: #222;
+}
+
+// text
+.mainTitle {
+  font-size: 20px;
+  font-weight: 700 !important;
+}
+.mainCaption {
+  font-size: 12px;
+  font-weight: 300 !important;
+}
+
+.mainCaption2 {
+  font-size: 16px;
+  font-weight: 400 !important;
+}
+
+.mainCaption3 {
+  font-size: 14px;
+  font-weight: 400 !important;
+}
+
+.mainCaption4 {
+  font-size: 14px;
+  font-weight: 700 !important;
+}
+
+.mainCaption5 {
+  font-size: 16px;
+  font-weight: 400 !important;
+}
+
+.mainCaption6 {
+  font-size: 16px;
+  font-weight: 500 !important;
+}
+
+.mainCaption7 {
+  font-size: 16px;
+  font-weight: 600 !important;
+}
+
+.mainCaption8 {
+  font-size: 16px;
+  font-weight: 800 !important;
+}
+.mainCaption9 {
+  font-size: 16px;
+  font-weight: 900 !important;
+}
+.footerText01 {
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.text-red {
+  color: #ff0000 !important;
+}
+
+/*
+ * ============================================================================================================================================================
+ * LAYOUT
+ * ============================================================================================================================================================
+ */
+
+.contentArea {
+  min-height: calc(100vh - 200px);
+  height: auto;
+  &:has(.homeView) {
+    height: auto !important;
+    min-height: calc(100vh - 100px);
+  }
+}
+.defaultContent {
+  max-width: 1200px;
+}
+
+/*
+ * ============================================================================================================================================================
+ * Sub 페이지 공통
+ * ============================================================================================================================================================
+ */
+.v-card {
+  border-radius: 3px;
+}
+.v-card-item {
+  padding: 0 !important;
+}
+// card Component
+.v-row > .cardComponent:first-child {
+  border-top-left-radius: 3px !important;
+  border-top-right-radius: 3px !important;
+}
+
+.v-row > .cardComponent:last-child {
+  border-bottom-left-radius: 3px !important;
+  border-bottom-right-radius: 3px !important;
+  padding-bottom: 20px !important;
+}
+
+.contentArea > .v-row > .cardComponent:only-child {
+  padding-bottom: 20px !important;
+}
+
+//---------------------------------------------------
+// v-tab
+//---------------------------------------------------
+
+.v-card {
+  .v-slide-group__content {
+    .v-btn--size-default {
+      padding: 7px 50px !important;
+    }
+  }
+}
+
+.v-tabs {
+  .v-slide-group__container {
+    border-bottom: 1px solid rgba(26, 64, 199, 0.05);
+  }
+}
+
+.searchArea:has(.v-tabs) {
+  .v-tabs .v-slide-group__container {
+    border: 0 !important;
+  }
+  .v-tab__slider {
+    display: none !important;
+  }
+  padding: 4px !important;
+  margin-bottom: 16px !important;
+}
+
+//---------------------------------------------------
+// v-menu opacity 수정
+//---------------------------------------------------
+
+.v-field__input {
+  opacity: 1 !important;
+}
+
+.v-input--readonly:not(.v-select, .bgColorWhite) {
+  color: #999999;
+
+  .v-field {
+    // background-color: #eee;
+    background-color: rgba(228, 228, 228, 0.5);
+  }
+
+  .v-field__input {
+    // color: #999999 !important;
+    font-size: 14px !important;
+    font-weight: 300 !important;
+    opacity: 1 !important;
+    // background-color: rgba(228, 228, 228, 0.5) !important;
+    border-radius: 4px;
+
+    // color: #333;
+  }
+}
+
+//---------------------------------------------------
+// text area
+//---------------------------------------------------
+
+.v-textarea .v-field__input {
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+}
+
+//---------------------------------------------------
+// sheet
+//---------------------------------------------------
+.v-sheet {
+  position: relative;
+  background-color: transparent;
+}
+
+//---------------------------------------------------
+// overlay
+//---------------------------------------------------
+.v-overlay__content {
+  .v-container {
+    background-color: #fff;
+  }
+}
+
+//---------------------------------------------------
+// custom / flex-container
+//---------------------------------------------------
+.content-area {
+  @mixin flexbox() {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+  }
+  @mixin flex($values) {
+    -webkit-box-flex: $values;
+    -moz-box-flex: $values;
+    -webkit-flex: $values;
+    -ms-flex: $values;
+    flex: $values;
+  }
+  .v-sheet:not(.searchArea, .d-flex) {
+    @include flexbox();
+    flex-direction: column;
+  }
+  .h-auto,
+  .h-grow {
+    @include flexbox();
+    @include flex(1 1 auto);
+    &:not(.h-grow) {
+      flex-direction: column;
+    }
+  }
+  .h-window {
+    @include flexbox();
+    @include flex(1 1 auto);
+    > .v-window__container {
+      @include flex(1 1 auto);
+      > .v-window-item {
+        @include flexbox();
+        @include flex(1 1 auto);
+        flex-direction: column;
+        opacity: 0;
+        &.v-window-item--active {
+          animation: v-window-fade 0.3s ease-in both;
+        }
+        @keyframes v-window-fade {
+          from {
+            transform: translate(0);
+            opacity: 0;
+          }
+          to {
+            transform: translate(0);
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+}

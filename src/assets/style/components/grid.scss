@@ -1,0 +1,470 @@
+@charset "UTF-8";
+//그리드 row
+
+.rg-focused-row {
+  border: 0 !important;
+}
+
+.rg-data-row {
+  //grid 배경색 및 높이지정
+  background-color: #ffffff;
+  // height: 32px;
+  &.rg-focused-row {
+    background-color: #fafafa !important;
+    // border-top: none !important;
+    .rg-data-cell:hover {
+      background-color: #ededed !important;
+    }
+  }
+  //RealGrid제공하는 체크박스 체크시 해당 row색상
+  &.rg-checked-row {
+    background-color: #e9edf9 !important;
+    .rg-data-cell:hover {
+      background-color: #d9e0f3 !important;
+    }
+  }
+  > .rg-data-cell {
+    //editable true -checkbox
+    > .rg-check-renderer {
+      accent-color: #1a40c7 !important;
+      opacity: 1;
+    }
+  }
+  > .rg-data-readonly-cell {
+    //editable false -checkbox
+    // color: #000000;
+    > .rg-check-renderer {
+      accent-color: #000000;
+      opacity: 1 !important;
+    }
+  }
+}
+
+// table boder-top rounded
+.rg-head {
+  border-top-left-radius: 3px !important;
+  // .rg-table tr td,
+  // .rg-rowindicator-cell {
+  //   border-bottom: 1px solid #DFE3EF!important;
+  // }
+  .rg-rowindicator-head {
+    border-top-left-radius: 7px !important;
+  }
+}
+
+// .rg-table tr td {
+//   border-bottom: 1px solid #DFE3EF!important;
+// }
+
+.rg-header {
+  .rg-table tr td {
+    // background-color: #f4f5f9;
+    background-color: #f4f5f9 !important;
+    &:hover {
+      background-color: #d6dae7 !important;
+    }
+  }
+}
+
+
+
+// 2024-03-26 김성근 팝업 그리드 컬럼 색상변경 
+.draggable-dialog{
+  .rg-head {
+    .rg-checkbar-head {
+      // border-right: none !important;
+      background-color: #EDEDED !important;
+    }
+
+    .rg-rowindicator-head {
+      background-color: #EDEDED !important;
+      color: #222222;
+    }
+
+  }
+
+  .rg-header {
+
+    .rg-table tr td:hover{
+      background-color: #FAFAFA !important;
+    }
+
+  
+    .rg-header-group-cell {
+      background-color: #EDEDED !important;
+      font-size: 14px;
+      color: #222;
+      font-weight: 400;
+    }
+
+
+    .rg-header-cell {
+      background-color: #EDEDED !important;
+      font-size: 14px;
+      font-weight: 400;
+      color: #222;
+      // min-height: 35px;
+      // border-right: none !important;
+      // border-left: none !important;
+      // border-color: #DFE3EF!important;
+      &:last-child {
+        border-right: 0 !important;
+      }
+
+    }
+  }
+}
+
+
+.rg-data-row{
+  td:last-child{
+    border-right: 0;
+  }
+}
+//메인 그리드 셀
+// .rg-data-cell {
+//   border-right: none !important;
+// }
+//메인 그리드 셀 마우스 오버시
+.rg-data-cell:hover {
+  // background-color: #fafafa !important;
+  background-color: #00000010 !important;
+}
+
+//그리드 컨텐츠
+.rg-body {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.rg-grid {
+  border: 1px solid #F4F5F9;
+}
+
+//헤더 셀
+
+.rg-header-cell {
+  // background-color: #fafafa;
+  background-color: #fafafa !important;
+  font-size: 14px;
+  font-weight: 400;
+  color: #222;
+  // min-height: 35px;
+  // border-right: none !important;
+  // border-left: none !important;
+  // border-color: #DFE3EF!important;
+  &:last-child {
+    border-right: 0;
+  }
+}
+
+//헤더 셀 포커스
+.rg-header-focus {
+  background-color: #dfe3ef !important;
+}
+
+//헤더 그룹셀
+.rg-header-group-cell {
+  background-color: #fafafa !important;
+  font-size: 14px;
+  color: #222;
+  font-weight: 400;
+  // height: 35px;
+  // border-right: none !important;
+  // border-left: none !important;
+  // border-color: #DFE3EF!important;
+  // border-bottom: 1px solid #DFE3EF!important;
+}
+
+//RealGrid제공하는 좌측 체크바
+.rg-checkbar-cell {
+  // border-right: none !important;
+  background-color: #ffffff !important;
+}
+
+// 2024-04-24 김성근 disable 시 displaynone 처리
+.rg-checkbar-disabled{
+  .rg-checkbox{
+    display: none !important;
+  }
+}
+
+//좌측 No. 헤더
+.rg-head-cell {
+  // border-right: none !important;
+  // background-color: #f4f5f9;
+  background-color: #f4f5f9 !important;
+  color: #222222;
+  // border-color: #DFE3EF!important;
+}
+
+//No. 셀
+.rg-rowindicator-cell {
+  // border-right: none !important;
+  background-color: #ffffff !important;
+  width: 80px !important;
+  //좌측 No. 헤더 셀 포커스
+  // &.rg-rowindicatort-focus {
+  //   background-color: #fafafa !important;
+  // }
+}
+
+// 그리드 특정 셀 포커스
+.rg-focus {
+  border: 1px solid #1a40c7 !important;
+}
+
+//그리드 드래그시 셀영역
+.rg-selection {
+  background: rgba(250, 250, 250, 0.2) !important;
+  // border: 1px solid #1A40C7;
+}
+
+//전체 그리드 영역
+.rg-root.rg-grid {
+  font-family: "Pretendard";
+  // border: none !important;
+  // color: #222222;
+}
+
+//텍스트 좌측 정렬
+.column_left {
+  text-align: left;
+  margin-left: 4px;
+}
+
+//포커스되었을때 좌측 checkbar는 클래스가 변경되지않음
+//형제클래스 No.의 변경을 탐지하여 동일레벨의 checkbar cell css변경
+// disabled cell 포커스 감지 안됨 수정 필요
+// .rg-row-bar {
+//   .rg-rowindicator-cell {
+//     &.rg-rowindicator-focus {
+//       background-color: #fafafa !important;
+
+//       + .rg-checkbar-cell {
+//         background-color: #fafafa !important;
+//       }
+//     }
+//   }
+// }
+
+//포커스되었을때 좌측 checkbar는 클래스가 변경되지않음
+//형제클래스 No.의 변경을 탐지하여 동일레벨의 checkbar cell css변경
+.rg-row-bar:has(input[type="checkbox"]:checked) {
+  .rg-rowindicator-cell,
+  .rg-checkbar-cell {
+    background-color: #e9edf9 !important;
+  }
+}
+
+//셀 에디터 컨테이너 영역
+.rg-editor-container {
+  border: 1px solid #1a40c7;
+}
+
+.left-column {
+  text-align: left;
+}
+// 열 가운데 정렬 추가
+.center-column {
+  text-align: center;
+}
+
+// checkbox 변경
+.rg-grid {
+  input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: #ffffff;
+    border-radius: 2px;
+    border: 1px solid #e4e4e4;
+    cursor: pointer;
+    height: 13px;
+    outline: 0;
+    width: 13px;
+  }
+  input[type="checkbox"]::after {
+    content: "";
+    display: none;
+    height: 13px;
+    left: 10%;
+    position: relative;
+    top: 20%;
+    width: 13px;
+    background-image: url("data:image/svg+xml,%3Csvg width='9' height='6' viewBox='0 0 9 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M8.4188 0.140506C8.61735 0.332431 8.62271 0.648968 8.43079 0.847512L3.59745 5.84751C3.50203 5.94622 3.37022 6.00135 3.23294 5.99998C3.09566 5.9986 2.96498 5.94083 2.87156 5.84023L0.704894 3.50689C0.516993 3.30454 0.52871 2.98817 0.731066 2.80027C0.933421 2.61237 1.24979 2.62409 1.43769 2.82644L3.24525 4.77305L7.7118 0.152489C7.90372 -0.0460538 8.22026 -0.0514188 8.4188 0.140506Z' fill='white'/%3E%3C/svg%3E%0A");
+  }
+  input[type="checkbox"]:checked {
+    background: #1a40c7;
+    border-color: #1a40c7;
+  }
+  input[type="checkbox"]:checked::after {
+    display: block;
+  }
+
+  .rg-data-readonly-cell {
+    input[type="checkbox"] {
+      background: #c3c7d4;
+    }
+    input[type="checkbox"]:checked {
+      background: #c3c7d4;
+      border-color: #dfe3ef;
+    }
+    input[type="checkbox"]::after {
+      background-image: url("data:image/svg+xml,%3Csvg width='9' height='6' viewBox='0 0 9 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M8.4188 0.140506C8.61735 0.332431 8.62271 0.648968 8.43079 0.847512L3.59745 5.84751C3.50203 5.94622 3.37022 6.00135 3.23294 5.99998C3.09566 5.9986 2.96498 5.94083 2.87156 5.84023L0.704894 3.50689C0.516993 3.30454 0.52871 2.98817 0.731066 2.80027C0.933421 2.61237 1.24979 2.62409 1.43769 2.82644L3.24525 4.77305L7.7118 0.152489C7.90372 -0.0460538 8.22026 -0.0514188 8.4188 0.140506Z' fill='%23555555'/%3E%3C/svg%3E%0A");
+    }
+  }
+}
+
+.button-blue {
+  .rg-button-renderer-button {
+    background: #062f87;
+    color: #ffffff;
+    border-color: #4C4C4C;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-grey {
+  .rg-button-renderer-button {
+    background: #BDBDBD;
+    color: #000000;
+    border-color: #4C4C4C;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-white {
+  .rg-button-renderer-button {
+    background: #ffffff;
+    color: #000000;
+    border-color: #4C4C4C;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-green {
+  .rg-button-renderer-button {
+    background: #47C83E;
+    color: #ffffff;
+    border-color: #004A00;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-red {
+  .rg-button-renderer-button {
+    background: #FF0000;
+    color: #ffffff;
+    border-color: #FF0000;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-orange {
+  .rg-button-renderer-button {
+    background: #FFBB00;
+    color: #ffffff;
+    border-color: #FFBB00;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+.button-pink {
+  .rg-button-renderer-button {
+    background: #FFD2D9;
+    color: #000000;
+    border-color: #FFD2D9;
+    width: auto !important;
+    padding: 2px 6.5px;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+  }
+}
+
+// 상세정보 버튼 svg
+.custom_none {
+  display: none;
+}
+
+// 셀 내부 버튼 배치를 위한 위치조정
+.custom_render_span {
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+}
+
+.custom_renderer > div {
+  display: flex;
+  align-items: center;
+}
+
+.custom_renderer .rg-renderer:hover .custom-hover {
+  visibility: visible;
+}
+
+.custom_renderer .rg-renderer .custom-hover {
+  visibility: visible;
+}
+
+.custom_renderer .rg-renderer .custom-focused {
+  visibility: visible;
+}
+
+/*.custom_search {
+  height: 26px;
+  margin-left: 2px;
+  background: url("../../icons/svg/searchBtn.svg") center center no-repeat;
+  flex: 0 0 45px;
+}
+.custom_search:hover {
+  background: url("../../icons/svg/searchBtn.svg") center center no-repeat;
+}
+.custom_search:active {
+  background: url("../../icons/svg/searchBtn.svg") center center no-repeat;
+}*/
+
+// 그리드 셀 내부 버튼칸 공간 
+.custom_user_search {
+  height: 30px;
+  margin-left: 2px;
+  flex: 0 0 30px;
+}
+.custom_comboBox{
+  height: 30px;
+  width: 60px;
+  flex: 0 0
+}
+
+.rg-root .rg-table,
+.rg-root .rg-table td {
+  line-height: 1.1rem !important;
+}
+
+// selected-draggable
+// realgrid와 컬러 맞춤
+.selected-draggable {
+  background-color: #ecf0f9;
+}
+
+.selected-card {
+  background-color: #D9E0F3;
+}

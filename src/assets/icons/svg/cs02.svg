@@ -1,0 +1,15 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame 868">
+<rect width="40" height="40" rx="20" fill="#1A40C7"/>
+<!-- <rect x="2.5" y="2.5" width="35" height="35" rx="17.5" stroke="white" stroke-opacity="0.2" stroke-width="5"/> -->
+<g id="Group">
+<path id="Vector" d="M28 12H12V28H28V12Z" fill="white" fill-opacity="0.01"/>
+<g id="Group_2">
+<path id="Vector_2" d="M14.3304 13.335H25.6638" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M14.3304 26.668H25.6638" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M15.6638 26.668C16.5527 22.2217 17.9971 19.9994 19.9971 20.0013C21.9971 20.0032 23.4416 22.2254 24.3304 26.668H15.6638Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+<path id="Vector_5" d="M24.3315 13.335C23.4426 17.7813 21.9981 20.0035 19.9981 20.0016C17.9981 19.9998 16.5537 17.7776 15.6648 13.335H24.3315Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+</svg>

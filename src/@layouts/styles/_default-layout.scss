@@ -1,0 +1,81 @@
+// These are styles which are both common in layout w/ vertical nav & horizontal nav
+@use "@layouts/styles/rtl";
+@use "@layouts/styles/placeholders";
+@use "@layouts/styles/mixins";
+@use "@configured-variables" as variables;
+
+html,
+body {
+  min-block-size: 100%;
+}
+
+.layout-page-content {
+  @include mixins.boxed-content(true);
+
+  flex-grow: 1;
+
+  // TODO: Use grid gutter variable here
+  padding-block: 0.5rem;
+  padding: 0 !important;
+  margin:  0 !important;
+}
+
+.layout-footer {
+  
+  .footer-content-container {
+    block-size: variables.$layout-vertical-nav-footer-height;
+  }
+
+  .layout-footer-sticky & {
+    position: sticky;
+    inset-block-end: 0;
+    will-change: transform;
+  }
+
+  .layout-footer-hidden & {
+    display: none;
+  }
+}
+.swal2-popup{
+  padding: 20px 0 !important;
+
+}
+.swal2-html-container {
+  font-size: 1em !important;
+  line-height: 2 !important;
+}
+
+.swal2-styled.swal2-confirm {
+  background-color: rgb(var(--v-theme-primary)) !important;
+  font-size: 14px !important;
+  padding: 6px 16px !important;
+}
+.swal2-styled.swal2-confirm:focus{
+  box-shadow: none !important;
+}
+
+.swal2-cancel {
+  font-size: 14px !important;
+  padding: 6px 16px !important;
+}
+.swal2-styled.swal2-cancel:focus{
+  box-shadow: none !important;
+}
+
+.swal2-styled.swal2-deny {
+  font-size: 14px !important;
+  padding: 6px 16px !important;
+}
+.swal2-styled.swal2-deny:focus{
+  box-shadow: none !important;
+}
+
+.swal2-title {
+  font-size: 16px !important;
+  padding: 10px 0!important;
+}
+
+.swal2-popup {
+  background: rgb(var(--v-theme-surface)) !important;
+  color: rgba(var(--v-theme-on-surface)) !important;
+}

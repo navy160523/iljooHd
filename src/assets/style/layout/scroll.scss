@@ -1,0 +1,37 @@
+/** ✏️ SCROLLBAR CSS  */
+
+scroll-bar html {
+  overflow-y: auto !important;
+  -webkit-text-size-adjust: none; /*Chrome, Safari, newer versions of Opera*/
+  -moz-text-size-adjust: none; /*Firefox*/
+  -ms-text-size-adjust: none; /*000000
+  -o-text-size-adjust: none; /*old versions of Opera*/
+}
+
+html > ::-webkit-scrollbar {
+  overflow-y: hidden;
+}
+
+@media screen and (max-width: 1910px) {
+  html > ::-webkit-scrollbar {
+    display: inherit;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px; //막대 너비
+  height: 6px; //막대 너비
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #ced2e0 !important;
+  border-radius: 10px;
+  // background-clip: padding-box;
+  border: 3px solid transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background-color: #f4f5f9; //스크롤바 배경
+  border-radius: 10px;
+}

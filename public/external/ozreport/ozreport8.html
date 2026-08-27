@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <script src="http://10.100.45.84:49002/oz/ozhviewer/jquery-2.0.3.min.js"></script>
+    <script src="http://10.100.45.84:49002/oz/ozhviewer/jquery-ui.min.js"></script>
+
+    <script
+      type="text/javascript"
+      src="http://10.100.45.84:49002/oz/ozhviewer/jquery.dynatree.js"
+      charset="utf-8"
+    ></script>
+    <script
+      type="text/javascript"
+      src="http://10.100.45.84:49002/oz/ozhviewer/OZJSViewer.js"
+      charset="utf-8"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="http://10.100.45.84:49002/oz/ozhviewer/jquery-ui.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="http://10.100.45.84:49002/oz/ozhviewer/ui.dynatree.css"
+      type="text/css"
+    />
+    <!-- If you want to run the HTML5SVG viewer please change the OZJSViewer.js to OZJSSVGViewer.js.
+<script type="text/javascript" src="http://localhost:8080/oz/ozhviewer/OZJSSVGViewer.js" charset="utf-8"></script>
+-->
+
+    <script language="JavaScript">
+      // 2024.02.07 박용훈 특정 리포트경우 1회만 프린트를 할수 있어야 해서
+      // 프린트 버튼 클릭 후 정상출력 여부 이벤트 추가
+      // code 0=정상출력, 1=정상출력 아님
+      function OZPrintCommand_OZViewer(
+        msg,
+        code,
+        reportname,
+        printername,
+        printcopy,
+        printpages,
+        printrange,
+        username,
+        printerdrivername,
+        printpagesrange
+      ) {
+        var hostname = window.location.hostname
+        var targetOrigin = '1.1.1.1'
+
+        if (hostname === 'hises.hd.com' || hostname === '10.100.45.205' || hostname === 'localhost') {
+          targetOrigin = window.location.protocol + '//' + hostname + (window.location.port ? ':' + window.location.port : '')
+        } else {
+          return
+        }
+
+        window.parent.postMessage(
+          // 전달할 data (부모창에서 호출할 함수명)
+          { functionName: "print", params: [code] },
+          // 부모창의 도메인
+          // , 'http://abc.com'
+          // 모든 도메인에 대하여 허용 ( 추천하지 않음 )
+          targetOrigin
+        )
+      }
+    </script>
+  </head>
+  <body style="width: 98%; height: 98%">
+    <div id="OZViewer" style="width: 98%; height: 98%"></div>
+    <script type="text/javascript">
+      var reportName = ""
+      var argsList = []
+
+      function SetOZParamters_OZViewer() {
+        var oz = document.getElementById("OZViewer")
+
+        oz.sendToActionScript(
+          "connection.servlet",
+          "http://10.100.45.84:49002/oz/server"
+        )
+        oz.sendToActionScript("connection.reportname", reportName)
+        oz.sendToActionScript("information.debug", "true")
+        oz.sendToActionScript("connection.pcount", argsList.length)
+        oz.sendToActionScript("global.language", "ko/KR")
+
+        for (var i = 1; i <= argsList.length; i++) {
+          // console.log('# [ozreport8.html] connection.args' + i + ' : ' + argsList[i - 1])
+          oz.sendToActionScript("connection.args" + i, argsList[i - 1])
+        }
+
+        oz.sendToActionScript("comment.all", "true") //주석 사용
+        oz.sendToActionScript("pdf.savecomment", "true") //주석 저장 사용
+        oz.sendToActionScript("comment.highlightpen", "true") //형광펜 사용
+        oz.sendToActionScript("information.debug", "true")
+
+        //OZ Viewer 환경설정 [선택]
+        oz.sendToActionScript("viewer.configmode", "html")
+        oz.sendToActionScript("viewer.framewidth", "880")
+        oz.sendToActionScript("viewer.frameheight", "700")
+        oz.sendToActionScript("global.language", "ko/KR")
+        oz.sendToActionScript("print.size", "A4")
+
+        // 2024.02.07 박용훈 특정 리포트경우 1회만 프린트를 할수 있어야 해서
+        // 프린트 버튼 클릭 후 정상출력 여부 이벤트 추가
+        if ("/manage/hse/EDUBA0030.ozr" == reportName || "/manage/hse/EDUBA0031.ozr" == reportName) {
+          oz.sendToActionScript("viewer.printcommand", "true")
+        }
+
+        // 2024.03.06 김성근 리포트 에 적용된 스크립트 사용 가능옵션 추가
+        oz.sendToActionScript("viewer.progresscommand", "true") // 보고서 생성 단계별로 발생하는 이벤트 사용여부
+
+        console.log(oz, "oz")
+        //OZ 쿼리 조건 Parameter 설정 [선택]
+        //		oz.sendToActionScript("connection.pcount","2");			//parameter가 있을 시 필수로 갯수 입력
+        //oz.sendToActionScript("connection.args1","P_WO_UNO=124106"); //P_WO_UNO=352212
+        //		oz.sendToActionScript("connection.args2","P_LANG_CD=02"); //P_LANG_CD=02
+        //oz.sendToActionScript("connection.args3","v_QUERYUSER=11219");
+
+        return true
+      }
+
+      function setParameter(data) {
+        if (reportName !== "") {
+          reportName = data.reportName
+          argsList = data.args
+
+          var strarg
+          for (var i = 1; i <= argsList.length; i++) {
+            strarg = strarg + "\nconnection.args" + i + "=" + argsList[i - 1]
+          }
+
+          let params =
+            "connection.servlet=" +
+            "http://10.100.45.84:49002/oz/server\n" +
+            "connection.reportname=" +
+            data.reportName +
+            "\n" +
+            "information.debug=true\n" +
+            "connection.pcount=" +
+            argsList.length +
+            strarg
+
+          // console.log('# [ozreport8.html] params : ' + params)
+
+          // console.log('# [ozreport8.html] CreateReport()')
+          document.getElementById("OZViewer").CreateReport(params)
+        } else {
+          reportName = data.reportName
+          argsList = data.args
+
+          // console.log('# [ozreport8.html] start_ozjs()')
+          start_ozjs("OZViewer", "http://10.100.45.84:49002/oz/ozhviewer/")
+        }
+
+        // console.log('# [ozreport8.html] setParameter() end')
+      }
+    </script>
+  </body>
+</html>

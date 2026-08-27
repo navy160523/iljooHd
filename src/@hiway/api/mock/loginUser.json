@@ -1,0 +1,30 @@
+{
+  "uidev": {
+    "user_id": "uidev",
+    "eng_nm": "Developer",
+    "kor_nm": "개발자",
+    "roles": ["development"],
+    "customMap": {
+      "company": "300",
+      "authGrpCd": ["GRP00338"],
+      "job_tit_cd": "01",
+      "job_tit_nm": "개발자",
+      "offi_res_cd": "01",
+      "role": "developer"
+    }
+  },
+  "admin": {
+    "user_id": "admin",
+    "eng_nm": "Admin",
+    "kor_nm": "관리자",
+    "roles": ["admin", "development"],
+    "customMap": {
+      "company": "300",
+      "authGrpCd": ["GRP00338"],
+      "job_tit_cd": "01",
+      "job_tit_nm": "관리자",
+      "offi_res_cd": "01",
+      "role": "admin"
+    }
+  }
+}

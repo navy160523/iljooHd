@@ -1,0 +1,970 @@
+/** ✏️ MAIN PAGE CSS  */
+
+.homeView {
+  /*
+ * ============================================================================================================================================================
+ * CAROUSEL
+ * ============================================================================================================================================================
+ */
+  #fullPage {
+    height: 100vh;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    word-break: keep-all;
+    &:not(:first-child) {
+      padding-top: 64px;
+    }
+  }
+  .mainCarousel {
+    flex-direction: column;
+    justify-content: space-between !important;
+    .v-window__container {
+      display: block;
+      .v-window-item {
+        display: block !important;
+        opacity: 0;
+        transition: all 0.8s;
+        width: 100%;
+        position: absolute;
+      }
+      .v-window-item--active {
+        opacity: 1;
+      }
+    }
+    // prev, next
+    .v-window__controls {
+      padding: 0;
+      z-index: 3;
+      .v-btn {
+        position: relative;
+        font-size: 16px;
+        font-weight: 600;
+        margin-left: 0;
+        &::before {
+          position: absolute;
+          content: '';
+          top: 50%;
+          left: 0;
+          transform: translateY(-50%);
+          width: 100px;
+          height: 1px;
+          background: #fff;
+        }
+        transition: all 0.4s ease-in-out;
+        &:nth-child(1) {
+          // prev
+          padding-left: 112px !important;
+          &:hover {
+            padding-left: 104px !important;
+          }
+        }
+        &:nth-child(2) {
+          // next
+          padding-right: 112px !important;
+          &:hover {
+            padding-right: 104px !important;
+          }
+          &::before {
+            left: unset;
+            right: 0;
+          }
+        }
+      }
+    }
+  }
+
+  // main Carousel
+  .v-carousel {
+    .carouselInput {
+      .autoSearch {
+        display: none;
+      }
+    }
+    .v-carousel__controls {
+      top: calc(50% + 100px);
+      transform: translateY(-50%);
+      height: auto !important;
+      gap: 27px;
+    }
+    .carouselInput:has(.carouselSearch .v-field--focused) {
+      .autoSearch {
+        position: absolute;
+        top: calc(100% - 36px);
+        display: block;
+        border-radius: 0 0 15px 15px;
+        padding-top: 35px;
+        z-index: 7;
+        left: -1px;
+        border: 1px solid #0063ff;
+        border-top: 0 !important;
+        width: 45vw !important;
+        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05);
+      }
+    }
+    .autoSearch:hover {
+      position: absolute;
+      top: calc(100% - 36px);
+      display: block;
+      border-radius: 0 0 15px 15px;
+      padding-top: 35px;
+      z-index: 7;
+      left: -1px;
+      border: 1px solid #0063ff;
+      border-top: 0 !important;
+      width: 45vw !important;
+      box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05);
+    }
+    // .autoSearch:has(.searchBox .selectMenu) {
+    //   position: absolute;
+    //   top: calc(100% - 36px);
+    //   display: block;
+    //   border-radius: 0 0 15px 15px;
+    //   padding-top: 35px;
+    //   z-index: 7;
+    //   left: -1px;
+    //   border: 1px solid #0063ff;
+    //   border-top: 0 !important;
+    //   width: 45vw !important;
+    //   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05);
+    // }
+
+    .mainInputWrap {
+      z-index: 8;
+      width: 100%;
+    }
+    // carousel 내부 슬로건 text
+    .carouselInnerText {
+      position: absolute;
+      color: #fff;
+      top: 50% !important;
+      left: 50%;
+      width: 100%;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      font-weight: 300;
+      z-index: 6;
+    }
+
+    .v-carousel__controls__item .v-icon {
+      opacity: 1;
+    }
+
+    // delimiter custom 공통
+    @for $i from 1 through 3 {
+      .v-btn--icon {
+        margin: 0;
+        width: auto;
+        height: 6px;
+        margin-right: 2px;
+
+        &:nth-child(#{$i})::before {
+          content: '0' + #{$i}; // 인덱스 숫자
+          font-size: 14px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.5);
+          position: absolute;
+          bottom: 6px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+
+        .v-btn__content {
+          > svg {
+          display: none;
+          }
+          &::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 1);
+            opacity: 0;
+          }
+        }
+        .v-btn__overlay {
+          display: none;
+        }
+      }
+    }
+    .v-btn--active {
+      &::before {
+        color: rgba(255, 255, 255, 1) !important;
+      }
+      .v-btn__content::before {
+        opacity: 1;
+      }
+    }
+
+    .v-input--density-default .v-field--variant-solo,
+    .v-input--density-default .v-field--variant-solo-inverted,
+    .v-input--density-default .v-field--variant-solo-filled,
+    .v-input--density-default .v-field--variant-filled {
+      --v-input-control-height: 50px !important;
+      border-radius: 30px;
+      .v-field__overlay {
+        border-radius: 50% !important;
+      }
+    }
+    .carouselSelect {
+      width: calc(100% * 1 / 4);
+      padding-left: 1px;
+      .v-field__input {
+        padding-left: 30px;
+      }
+    }
+    .carouselSearch {
+      width: calc(100% * 3 / 4);
+      padding-right: 1px;
+      .v-field {
+        font-size: 16px !important;
+        color: rgba(143, 143, 143, 1);
+        font-weight: 300;
+      }
+      svg {
+        cursor: pointer;
+      }
+    }
+    .carouselInput {
+      position: absolute;
+      background-color: #fff !important;
+      top: calc(100%) !important;
+      left: calc(50%) !important;
+      transform: translate(-50%, -50%);
+      letter-spacing: -0.05rem;
+      z-index: 5;
+      height: 64px;
+      width: 45vw;
+      min-width: 800px;
+      border-radius: 5vh;
+      border: 1px solid #0063ff !important;
+      box-sizing: border-box !important;
+      &:hover {
+        border: 1px solid #0063ff;
+        transition: all 0.5s;
+        box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.1);
+      }
+      .v-field{
+        background: transparent;
+      }
+    }
+    .carouselLink {
+      position: absolute;
+      top: calc(50% + 51px) !important;
+      left: calc(50%) !important;
+      transform: translateX(-50%);
+      z-index: 2;
+      .v-btn--variant-plain {
+        opacity: 1;
+        font-size: 15px;
+        font-weight: 100;
+      }
+      .v-divider {
+        height: 14px;
+      }
+    }
+
+    .mainSelect {
+      border-radius: 50% !important;
+      top: -8px !important;
+      left: -2px !important;
+      overflow: visible;
+      .v-list {
+        border-radius: 20px !important;
+        border: 1px solid #e6e6e6;
+        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05) !important;
+      }
+      .v-field__input {
+        opacity: 1 !important;
+      }
+      .v-list-item {
+        background-color: #fff;
+        width: 100%;
+      }
+      .v-list-item--variant-text .v-list-item__overlay {
+        background-color: #dcdcdc;
+      }
+    }
+
+    .carouselSearch {
+      .v-field__append-inner .mdi-menu-down {
+        display: block !important;
+      }
+    }
+  }
+  .quickMenu {
+    cursor: pointer;
+    &:hover {
+      svg {
+        animation: shake 1s linear infinite;
+      }
+    }
+    @keyframes shake {
+      0%,
+      100% {
+        transform: rotate(0);
+      }
+      25% {
+        transform: rotate(-25deg);
+      }
+      75% {
+        transform: rotate(25deg);
+      }
+    }
+  }
+  // scrollDown
+  .scrollDown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .arrow {
+      width: 20px;
+      height: 28px;
+      position: relative;
+      span {
+        width: 8px;
+        height: 8px;
+        border-bottom: 1px solid #222;
+        border-right: 1px solid #222;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+        animation: arrowAnim 2s infinite;
+        &:nth-child(1) {
+          top: 20%;
+        }
+        &:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        &:nth-child(3) {
+          animation-delay: 0.4s;
+          top: 80%;
+        }
+      }
+    }
+    @keyframes arrowAnim {
+      0%,
+      80%,
+      100% {
+        opacity: 0;
+      }
+      40% {
+        opacity: 1;
+      }
+    }
+  }
+
+  /*
+  * mainCard
+  */
+  .moreBtn {
+    transform-origin: left;
+    padding: 0 !important;
+    justify-content: start;
+    .bar {
+      // width: 120px;
+      height: 1px;
+      margin-right: 16px;
+      background-color: currentColor;
+      transition: all 0.4s ease-in-out;
+    }
+    &:hover .bar {
+      margin-right: 24px;
+    }
+  }
+  .dashBoardSection {
+    > .v-row,
+    > .v-row .v-col {
+      height: 100%;
+    }
+    .moreBtn {
+      margin: 6vh 0 20vh;
+    }
+    .dashboardCardWrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      height: 100vh;
+      overflow-y: auto;
+      gap: 0 40px;
+      padding-bottom: 40px;
+      // padding-right: 10vw;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .dashboardCard {
+      width: 100%;
+      height: 340px;
+      padding: 52px 32px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: none;
+      transition: all 0.4s ease-in-out;
+      background: #1a40c7;
+      svg {
+        position: absolute;
+        bottom: 52px;
+        right: 32px;
+        color: rgba(255, 255, 255, 0.5);
+        transition: 0.4s ease-in-out;
+      }
+      &:hover {
+        background: linear-gradient(133deg, #1a40c7 14.54%, #0d1f61 179.43%);
+        box-shadow: 5px 5px 20px 0px rgba(28, 49, 121, 0.5);
+        svg {
+          color: rgba(255, 255, 255, 1);
+        }
+      }
+      // margin-top: 40px;
+      &:nth-child(2n) {
+        margin-top: 40px;
+      }
+      &:first-child {
+        margin-top: 10vh;
+      }
+      &:nth-child(2) {
+        margin-top: calc(10vh + 40px);
+      }
+
+      .v-card__overlay {
+        opacity: 0;
+      }
+    }
+  }
+
+  .noticeSection {
+    flex-direction: column;
+    .v-list {
+      margin-top: 4vh;
+    }
+    .v-list-item {
+      padding: 40px 0 36px;
+      border-bottom: 1px solid #e6e6e6;
+      .listText {
+        // max-width: 720px;
+        // margin-right: 100px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+      }
+      .v-chip {
+        padding: 0 14px !important;
+      }
+
+      .v-list-item__overlay {
+        opacity: 0;
+      }
+      .listTitle {
+        margin-left: 20px;
+        line-height: 1.4em;
+        border-bottom: 1px solid #1a40c700;
+        transition: all 0.4s ease-in-out;
+      }
+      &:hover {
+        .moreBtn .bar {
+          margin-right: 24px;
+        }
+
+        .listTitle {
+          border-bottom: 1px solid #1a40c7;
+        }
+      }
+    }
+    .moreBtn {
+      width: 178px;
+    }
+    > .v-btn {
+      margin-top: 6vh;
+    }
+    .listBtn {
+      color: #222 !important;
+      &:hover {
+        color: #1a40c7 !important;
+      }
+    }
+  }
+
+  .contentsSection {
+    > .contentsWrap {
+      display: flex;
+      align-items: center;
+      gap: 3vw;
+      position: unset;
+      // position: absolute;
+      // right: 0;
+    }
+    .partBtnWrap {
+      margin-top: 5vh;
+      display: flex;
+      flex-direction: column;
+      gap: 2vh;
+    }
+    .partBtn {
+      cursor: pointer;
+      position: relative;
+      padding: 0 !important;
+      .v-icon {
+        transition: all 0.4s ease-in-out;
+        background-color: rgba(26, 64, 199, 0.2);
+        border-radius: 100%;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+      }
+      &::before {
+        transition: all 0.4s ease-in-out;
+        opacity: 0;
+      }
+      &.selected::before {
+        position: absolute;
+        content: '';
+        width: 45vw;
+        height: 1px;
+        right: calc(100% - 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1a40c7;
+        opacity: 1;
+      }
+    }
+    .contentsCarouselContainer {
+      position: absolute;
+      right: 0;
+
+      .contentsCarousel {
+        width: 600px;
+        // width: 58vw;
+        min-width: 1000px;
+        .carousel__viewport{
+          padding: 20px 0;          
+        }
+        .contentsSlide {
+          .contentsCard {
+            box-shadow: 5px 5px 20px 0px rgba(28, 49, 121, 0.2);
+            border-radius: 8px;
+            transform: scale(0.8);
+            cursor: pointer;
+
+            .cardText {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              text-align: left;
+              padding: 20px 26px;
+              > .text-textMain {
+                width: 100%;
+                height: 3em;
+                display: -webkit-box;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2; /* 최대 표시할 줄 수 */
+              }
+            }
+          }
+          &.carousel__slide--active {
+            .contentsCard {
+              transform: scale(1.08);
+              transform-origin: left center;
+              margin: 8px 0px 20px 8px;
+              // margin: 0px;
+            }
+          }
+        }
+        .carousel__slide--active + .contentsSlide{
+          margin-left: 40px;
+          margin-right: -30px;
+        }
+
+        // .carousel__prev,
+        // .carousel__next {
+        //   top: unset;
+        //   left: unset;
+        //   bottom: 50px;
+        //   right: 100%;
+        // }
+        // .carousel__prev {
+        //   right: calc(100% + var(--vc-nav-width));
+        // }
+      }
+      .carouselNav {
+        position: absolute;
+        bottom: 92px;
+        right: calc(100%);
+        width: calc(48px * 3);
+      }
+    }
+  }
+
+  .sliSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    .sliBg {
+      position: absolute;
+      width: 100%;
+      // top: 50%;
+      transform: translateY(-50%);
+    }
+    .leftBg {
+      min-width: 708px;
+      width: calc((100vw - 1280px) / 2 + 704px);
+      height: 55vh;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .sliContents {
+      position: absolute;
+      top: calc(50% + 32px);
+      transform: translateY(-50%);
+      display: flex;
+    }
+    .leftWrap {
+      width: 60%;
+      height: 60vh;
+      padding: 8vh 4vw 14vh 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6vh;
+      justify-content: space-between;
+      .moreBtn {
+        position: absolute;
+        bottom: 12vh;
+        // right: 0;
+        // right: calc(100% - 185px);
+        right: calc(100% - 20px);
+      }
+    }
+    .rightWrap {
+      position: relative;
+      width: 40%;
+      height: 60vh;
+      margin-left: 4vw;
+      padding: 8vh 0 0;
+      .moreBtn {
+        position: absolute;
+        bottom: 12vh;
+        // right: 0;
+        left: calc(100% - 185px);
+      }
+    }
+    .customBarChart {
+      height: 0px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      gap: 3.6vw;
+      transition: all 0.6s ease-in-out 0.5s;
+      > div {
+        width: 84px;
+        position: relative;
+        .barValue,
+        .barType {
+          position: absolute;
+          bottom: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        .barType {
+          top: calc(100% + 16px);
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+
+    &.show {
+      .customBarChart {
+        height: 30vh;
+      }
+    }
+  }
+
+  .mobileSection {
+    // height: calc(100vh - 200px) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between !important;
+
+    .leftWrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-center;
+      justify-content: center;
+      gap: 10vh;
+      .textWrap {
+        display: flex;
+        justify-content: space-between;
+        gap: 2vw;
+      }
+
+      .appBtnWrap {
+        display: flex;
+        gap: 36px;
+        .v-btn__overlay {
+          opacity: 0;
+        }
+        .v-btn {
+          height: 62px;
+          transition: all 0.4s ease-in-out;
+          box-shadow: 5px 5px 10px 0px rgba(0, 0, 0, 0.1);
+          &:hover {
+            transform: translateY(-8px);
+            box-shadow: 5px 5px 15px 0px rgba(0, 0, 0, 0.2);
+          }
+        }
+      }
+    }
+  }
+  /*
+ * ============================================================================================================================================================
+ * mainCard
+ * ============================================================================================================================================================
+ */
+  .mainCard {
+    .mainSubtitle {
+      font-size: 19px;
+      font-weight: 500 !important;
+      min-height: 54px;
+    }
+
+    .mainNumber {
+      font-size: 25px;
+      font-weight: 800 !important;
+    }
+
+    // Card News Carousel
+
+    .mdi-circle::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(132, 132, 132, 0.2) !important;
+      position: relative;
+    }
+
+    .mainCardContent {
+      .v-btn--icon {
+        margin: 0;
+        width: auto;
+        height: 6px;
+        margin-right: 2px;
+        .mdi-circle::before {
+          font-size: 6px;
+          color: #e6e6e6;
+        }
+        .v-btn__overlay {
+          display: none;
+        }
+      }
+      .v-btn--active {
+        .mdi-circle::before {
+          content: '';
+          width: 16px;
+          height: 6px;
+          background-color: #848484 !important;
+          border-radius: 5px;
+        }
+      }
+      .mainSheetBorder {
+        position: relative;
+        .carouselStopBtn {
+          position: absolute;
+          bottom: 18px;
+          right: 16px;
+        }
+      }
+      .v-carousel__controls {
+        width: auto !important;
+        right: 42px !important;
+        bottom: 38px !important;
+      }
+      .mainList {
+        margin-bottom: 13px;
+      }
+
+      .mainList:last-child {
+        .v-divider {
+          display: none !important;
+        }
+      }
+      .mainList:hover {
+        border-color: #1a40c7;
+        transition: all 0.5s;
+        color: #1a40c7;
+      }
+      .hoverBtn {
+        display: none;
+      }
+      .v-card-title:hover {
+        .hoverBtn {
+          display: block;
+        }
+      }
+    }
+  }
+
+  .mainSheetBorder {
+    border-radius: 20px;
+    border-top-right-radius: 0;
+  }
+
+  // transition
+  //페이지로드시 Card 상승 효과
+  .mainCardContent {
+    opacity: 0;
+  }
+  .mainCardContent1 {
+    animation: slideUp 1s;
+    animation-fill-mode: forwards;
+  }
+  .mainCardContent2 {
+    animation: slideUp 1s 0.2s;
+    animation-fill-mode: forwards;
+  }
+  .mainCardContent3 {
+    animation: slideUp 1s 0.4s;
+    animation-fill-mode: forwards;
+  }
+  .mainCardContent4 {
+    animation: slideUp 1s 0.6s;
+    animation-fill-mode: forwards;
+  }
+  @keyframes slideUp {
+    from {
+      opacity: 0.1;
+      transform: translateY(10%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /*
+ * ============================================================================================================================================================
+ * mainChart
+ * ============================================================================================================================================================
+ */
+
+  .mainChart {
+    position: relative;
+    .blueBg {
+      position: absolute;
+      top: 0;
+    }
+    .mainChartTitle {
+      font-size: 18px;
+      font-weight: 700;
+      span {
+        font-weight: 400 !important;
+      }
+    }
+    .mainSheetBorder {
+      border-color: #1a40c7;
+    }
+    .chartSheet,
+    .infoSheet {
+      position: relative;
+
+      .mainBadge {
+        position: absolute;
+        left: -10px;
+        top: -10px;
+        z-index: 2;
+      }
+    }
+
+    // chart card
+    .chartSheet {
+      .v-card {
+        transition: all 0.8s !important;
+      }
+      .v-card--reveal {
+        align-items: center;
+        top: 0;
+        justify-content: center;
+        opacity: 0.9;
+        position: absolute;
+        width: 100%;
+        z-index: 1;
+      }
+    }
+  }
+
+  /*
+ * ============================================================================================================================================================
+ * side Quick Button
+ * ============================================================================================================================================================
+ */
+  .sideQuick {
+    position: absolute;
+    bottom: 34%;
+    right: 16px;
+
+    .v-btn {
+      filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.07));
+    }
+
+    .floatingMenu {
+      position: relative;
+
+      .hiddenBtnWrap:hover,
+      .btnWrap:hover {
+        animation: bounce 0.3s;
+        animation-direction: alternate;
+        animation-timing-function: cubic-bezier(0.5, 0.05, 1, 0.5);
+        animation-iteration-count: infinite;
+      }
+      @keyframes bounce {
+        from {
+          transform: translate3d(0, 0, 0);
+        }
+        to {
+          transform: translate3d(0, 10px, 0);
+        }
+      }
+      .hiddenMenu {
+        flex-direction: row-reverse;
+        right: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        position: absolute;
+
+        .hiddenBtnWrap {
+          position: relative;
+          width: 90px;
+        }
+      }
+
+      @for $i from 1 through 4 {
+        $size: 102px * $i;
+        .hiddenMenu:has(.dial_#{$i}) {
+          top: $size;
+        }
+      }
+
+      .hiddenMenu .hiddenWrap:first-child {
+        transition: all 0.5s;
+      }
+      .hiddenMenu .hiddenWrap:nth-child(2) {
+        transition: all 1s;
+      }
+      .hiddenMenu .hiddenWrap:nth-child(3) {
+        transition: all 1.5s;
+      }
+    }
+  }
+}

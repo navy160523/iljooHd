@@ -1,0 +1,92 @@
+/** ✏️ CSS 처리  */
+@use 'input';
+@use 'select';
+@use 'menu';
+@use 'ripple';
+
+.v-input--disabled {
+  .v-field--appended {
+    padding: 0 !important;
+  }
+}
+
+.formLabelText {
+  color: #222;
+  font-size: 14px;
+  font-weight: 400;
+  .requiredIcon {
+    position: relative;
+    top: -10px;
+    right: -2px;
+    color: #f00;
+  }
+}
+.cardComponent {
+  box-shadow: none !important;
+  .titleWidth {
+    justify-content: end;
+  }
+
+  .v-card--variant-elevated {
+    box-shadow: none !important;
+  }
+
+  .componentTitle {
+    color: #222;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 0px 20px;
+  }
+  
+  .inputCaption {
+    font-size: 13px;
+    font-weight: 300;
+    color: #1a40c7 !important;
+    margin-left: 20px;
+  }
+
+  textarea {
+    background-color: #fff;
+  }
+}
+
+.menuTitle, .gridTitle{
+font-size: 18px; font-weight: 700; color: rgb(var(--v-theme-textMain));
+}
+
+.slotText{
+  color: rgb(var(--v-theme-primary));
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.iPopup {
+  .v-card-item {
+    padding: 18.5px 30px !important;
+    border-bottom: 1px solid rgba(26, 64, 199, 0.05);
+    .v-card-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a40c7;
+    }
+    .v-btn {
+      padding: 0 !important;
+      border-radius: 3px !important;
+    }
+  }
+  .formLabelText {
+    font-size: 14px;
+    font-weight: 400;
+    padding: 0 10px 0 0px;
+    justify-content: start !important;
+  }
+  .popupContentArea {
+    padding: 10px 30px 30px 30px;
+  }
+  .v-card-actions {
+    padding: 0;
+    .v-btn {
+      border-radius: 3px !important;
+    }
+  }
+}

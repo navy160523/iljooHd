@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/HiSEs.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Expires" content="0" />
+
+    <title>HiSEs</title>
+    <link rel="stylesheet" type="text/css" href="/loader.css" />
+    <link rel="stylesheet" type="text/css" href="/realgrid/realgrid-style.css" />
+    <link rel="stylesheet" type="text/css" href="/realgrid/realgrid-add-custom.css" />
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="loading-bg">
+        <!-- <div class="loading-logo">
+        <img src="/logo.png" height="50" alt="Logo" />
+      </div>
+      <div class="loading">
+        <div class="effect-1 effects"></div>
+        <div class="effect-2 effects"></div>
+        <div class="effect-3 effects"></div>
+      </div> -->
+        <video src="/hises.mp4" autoplay muted loop class="loading-video"></video>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/lib/jszip.min.js"></script>
+    <script type="module" src="/lib/shim.js"></script>
+    <script type="module" src="/lib/xlsx.js"></script>
+    <script type="module" src="/external/ckeditor.js"></script>
+    <script>
+      const loaderColor = localStorage.getItem('Materio-initial-loader-bg') || '#FFFFFF'
+      const primaryColor = localStorage.getItem('Materio-initial-loader-color') || '#9155FD'
+
+      if (loaderColor) document.documentElement.style.setProperty('--initial-loader-bg', loaderColor)
+      if (primaryColor) document.documentElement.style.setProperty('--initial-loader-color', primaryColor)
+
+      var hostname = window.location.hostname
+      var realGrid2Lic =
+        'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+wsL2RzxefzfISW/9MLSJLhuMRv1qrZGrq0TDiQEqGbT6j2BQHTtiAJQo5VJMLIKcL4Usz6PwgXu6RxEXuccR255lPyovyjmDFM='
+      // 아래 내용 확인 필요
+      if (hostname == 'hises.hd.com') {
+        // 운영서버
+        realGrid2Lic =
+          'upVcPE+wPOmtLjqyBIh9RoBwWAefaNXUWdW9bu2N+23vdsXv1EsJwSW/9MLSJLhuMRv1qrZGrq2PYYtpkQzOzSzBy+1fqnLdmKBrysNcSakyfYGQJ8r6CaKYC1HpttyJ'
+      } else {
+        //realGrid2Lic = 'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+wviCy+pe9Ba+TGtRGa2IWVRDufv8SUhNy7LjMwOU8iPEJMVWpaY093J'
+        // 운영서버가 아닐때 (만료일: 2025-02-05)
+        realGrid2Lic =
+          'upVcPE+wPOmtLjqyBIh9RkM/nBOseBrflwxYpzGZyYm9cY8amGDkiMnVeQKUHJDjW2y71jtk+wsL2RzxefzfISW/9MLSJLhuMRv1qrZGrq0TDiQEqGbT6j2BQHTtiAJQo5VJMLIKcL4Usz6PwgXu6RxEXuccR255lPyovyjmDFM='
+      }
+
+      // // 2024.07.09 박용훈 그리드 키 파일화로 변경
+      // var hostname = window.location.hostname
+      // var realGrid2Lic = ''
+
+      // fetch('/realgrid-license.json')
+      //   .then(response => response.json())
+      //   .then(data => {
+      //     console.log('data!!!! : ',data)
+      //     // realGrid2Lic = data.development;
+      //     // if (hostname === 'hises.hd.com') {
+      //     //   realGrid2Lic = data.production;
+      //     // }
+      //   })
+      //   .catch(error => console.log('Error realGrid2Lic:', error));
+    </script>
+  </body>
+</html>
