@@ -8,8 +8,8 @@ import {
   commonExecuteApi,
   getCodeList,
 } from '@hiway/api/commonApi'
-import IGridTitle from '@/components/IGridTitle.vue'
 import RealGrid from '@/components/RealGrid.vue'
+import EmpPopup from '@/components/popup/EmpPopup.vue'
 import deleteFlowHelper from '@/utils/deleteFlowHelper'
 import queryFlowHelper from '@/utils/searchFlowHelper'
 import dayjs from 'dayjs'
@@ -22,10 +22,12 @@ defineOptions({
 
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
-const gridTitle = ref(null)
 const grdMain = ref(null)
 const userStore = useUserStore()
 const sAFDC0020_01_Popup01 = ref(null)
+const safetyChkEmpPopup = ref(null)
+
+const tab = ref('muniReg') // 'muniReg' (시정통보등록), 'muniClose' (시정통보종결처리)
 
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
@@ -40,23 +42,26 @@ const searchParam = reactive({
   SEND_BSNS_CD: 'AN00',
   REC_BSNS_CD: userStore.bsnsCd,
   REC_DEPT_CD: userStore.deptCd,
+  REC_ASGN_CD: '',
+  SEND_ASGN_CD: '',
   SUBJECT_CD: '',
   REQ_REPLY_CHK: 'Y',
   REQ_REPLY_FROM: '',
   REQ_REPLY_TO: '',
   SAGO_DIV_M: '',
   STATUS: '',
+  CHK_EMP_NM: '',
+  CHK_EMP_NO: '',
 })
 
 const codeList = reactive({
   SEND_BSNS_CD: [],
   SEND_DEPT_CD: [],
+  SEND_ASGN_CD: [],
   REC_BSNS_CD: [],
   REC_DEPT_CD: [],
-  DEPT_CD: [],
-  SAGO_DIV: [],
+  REC_ASGN_CD: [],
   STATUS: [],
-  SUBJECT: [],
 })
 
 const initCodeList = () => {
@@ -65,159 +70,202 @@ const initCodeList = () => {
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: userStore.cmpnyDiv },
     }),
-    commonSearchApi({
-      queryId: 'SAFDC0010_SEARCH_05',
-      param: {
-        CMPNY_DIV: userStore.cmpnyDiv,
-      },
-    }),
     getCodeList('HHIF190'),
-    getCodeList('HHIF120'),
   ]).then((res) => {
     codeList.SEND_BSNS_CD = res[0].ORESULT_CUR
     codeList.REC_BSNS_CD = res[0].ORESULT_CUR
-    codeList.SAGO_DIV = res[1].ORESULT_CUR
-    codeList.STATUS = res[2].ORESULT_CUR
-    codeList.SUBJECT = res[3].ORESULT_CUR   
+    codeList.STATUS = res[1].ORESULT_CUR
     
     codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
-    codeList.SAGO_DIV.unshift({ TXT: '전체', COD: '' })
+    codeList.REC_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
     codeList.STATUS.unshift({ TXT: '전체', COD: '' })
-    codeList.SUBJECT.unshift({ TXT: '전체', COD: '' })
   })
 }
 
 const grdMainProps = reactive({
   gridViewOption: { checkBar: true },
   fields: [
-    {
-      fieldName: 'MNG_NO',
-      dataType: 'text',
-      width: '200',
-      editable: false,
-      header: { text: t('관리번호') },
-    },
-    {
-      fieldName: 'SEND_ASGN_NM',
-      dataType: 'text',
-      width: '200',
-      editable: false,
-      styleName: 'left-column',
-      header: { text: t('발신') },
-    },
-    {
-      fieldName: 'REC_ASGN_NM',
-      dataType: 'text',
-      width: '200',
-      editable: false,
-      styleName: 'left-column',
-      header: { text: t('수신') },
-    },
-    {
-      fieldName: 'PROBLEM_DESC',
-      dataType: 'text',
-      width: '300',
-      editable: false,
-      styleName: 'left-column',
-      header: { text: t('문제점') },
-    },
-    {
-      fieldName: 'NOTI_DT',
-      dataType: 'text',
-      width: '150',
-      editable: false,
-      header: { text: t('점검일자') },
-    },
-    {
-      fieldName: 'REQ_REPLY_DT',
-      dataType: 'text',
-      width: '150',
-      editable: false,
-      header: { text: t('회신요구일자') },
-    },
-    {
-      fieldName: 'STATUS_NM',
-      dataType: 'text',
-      width: '120',
-      editable: false,
-      header: { text: t('진행상태') },
-    },
-    {
-      fieldName: 'ACT_DT',
-      dataType: 'text',
-      width: '100',
-      editable: false,
-      header: { text: t('회신일') },
-    },
-    {
-      fieldName: 'CHK_EMP_NM',
-      dataType: 'text',
-      width: '100',
-      editable: false,
-      header: { text: t('점검자') },
-    },
-    {
-      fieldName: 'SHIP_NO',
-      dataType: 'text',
-      width: '100',
-      editable: false,
-      header: { text: t('호선번호') },
-    },
-    {
-      fieldName: 'REJ_DESC',
-      dataType: 'text',
-      width: '100',
-      visible: false,
-      editable: false,
-      header: { text: t('반려사유') },
-    },
-    {
-      fieldName: 'COMPANY',
-      dataType: 'text',
-      visible: false,
-      header: { text: t('') },
-    },
-    {
-      fieldName: 'REASON',
-      dataType: 'text',
-      visible: false,
-      header: { text: t('') },
-    },
-    {
-      fieldName: 'STATUS',
-      dataType: 'text',
-      visible: false,
-      header: { text: t('') },
-    },
-    {
-      fieldName: 'VEND_NAME',
-      dataType: 'text',
-      visible: false,
-      header: { text: t('') },
-    },
-    {
-      fieldName: 'CMPNY_DIV',
-      dataType: 'text',
-      visible: false,
-      header: { text: t('') },
-    },
+    { fieldName: 'MNG_NO', dataType: 'text' },
+    { fieldName: 'SEND_ASGN_NM', dataType: 'text' },
+    { fieldName: 'REC_ASGN_NM', dataType: 'text' },
+    { fieldName: 'PROBLEM_DESC', dataType: 'text' },
+    { fieldName: 'NOTI_DT', dataType: 'text' },
+    { fieldName: 'REQ_REPLY_DT', dataType: 'text' },
+    { fieldName: 'STATUS_NM', dataType: 'text' },
+    { fieldName: 'ACT_DT', dataType: 'text' },
+    { fieldName: 'CHK_EMP_NM', dataType: 'text' },
+    { fieldName: 'SHIP_NO', dataType: 'text' },
+    { fieldName: 'LOCATION_NM', dataType: 'text' },
+    { fieldName: 'NOTI_PLC_DESC', dataType: 'text' },
+    { fieldName: 'NOTI_IMG_YN', dataType: 'text' },
+    { fieldName: 'NOTI_FILE_YN', dataType: 'text' },
+    { fieldName: 'ACT_RSLT', dataType: 'text' },
+    { fieldName: 'ACT_IMG_YN', dataType: 'text' },
+    { fieldName: 'ACT_FILE_YN', dataType: 'text' },
+    { fieldName: 'ACT_DT_2', dataType: 'text' },
+    { fieldName: 'APP_EMP_NO', dataType: 'text' },
   ],
+  columns: [
+    { name: 'NOTI_DT', fieldName: 'NOTI_DT', width: 100, header: { text: t('점검일자') } },
+    { name: 'REQ_REPLY_DT', fieldName: 'REQ_REPLY_DT', width: 100, header: { text: t('회신요구일') } },
+    { name: 'STATUS_NM', fieldName: 'STATUS_NM', width: 150, header: { text: t('진행상태') } },
+    { name: 'ACT_DT', fieldName: 'ACT_DT', width: 100, header: { text: t('조치일자') } },
+    { name: 'REC_ASGN_NM', fieldName: 'REC_ASGN_NM', width: 200, header: { text: t('수신조직') } },
+    { name: 'PROBLEM_DESC', fieldName: 'PROBLEM_DESC', width: 350, header: { text: t('문제점') } },
+    { name: 'LOCATION_NM', fieldName: 'LOCATION_NM', width: 120, header: { text: t('장소') } },
+    { name: 'NOTI_PLC_DESC', fieldName: 'NOTI_PLC_DESC', width: 200, header: { text: t('장소상세') } },
+    { name: 'SHIP_NO', fieldName: 'SHIP_NO', width: 120, header: { text: t('호선/프로젝트No.') } },
+    { name: 'NOTI_IMG_YN', fieldName: 'NOTI_IMG_YN', width: 50, header: { text: t('사진') } },
+    { name: 'NOTI_FILE_YN', fieldName: 'NOTI_FILE_YN', width: 50, header: { text: t('자료') } },
+    { name: 'ACT_RSLT', fieldName: 'ACT_RSLT', width: 300, header: { text: t('조치결과') } },
+    { name: 'ACT_IMG_YN', fieldName: 'ACT_IMG_YN', width: 50, header: { text: t('사진') } },
+    { name: 'ACT_FILE_YN', fieldName: 'ACT_FILE_YN', width: 50, header: { text: t('자료') } },
+    { name: 'SEND_ASGN_NM', fieldName: 'SEND_ASGN_NM', width: 200, header: { text: t('발신조직') } },
+    { name: 'CHK_EMP_NM', fieldName: 'CHK_EMP_NM', width: 100, header: { text: t('단속자') } },
+    { name: 'ACT_DT_2', fieldName: 'ACT_DT_2', width: 100, header: { text: t('조치일자') } },
+  ],
+  columnLayout: [
+    {
+      name: 'MainLayoutGroup',
+      direction: 'vertical',
+      header: { visible: false },
+      items: [
+        {
+          name: 'Row1',
+          direction: 'horizontal',
+          header: { visible: false },
+          items: [
+            'NOTI_DT',
+            'REQ_REPLY_DT',
+            'STATUS_NM',
+            'ACT_DT',
+          ]
+        },
+        {
+          name: 'Row2',
+          direction: 'horizontal',
+          header: { visible: false },
+          items: [
+            'REC_ASGN_NM',
+            'PROBLEM_DESC',
+          ]
+        },
+        {
+          name: 'Row3',
+          direction: 'horizontal',
+          header: { visible: false },
+          items: [
+            'LOCATION_NM',
+            'NOTI_PLC_DESC',
+            'SHIP_NO',
+            {
+              name: 'VioGroup',
+              direction: 'horizontal',
+              items: ['NOTI_IMG_YN', 'NOTI_FILE_YN'],
+              header: { text: t('위반') }
+            },
+            'ACT_RSLT',
+            {
+              name: 'ActGroup',
+              direction: 'horizontal',
+              items: ['ACT_IMG_YN', 'ACT_FILE_YN'],
+              header: { text: t('조치') }
+            }
+          ]
+        },
+        {
+          name: 'Row4',
+          direction: 'horizontal',
+          header: { visible: false },
+          items: [
+            'SEND_ASGN_NM',
+            'CHK_EMP_NM',
+            'ACT_DT_2',
+          ]
+        }
+      ]
+    }
+  ]
 })
 
-grdMainProps.columns = grdMainProps.fields
-
-const onButtonsClick = (btn) => {
-  if (btn.id === 'btnSearch') {
-    new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
-  } else if (btn.id === 'btnMuniNotice') {
-    sAFDC0020_01_Popup01.value.openPopup()
-  } else {
-    new deleteFlowHelper(vm, t)
-      .setBefore(beforeDelete)
-      .setQuery(deleteData)
-      .setAfter(afterDelete)
-      .run()
+const onGridLoaded = () => {
+  if (grdMain.value && grdMain.value.getGridView()) {
+    grdMain.value.getGridView().displayOptions.rowHeight = 120
   }
+}
+
+const onSearch = () => {
+  new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
+}
+
+const onRegister = () => {
+  sAFDC0020_01_Popup01.value.openPopup()
+}
+
+const onApproval = () => {
+  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
+  if (checkedData.length === 0) {
+    Message.warn(t('승인 신청할 데이터를 선택해주세요.'))
+    return
+  }
+  
+  let list = []
+  let day = dayjs()
+  for (let i in checkedData) {
+    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
+    if (!data.APP_EMP_NO) {
+      Message.warn(t(`관리번호 ${data.MNG_NO} 건은 승인자가 지정되지 않았습니다.`))
+      return
+    }
+    list.push({
+      CMPNY_DIV: userStore.cmpnyDiv,
+      YEAR: day.format('YYYY'),
+      APPROVE_ID: 'SAFDC0020_' + userStore.userId + '_' + day.format('YYYYMMDDHHmmss') + '_' + i,
+      FORM_ID: 'SAFDC0020',
+      APP_EMP_NO: data.APP_EMP_NO,
+      APPROVE_GBN: 'I',
+      APP_REQ_EMP_NO: userStore.userId,
+      APP_STATUS: 'N',
+      PATH: '/30_safety/SAF_D/SAFDC0020',
+      USER_ID: userStore.userId,
+      MNG_NO: data.MNG_NO,
+    })
+  }
+
+  commonExecuteApi({
+    queryId: 'OPRAB0010_SAVE_01',
+    list: list,
+  }).then(() => {
+    Message.success(t('승인신청 되었습니다.'))
+    onSearch()
+  })
+}
+
+const onCancelApproval = () => {
+  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
+  if (checkedData.length === 0) {
+    Message.warn(t('승인 취소할 데이터를 선택해주세요.'))
+    return
+  }
+  
+  let list = []
+  for (let i in checkedData) {
+    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
+    list.push({
+      CMPNY_DIV: userStore.cmpnyDiv,
+      VIO_NO: data.MNG_NO,
+      MNG_NO: data.MNG_NO,
+      USER_ID: userStore.userId,
+    })
+  }
+
+  commonExecuteApi({
+    queryId: 'SAFDC0010_CANCEL01',
+    list: list,
+  }).then(() => {
+    Message.success(t('결재 신청이 취소되었습니다.'))
+    onSearch()
+  })
 }
 
 const searchData = () => {
@@ -228,39 +276,27 @@ const searchData = () => {
 }
 
 const afterSearch = (res) => {
-  grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
+  let list = res.ORESULT_CUR || []
+  list.forEach(row => {
+    row.ACT_DT_2 = row.ACT_DT
+    row.NOTI_IMG_YN = row.NOTI_SCAN ? 'Y' : 'N'
+    row.NOTI_FILE_YN = row.NOTI_SCAN ? 'Y' : 'N'
+    row.ACT_IMG_YN = row.ACT_RSLT_SCAN ? 'Y' : 'N'
+    row.ACT_FILE_YN = row.ACT_RSLT_SCAN ? 'Y' : 'N'
+  })
+  grdMain.value.getDataProvider().setRows(list)
 }
 
-const beforeDelete = () => {
-  let chekedRow = grdMain.value.getGridView().getCheckedRows()
-  if (chekedRow.length === 0) {
-    Message.warn(t('삭제할 데이터를 선택해주세요.'))
-    return false
-  }
-  return true
-}
-
-const deleteData = () => {
-  let deleteParam = []
-  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
-  for (let i in checkedData) {
-    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
-    let deleteData = {
-      CMPNY_DIV: userStore.cmpnyDiv,
-      MNG_NO: data.MNG_NO,
-      REASON: '',
-      USER_ID: userStore.userId,
-    }
-    deleteParam.push(deleteData)
-  }
-  return commonExecuteApi({
-    queryId: 'SAFDC0010_DELETE01',
-    list: deleteParam,
+const openSafetyChkEmpPopup = () => {
+  safetyChkEmpPopup.value.openPopup({
+    CMPNY_DIV: userStore.cmpnyDiv,
+    HSE_ONLY: 'Y',
+    readonly: true,
   })
 }
-
-const afterDelete = () => {
-  onButtonsClick({ id: 'btnSearch' })
+const selectedSafetyChkEmp = (val) => {
+  searchParam.CHK_EMP_NM = val.EMP_NM
+  searchParam.CHK_EMP_NO = val.EMP_NO
 }
 
 const defaultDate = () => {
@@ -275,7 +311,7 @@ const defaultDate = () => {
 onMounted(() => {
   defaultDate()
   initCodeList()
-  onButtonsClick({ id: 'btnSearch' })
+  onSearch()
 })
 
 const onCellDblClicked = (grid, clickData) => {
@@ -284,10 +320,10 @@ const onCellDblClicked = (grid, clickData) => {
 }
 
 const closedPopup = () => {
-  onButtonsClick({ id: 'btnSearch' })
+  onSearch()
 }
 
-// 수신 사업부 변경
+// 수신조직 연동
 watch(
   () => searchParam.REC_BSNS_CD,
   (newValue, oldValue) => {
@@ -295,20 +331,13 @@ watch(
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
     }).then((res) => {
-      if (oldValue !== undefined) {
-        searchParam.REC_DEPT_CD = ''
-        codeList.REC_DEPT_CD = res.ORESULT_CUR
-        codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
-      } else {
-        codeList.REC_DEPT_CD = res.ORESULT_CUR
-        codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
-      }
+      searchParam.REC_DEPT_CD = ''
+      codeList.REC_DEPT_CD = res.ORESULT_CUR
+      codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     })
   },
   { immediate: true }
 )
-
-// 수신 부서 변경
 watch(
   () => searchParam.REC_DEPT_CD,
   (newValue, oldValue) => {
@@ -316,20 +345,15 @@ watch(
       queryId: 'searchTeam',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.REC_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
     }).then((res) => {
-      if (oldValue !== undefined) {
-        searchParam.REC_ASGN_CD = ''
-        codeList.REC_ASGN_CD = res.ORESULT_CUR
-        codeList.REC_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
-      } else {
-        codeList.REC_ASGN_CD = res.ORESULT_CUR
-        codeList.REC_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
-      }
+      searchParam.REC_ASGN_CD = ''
+      codeList.REC_ASGN_CD = res.ORESULT_CUR
+      codeList.REC_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
     })
   },
   { immediate: true }
 )
 
-// 발신 사업부 변경
+// 발신조직 연동
 watch(
   () => searchParam.SEND_BSNS_CD,
   (newValue, oldValue) => {
@@ -337,20 +361,13 @@ watch(
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
     }).then((res) => {
-      if (oldValue !== undefined) {
-        searchParam.SEND_DEPT_CD = ''
-        codeList.SEND_DEPT_CD = res.ORESULT_CUR
-        codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
-      } else {
-        codeList.SEND_DEPT_CD = res.ORESULT_CUR
-        codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
-      }
+      searchParam.SEND_DEPT_CD = ''
+      codeList.SEND_DEPT_CD = res.ORESULT_CUR
+      codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     })
   },
   { immediate: true }
 )
-
-// 발신 부서 변경
 watch(
   () => searchParam.SEND_DEPT_CD,
   (newValue, oldValue) => {
@@ -358,148 +375,168 @@ watch(
       queryId: 'searchTeam',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.SEND_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
     }).then((res) => {
-      if (oldValue !== undefined) {
-        searchParam.SEND_ASGN_CD = ''
-        codeList.SEND_ASGN_CD = res.ORESULT_CUR
-        codeList.SEND_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
-      } else {
-        codeList.SEND_ASGN_CD = res.ORESULT_CUR
-        codeList.SEND_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
-      }
+      searchParam.SEND_ASGN_CD = ''
+      codeList.SEND_ASGN_CD = res.ORESULT_CUR
+      codeList.SEND_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
     })
   },
   { immediate: true }
 )
+
+watch(tab, (newTab) => {
+  if (newTab === 'muniReg') {
+    searchParam.STATUS = ''
+  } else if (newTab === 'muniClose') {
+    searchParam.STATUS = '40' // 조치완료만 표시
+  }
+  onSearch()
+})
 </script>
 
 <template>
   <v-card class="pa-0 fill-height">
-    <v-card-title class="pa-3 pb-0">
-      <IGridTitle
-        ref="gridTitle"
-        :button-list="['btnSearch', 'btnMuniNotice', 'btnDelete']"
-        @click-button="onButtonsClick"
-      />
-    </v-card-title>
+    <!-- Header with Tabs and Actions aligned -->
+    <div class="d-flex align-center justify-space-between border-b bg-white">
+      <v-tabs v-model="tab" color="primary" class="tabs-area">
+        <v-tab value="muniReg" class="font-weight-bold">시정통보등록</v-tab>
+        <v-tab value="muniClose" class="font-weight-bold">시정통보종결처리</v-tab>
+      </v-tabs>
+      <div class="d-flex gap-2 py-2 pr-4 align-center">
+        <v-btn color="primary" size="small" @click="onSearch" class="font-weight-bold">조회</v-btn>
+        <v-btn color="primary" size="small" @click="onRegister" class="font-weight-bold">등록</v-btn>
+        <v-btn color="primary" size="small" @click="onApproval" class="font-weight-bold">승인</v-btn>
+        <v-btn color="primary" size="small" @click="onCancelApproval" class="font-weight-bold">승인취소</v-btn>
+      </div>
+    </div>
 
     <v-card-text class="pa-3 pt-0 content-area">
       <div class="d-flex flex-column fill-height">
-        <v-sheet class="searchArea">
-          <div class="d-flex mb-2 flex-wrap align-center">
-            <v-checkbox
-              label="점검일자"
-              class="mr-5"
-              true-value="Y"
-              false-value="N"
-              v-model="searchParam.NOTI_CHK"
-              hide-details
-            ></v-checkbox>
-            <i-input
-              width="150px"
-              type="date"
-              class="mr-0"
-              v-model="searchParam.NOTI_FROM"
-              hide-details
-            ></i-input>
-            <span class="mx-1 mt-2">~</span>
-            <i-input
-              width="150px"
-              type="date"
-              v-model="searchParam.NOTI_TO"
-              hide-details
-            ></i-input>
-            <i-select
-              label-width="70px"
-              :label="$t('발신 사업부')"
-              width="250px"
-              item-title="BSNS_NM"
-              item-value="BSNS_CD"
-              :items="codeList.SEND_BSNS_CD"
-              v-model="searchParam.SEND_BSNS_CD"
-              hide-details
-            ></i-select>
-            <i-select
-              :label="$t('부서')"
-              width="200px"
-              item-title="DEPT_NM"
-              item-value="DEPT_CD"
-              :items="codeList.SEND_DEPT_CD"
-              v-model="searchParam.SEND_DEPT_CD"
-              hide-details
-            ></i-select>
-            <i-select
-              :label="$t('팀/협력사')"
-              width="200px"
-              item-title="ASGN_NM"
-              item-value="ASGN_CD"
-              :items="codeList.SEND_ASGN_CD"
-              v-model="searchParam.SEND_ASGN_CD"
-              hide-details
-            ></i-select>
+        
+        <!-- Search Conditions Section -->
+        <v-sheet class="searchArea pa-4 bg-lightgrey mt-2 mb-2 rounded-5">
+          <div class="sheetTitle mb-2">{{ $t('조회조건') }}</div>
+          
+          <!-- First Row -->
+          <div class="d-flex mb-3 align-center flex-wrap gap-4">
+            <div class="d-flex align-center">
+              <span class="mr-2 font-weight-bold text-body-2">{{ $t('일자') }}</span>
+              <i-input
+                width="140px"
+                type="date"
+                v-model="searchParam.NOTI_FROM"
+                hide-details
+              ></i-input>
+              <span class="mx-1">~</span>
+              <i-input
+                width="140px"
+                type="date"
+                v-model="searchParam.NOTI_TO"
+                hide-details
+              ></i-input>
+            </div>
+
+            <div class="d-flex align-center flex-wrap">
+              <span class="mr-2 font-weight-bold text-body-2">{{ $t('수신조직') }}</span>
+              <i-select
+                width="150px"
+                item-title="BSNS_NM"
+                item-value="BSNS_CD"
+                :items="codeList.REC_BSNS_CD"
+                v-model="searchParam.REC_BSNS_CD"
+                hide-details
+                class="mr-1"
+              ></i-select>
+              <i-select
+                width="150px"
+                item-title="DEPT_NM"
+                item-value="DEPT_CD"
+                :items="codeList.REC_DEPT_CD"
+                v-model="searchParam.REC_DEPT_CD"
+                hide-details
+                class="mr-1"
+              ></i-select>
+              <i-select
+                width="150px"
+                item-title="ASGN_NM"
+                item-value="ASGN_CD"
+                :items="codeList.REC_ASGN_CD"
+                v-model="searchParam.REC_ASGN_CD"
+                hide-details
+              ></i-select>
+            </div>
           </div>
-          <div class="d-flex flex-wrap align-center">
-            <v-checkbox
-              label="회신요구일"
-              class="mr-2"
-              true-value="Y"
-              false-value="N"
-              v-model="searchParam.REQ_REPLY_CHK"
-              hide-details
-            ></v-checkbox>
-            <i-input
-              width="150px"
-              type="date"
-              class="mr-0"
-              v-model="searchParam.REQ_REPLY_FROM"
-              hide-details
-            ></i-input>
-            <span class="mx-1 mt-2">~</span>
-            <i-input
-              width="150px"
-              type="date"
-              v-model="searchParam.REQ_REPLY_TO"
-              hide-details
-            ></i-input>
-            <i-select
-              label-width="70px"
-              :label="$t('수신 사업부')"
-              width="250px"
-              item-title="BSNS_NM"
-              item-value="BSNS_CD"
-              :items="codeList.REC_BSNS_CD"
-              v-model="searchParam.REC_BSNS_CD"
-              hide-details
-            ></i-select>
-            <i-select
-              :label="$t('부서')"
-              width="200px"
-              item-title="DEPT_NM"
-              item-value="DEPT_CD"
-              :items="codeList.REC_DEPT_CD"
-              v-model="searchParam.REC_DEPT_CD"
-              hide-details
-            ></i-select>
-            <i-select
-              :label="$t('진행상태')"
-              width="200px"
-              labelWidth="50px"
-              item-title="TXT"
-              item-value="COD"
-              :items="codeList.STATUS"
-              v-model="searchParam.STATUS"
-              hide-details
-            ></i-select>
+
+          <!-- Second Row -->
+          <div class="d-flex align-center flex-wrap gap-4">
+            <div class="d-flex align-center flex-wrap">
+              <span class="mr-2 font-weight-bold text-body-2">{{ $t('발신조직') }}</span>
+              <i-select
+                width="150px"
+                item-title="BSNS_NM"
+                item-value="BSNS_CD"
+                :items="codeList.SEND_BSNS_CD"
+                v-model="searchParam.SEND_BSNS_CD"
+                hide-details
+                class="mr-1"
+              ></i-select>
+              <i-select
+                width="150px"
+                item-title="DEPT_NM"
+                item-value="DEPT_CD"
+                :items="codeList.SEND_DEPT_CD"
+                v-model="searchParam.SEND_DEPT_CD"
+                hide-details
+                class="mr-1"
+              ></i-select>
+              <i-select
+                width="150px"
+                item-title="ASGN_NM"
+                item-value="ASGN_CD"
+                :items="codeList.SEND_ASGN_CD"
+                v-model="searchParam.SEND_ASGN_CD"
+                hide-details
+              ></i-select>
+            </div>
+
+            <div class="d-flex align-center">
+              <span class="mr-2 font-weight-bold text-body-2">{{ $t('진행상태') }}</span>
+              <i-select
+                width="150px"
+                item-title="TXT"
+                item-value="COD"
+                :items="codeList.STATUS"
+                v-model="searchParam.STATUS"
+                hide-details
+              ></i-select>
+            </div>
+
+            <div class="d-flex align-center">
+              <span class="mr-2 font-weight-bold text-body-2">{{ $t('점검자') }}</span>
+              <i-input
+                width="150px"
+                v-model="searchParam.CHK_EMP_NM"
+                append-inner-icon="mdi-magnify"
+                @click:appendInner="openSafetyChkEmpPopup"
+                hide-details
+              ></i-input>
+            </div>
           </div>
         </v-sheet>
+
+        <!-- Grid Header and Table Section -->
+        <div class="sheetTitle mb-2 mt-2 px-1">{{ $t('그리드헤더') }}</div>
         <v-sheet style="height: -webkit-fill-available">
           <RealGrid
             ref="grdMain"
             :grid-view-option="grdMainProps.gridViewOption"
             :fields="grdMainProps.fields"
             :columns="grdMainProps.columns"
+            :column-layout="grdMainProps.columnLayout"
+            @loaded="onGridLoaded"
             @onCellDblClicked="onCellDblClicked"
           />
         </v-sheet>
+
       </div>
     </v-card-text>
   </v-card>
@@ -508,17 +545,38 @@ watch(
     ref="sAFDC0020_01_Popup01"
     @closed="closedPopup"
   ></SAFDC0020_01Popup01>
+
+  <EmpPopup ref="safetyChkEmpPopup" @selected="selectedSafetyChkEmp"></EmpPopup>
 </template>
 
 <style scoped lang="scss">
 .content-area {
   position: relative;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 120px);
   overflow-y: auto;
   > div {
     min-height: 500px;
   }
 }
+.sheetTitle {
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 2px solid #1a237e;
+  padding-bottom: 4px;
+}
+.bg-lightgrey {
+  background-color: #f5f5f5 !important;
+}
+.border-b {
+  border-bottom: 1px solid #e0e0e0;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-4 {
+  gap: 16px;
+}
 </style>
+
 
 
