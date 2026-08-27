@@ -76,6 +76,44 @@ export function commonRequest(url, data, method = 'post', contentType = 'applica
       return
     }
 
+    if (data && data.queryId === 'SAFDC0010_SAVE04') {
+      resolve({
+        list: [{
+          OUT_RES_MNG_NO: 'MNG-' + Date.now(),
+          MNG_NO: 'MNG-' + Date.now()
+        }]
+      })
+      return
+    }
+
+    if (data && data.queryId === 'SAFDC0010_SAVE07') {
+      resolve({
+        list: [{
+          MNG_NO: data.list[0].MNG_NO,
+          STATUS: data.list[0].STATUS
+        }]
+      })
+      return
+    }
+
+    if (data && data.queryId === 'SAFDC0010_DELETE01') {
+      resolve({
+        list: [{
+          MNG_NO: data.list[0].MNG_NO
+        }]
+      })
+      return
+    }
+
+    if (data && data.queryId === 'OPRAB0010_SAVE_01') {
+      resolve({
+        list: [{
+          APPROVE_ID: data.list[0].APPROVE_ID
+        }]
+      })
+      return
+    }
+
     resolve({ ORESULT_CUR: [] })
   })
 }
