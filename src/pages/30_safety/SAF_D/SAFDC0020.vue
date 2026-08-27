@@ -18,7 +18,7 @@ import EmpPopup from '@/components/popup/EmpPopup.vue'
 import IUpload from '@/components/IUpload.vue'
 import IUploadImageMulit from '@/components/IUploadImageMulit.vue'
 import IGridTitle from '@/components/IGridTitle.vue'
-import { isEmpty } from '@/utils/common'
+import { isEmpty } from 'lodash-es'
 
 defineOptions({
   name: '30_safety-SAF_D-SAFDC0020',
@@ -28,6 +28,10 @@ const router = useRouter()
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
 const userStore = useUserStore()
+
+const uploaded = (val) => {
+  console.log('Uploaded event:', val)
+}
 
 const safetyImageUpload = ref(null)
 const safetyFileUpload = ref(null)
