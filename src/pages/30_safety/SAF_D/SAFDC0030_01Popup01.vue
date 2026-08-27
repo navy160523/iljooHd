@@ -1,98 +1,91 @@
 <script setup>
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue'
+import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
 import { useUserStore } from '@hiway/stores/user'
-import { useLogsStore } from '@hiway/stores/logs'
 import {
   commonExecuteApi,
   commonSearchApi,
-  commonSendApi,
   getCodeList,
-  nullToEmpty,
 } from '@hiway/api/commonApi'
-import queryFlowHelper from '@/utils/searchFlowHelper'
 import Message from '@hiway/utils/notify'
-import RealGrid from '@/components/RealGrid.vue'
-import IMenuTitle from '@/components/IMenuTitle.vue'
 import { useI18n } from 'vue-i18n'
 import { startDragging, handleDragging, stopDragging } from '@/utils/useDrag'
 import dayjs from 'dayjs'
 import DeptPopup from '@/components/popup/DeptPopup.vue'
 import EmpPopup from '@/components/popup/EmpPopup.vue'
-import IUploadPopup from '@/components/popup/IUploadPopup.vue'
 import LocationPopup from '@/components/popup/LocationPopup.vue'
 import saveFlowHelper from '@/utils/saveFlowHelper'
-import IGridTitle from '@/components/IGridTitle.vue'
-import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF.vue'
+import IUpload from '@/components/IUpload.vue'
+import IUploadImageMulit from '@/components/IUploadImageMulit.vue'
 
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
 const userStore = useUserStore()
 const dialog = ref(false)
-const grdMain = ref(null)
-const workStopLocation = ref(null) //작업장소
-const workStopEmpPopup = ref(null) //작업담당
-const workStopDeptPopup = ref(null) //작업담당소속
-const workStopProcessEmpPopup = ref(null) //작업중지처리자
-const fileUpload = ref(null) //파일첨부
+
+const safetyImageUpload = ref(null)
+const safetyFileUpload = ref(null)
+const actionImageUpload = ref(null)
+const actionFileUpload = ref(null)
+
+const workStopLocation = ref(null)
+const workStopEmpPopup = ref(null)
+const workStopDeptPopup = ref(null)
+const workStopProcessEmpPopup = ref(null)
+
 const emit = defineEmits(['closed'])
-const workCntMaxNumber = ref(4)
-const sagoDivPopup = ref(null)
-const menuTitle = ref(null)
+
 const workStopField = reactive({
-  CMPNY_DIV: '', //사업장구분
-  JSTOP_NO: '', //중지NO
-  JSTOP_DT1: '', //중지일자
-  JSTOP_TIME2: '', //중지시간
-  BSNS_CD: '', //사업부코드
-  DEPT_CD: '', //부서코드
-  DEPT_NM: '', //부서이름
-  ASGN_NM: '', //소속조직
-  VIO_EMP_ASGN: '', //작업담당소속
-  ASGN_CD: '', //조직코드
-  CHG_EMP_NO: '', //작업담당자사번
-  CHG_EMP_NM: '', //작업담당자성명
-  CHG_CMPNY_DIV: '', //작업담당자 사업부
-  USER_DIV: '', //작업담당자 소속(A = 직영 B = 협력사)
-  JSTOP_DIV: '', //중지구분
-  JSTOP_DESC: '', //작업중지사유
-  JOB_LPLC: '', //작업장소(대)
-  JOB_MPLC: '', //작업장소(중)
-  JOB_SPLC: '', //작업장소(소)
-  JOB_LPLC_NM: '', //작업장소이름(대)
-  JOB_MPLC_NM: '', //작업장소이름(중)
-  JOB_SPLC_NM: '', //작업장소이름(소)
-  JOB_PLC_DESC: '', //작업장소상세
-  SHIP_NO: '', //호선
-  WORKER_CNT: '', //작업인원
-  RESTART_DT1: '', //작업재개일
-  RESTART_TIME2: '', //작업재개시간
-  RESTART_DIV: '', //작업재개구분
-  RESTART_DESC: '', //작업재개조치내용
-  JSTOP_EMP_NM: '', //중지처리자
-  JSTOP_EMP_NO: '', //중지처리자사번
-  JSTOP_ASGN_NM: '', ////중지처리자조직
-  JSTOP_ASGN_CD: '', //중지처리자조직코드
-  JSTOP_DEPT_CD: '', //중지처리자부서코드
-  USER_ID: '', //로그인유저아이디
-  SAVE_YN: '', //저장여부
-  COMPANY: '', //위반자회사
-  FILE_ID: '', //파일아이디
-  SAGO_DIV_L: '', //잠재사고유형(대)
-  SAGO_DIV_M: '', //잠재사고유형(중)
-  SAGO_DIV_S: '', //잠재사고유형(소)
-  SAGO_DIV_L_NM: '', //잠재사고유형이름(대)
-  SAGO_DIV_M_NM: '', //잠재사고유형이름(중)
-  SAGO_DIV_S_NM: '', //잠재사고유형이름(소)
-  RESTART_DIV_NM: '', //작업재개구분
+  CMPNY_DIV: '',
+  JSTOP_NO: '',
+  JSTOP_DT1: '',
+  JSTOP_TIME2: '',
+  BSNS_CD: '',
+  DEPT_CD: '',
+  DEPT_NM: '',
+  ASGN_NM: '',
+  VIO_EMP_ASGN: '',
+  ASGN_CD: '',
+  CHG_EMP_NO: '',
+  CHG_EMP_NM: '',
+  CHG_JOB_TIT_NM: '',
+  WORKER_CNT: '',
+  RESTART_DT1: '',
+  RESTART_TIME2: '',
+  RESTART_DIV: '',
+  RESTART_DESC: '',
+  JSTOP_EMP_NM: '',
+  JSTOP_EMP_NO: '',
+  JSTOP_JOB_TIT_NM: '',
+  JSTOP_ASGN_NM: '',
+  JSTOP_ASGN_CD: '',
+  JSTOP_DEPT_CD: '',
+  USER_ID: '',
+  SAVE_YN: 'Y',
+  COMPANY: '',
+  FILE_ID: '',
+  FILE_ID2: '',
+  SAGO_DIV_L: '',
+  SAGO_DIV_M: '',
+  SAGO_DIV_S: '',
+  SAGO_DIV_L_NM: '',
+  SAGO_DIV_M_NM: '',
+  SAGO_DIV_S_NM: '',
+  JOB_LPLC: '',
+  JOB_MPLC: '',
+  JOB_SPLC: '',
+  JOB_LPLC_NM: '',
+  JOB_MPLC_NM: '',
+  JOB_SPLC_NM: '',
+  JOB_PLC_DESC: '',
+  SHIP_NO: '',
 })
 
 const codeList = reactive({
   RESTART_DIV: [],
-  SHIP_NO: [], //호선
+  SHIP_NO: [],
 })
 
 const initWorkStopCodeList = () => {
-  //초기값 설정
   Promise.all([
     getCodeList('HHIF170'),
     commonSearchApi({
@@ -103,162 +96,134 @@ const initWorkStopCodeList = () => {
     codeList.RESTART_DIV = res[0].ORESULT_CUR
     codeList.SHIP_NO = res[1].ORESULT_CUR
   })
-  let date = dayjs()
-  workStopField.JSTOP_DT1 =
-    date.get('year') +
-    '-' +
-    (date.get('month') + 1).toString().padStart(2, '0') +
-    '-' +
-    date.get('date').toString().padStart(2, '0')
-  workStopField.JSTOP_TIME2 = '00:00'
+}
+
+const initField = () => {
+  Object.keys(workStopField).forEach((key) => {
+    workStopField[key] = ''
+  })
+  
+  workStopField.CMPNY_DIV = userStore.cmpnyDiv
+  workStopField.JSTOP_DT1 = dayjs().format('YYYY-MM-DD')
+  workStopField.JSTOP_TIME2 = dayjs().format('HH:mm')
+  workStopField.SAVE_YN = 'Y'
+  workStopField.USER_ID = userStore.userId
+  
+  // Set reporter info as current user
   workStopField.JSTOP_EMP_NM = userStore.empNm
   workStopField.JSTOP_EMP_NO = userStore.empNo
+  workStopField.JSTOP_JOB_TIT_NM = userStore.jobTitNm || '사원'
   workStopField.JSTOP_ASGN_NM = userStore.asgnFullNm
   workStopField.JSTOP_ASGN_CD = userStore.asgnCd
   workStopField.JSTOP_DEPT_CD = userStore.deptCd
 }
 
+const initUploads = () => {
+  vm.$nextTick(() => {
+    if (safetyImageUpload.value) {
+      if (!workStopField.FILE_ID) {
+        safetyImageUpload.value.setGuid()
+        workStopField.FILE_ID = safetyImageUpload.value.guid
+      } else {
+        safetyImageUpload.value.setGuid(workStopField.FILE_ID)
+        safetyImageUpload.value.onButtonsClick({ id: 'btnSearch' })
+      }
+    }
+    if (safetyFileUpload.value) {
+      if (!workStopField.FILE_ID) {
+        safetyFileUpload.value.setGuid()
+        workStopField.FILE_ID = safetyFileUpload.value.guid
+      } else {
+        safetyFileUpload.value.setGuid(workStopField.FILE_ID)
+        safetyFileUpload.value.onButtonsClick({ id: 'btnSearch' })
+      }
+    }
+    if (actionImageUpload.value) {
+      if (!workStopField.FILE_ID2) {
+        actionImageUpload.value.setGuid()
+        workStopField.FILE_ID2 = actionImageUpload.value.guid
+      } else {
+        actionImageUpload.value.setGuid(workStopField.FILE_ID2)
+        actionImageUpload.value.onButtonsClick({ id: 'btnSearch' })
+      }
+    }
+    if (actionFileUpload.value) {
+      if (!workStopField.FILE_ID2) {
+        actionFileUpload.value.setGuid()
+        workStopField.FILE_ID2 = actionFileUpload.value.guid
+      } else {
+        actionFileUpload.value.setGuid(workStopField.FILE_ID2)
+        actionFileUpload.value.onButtonsClick({ id: 'btnSearch' })
+      }
+    }
+  })
+}
+
 const openPopup = () => {
   dialog.value = true
-  menuTitle.value.setBtnProperty("btnSendMail", "visible", false)
-  menuTitle.value.disableBtn('btnSendMail', true)
+  initField()
   initWorkStopCodeList()
+  initUploads()
 }
-//로우 더블클릭 했을때 실행 (수정시)
+
 const openPopup2 = (rowData) => {
-  console.log('받은데이터', rowData)
   dialog.value = true
-  // workStopField.JSTOP_DT1 =
-  //   rowData.JSTOP_DT.substr(0, 4) +
-  //   '-' +
-  //   rowData.JSTOP_DT.substr(4, 2) +
-  //   '-' +
-  //   rowData.JSTOP_DT.substr(6, 2)
-  workStopField.JSTOP_DT1 = rowData.JSTOP_DT
-  workStopField.JSTOP_TIME2 = rowData.JSTOP_TIME.substr(0, 5)
-  workStopField.SHIP_NO = rowData.SHIP_NO
-  workStopField.JSTOP_NO = rowData.JSTOP_NO
-  workStopField.JOB_LPLC_NM = rowData.JOB_LPLC_NM
-  workStopField.JOB_MPLC_NM = rowData.JOB_MPLC_NM
-  workStopField.JOB_SPLC_NM = rowData.JOB_SPLC_NM
-  workStopField.JOB_LPLC = rowData.JOB_LPLC
-  workStopField.JOB_MPLC = rowData.JOB_MPLC
-  workStopField.JOB_SPLC = rowData.JOB_SPLC
-  workStopField.JOB_PLC_DESC = rowData.JOB_PLC_DESC
-  workStopField.JSTOP_DESC = rowData.JSTOP_DESC
-  workStopField.CHG_EMP_NM = rowData.CHG_EMP_NM
-  workStopField.CHG_EMP_NO = rowData.CHG_EMP_NO
-  workStopField.ASGN_NM = rowData.ASGN_NM
-  workStopField.VIO_EMP_ASGN = rowData.VIO_EMP_ASGN 
-  if (rowData.RESTART_DT) {
-    workStopField.RESTART_DT1 = rowData.RESTART_DT
-    // workStopField.RESTART_DT1 =
-    //   rowData.RESTART_DT.substr(0, 4) +
-    //   '-' +
-    //   rowData.RESTART_DT.substr(4, 2) +
-    //   '-' +
-    //   rowData.RESTART_DT.substr(6, 2)
-  }
-  if (rowData.RESTART_TIME) {
-    workStopField.RESTART_TIME2 = rowData.RESTART_TIME.substr(0, 5)
-  }
-
-  workStopField.RESTART_DIV = rowData.RESTART_DIV
-  workStopField.RESTART_DESC = rowData.RESTART_DESC
-  workStopField.JSTOP_EMP_NM = rowData.JSTOP_EMP_NM
-  workStopField.JSTOP_EMP_NO = rowData.JSTOP_EMP_NO
-  workStopField.JSTOP_ASGN_NM = rowData.ASGN_SHRT_NM
-  workStopField.SAVE_YN = 'Y'
-  workStopField.ASGN_NM = rowData.ASGN_NM
-  workStopField.ASGN_CD = rowData.ASGN_CD
-  workStopField.COMPANY = rowData.COMPANY
-  workStopField.BSNS_CD = rowData.BSNS_CD
-  workStopField.DEPT_CD = rowData.DEPT_CD
-  workStopField.FILE_ID = rowData.FILE_ID
-  workStopField.WORKER_CNT = rowData.WORKER_CNT
-  workStopField.SAGO_DIV_L = rowData.SAGO_DIV_L
-  workStopField.SAGO_DIV_M = rowData.SAGO_DIV_M
-  workStopField.SAGO_DIV_S = rowData.SAGO_DIV_S
-  workStopField.SAGO_DIV_L_NM = rowData.SAGO_DIV_L_NM
-  workStopField.SAGO_DIV_M_NM = rowData.SAGO_DIV_M_NM
-  workStopField.SAGO_DIV_S_NM = rowData.SAGO_DIV_S_NM
-  workStopField.RESTART_DIV_NM = rowData.RESTART_DIV_NM
-
-  if(workStopField.JSTOP_EMP_NO === userStore.empNo) {
-    menuTitle.value.setBtnProperty("btnSendMail", "visible", true)
-    menuTitle.value.disableBtn('btnSendMail', false)
-  } else {
-    menuTitle.value.setBtnProperty("btnSendMail", "visible", false)
-    menuTitle.value.disableBtn('btnSendMail', true)
-  }
+  initWorkStopCodeList()
+  
+  Object.keys(workStopField).forEach((key) => {
+    if (rowData[key] !== undefined) {
+      workStopField[key] = rowData[key]
+    }
+  })
+  
+  if (rowData.JSTOP_DT) workStopField.JSTOP_DT1 = rowData.JSTOP_DT
+  if (rowData.JSTOP_TIME) workStopField.JSTOP_TIME2 = rowData.JSTOP_TIME
+  if (rowData.RESTART_DT) workStopField.RESTART_DT1 = rowData.RESTART_DT
+  if (rowData.RESTART_TIME) workStopField.RESTART_TIME2 = rowData.RESTART_TIME
+  
+  initUploads()
 }
 
 const closePopup = () => {
   dialog.value = false
-  //팝업닫을때 초기화
-  for (let i in workStopField) {
-    workStopField[i] = ''
-  }
   emit('closed')
 }
 
-const onButtonsClick = (btn) => {
-  if (btn.id === 'btnUpdate') {
-    new saveFlowHelper(vm, t)
-      .setBefore(beforeSave)
-      .setQuery(saveData)
-      .setAfter(afterSave)
-      .run()
-  } else if (btn.id === 'btnSendMail'){
-    let mailMsg = getMailMsg()
-    let mailSubject = '[HiSEs] 작업중지 등록 안내'
-    let sCompany = workStopField.COMPANY
-    let sDeptCD = workStopField.DEPT_CD
-    let sAsgnCD = workStopField.ASGN_CD
-
-    sendMailDetail(sCompany, sDeptCD, sAsgnCD, mailSubject, mailMsg) 
-  }else {
-    closePopup()
+const onSave = () => {
+  if (!workStopField.JOB_SPLC_NM) {
+    Message.warn(t('장소는 필수값입니다.'))
+    return
   }
-}
-
-//저장관련 로직 시작
-const beforeSave = () => {
-  if (!workStopField.JOB_SPLC) {
-    Message.warn(t('작업장소는 필수값입니다.'))
-    return false
-  } else if (!workStopField.WORKER_CNT) {
-    Message.warn(t('작업인원은 필수값입니다.'))
-    return false
-  } else if (!workStopField.SAGO_DIV_L_NM) {
-    Message.warn(t('잠재사고유형은 필수값입니다.'))
-    return false
-  } else if (!workStopField.JSTOP_DESC) {
-    Message.warn(t('중지상세는 필수값입니다.'))
-    return false
-  } else if (!workStopField.CHG_EMP_NO) {
+  if (!workStopField.CHG_EMP_NO) {
     Message.warn(t('작업담당자는 필수값입니다.'))
-    return false
-  } else if (!workStopField.ASGN_NM) {
-    Message.warn(t('소속조직은 필수값입니다.'))
-    return false
-  } else if (!workStopField.BSNS_CD) {
-    Message.warn(t('소속조직은 필수값입니다.'))
-    return false
-  } else if (!workStopField.SAGO_DIV_L) {
-    Message.warn(t('잠재사고유형은 필수값입니다.'))
-    return false
+    return
   }
-  return true
+  if (!workStopField.WORKER_CNT) {
+    Message.warn(t('작업인원은 필수값입니다.'))
+    return
+  }
+  if (!workStopField.JSTOP_DESC) {
+    Message.warn(t('중지사유는 필수값입니다.'))
+    return
+  }
+
+  new saveFlowHelper(vm, t)
+    .setBefore(() => true)
+    .setQuery(saveData)
+    .setAfter(() => {
+      Message.success(t('저장되었습니다.'))
+      closePopup()
+    })
+    .run()
 }
 
-const saveData = () => { 
+const saveData = () => {
   let saveParam = []
   let saveData = {
     CMPNY_DIV: userStore.cmpnyDiv,
     JSTOP_NO: workStopField.JSTOP_NO,
-    JSTOP_DT1: workStopField.JSTOP_DT1, //중지일자
-    JSTOP_TIME2: workStopField.JSTOP_TIME2.substring(0, 5), //중지시간
+    JSTOP_DT1: workStopField.JSTOP_DT1,
+    JSTOP_TIME2: workStopField.JSTOP_TIME2 ? workStopField.JSTOP_TIME2.substring(0, 5) : '',
     BSNS_CD: workStopField.BSNS_CD,
     DEPT_CD: workStopField.DEPT_CD,
     ASGN_CD: workStopField.ASGN_CD,
@@ -273,7 +238,7 @@ const saveData = () => {
     SHIP_NO: workStopField.SHIP_NO,
     WORKER_CNT: workStopField.WORKER_CNT,
     RESTART_DT1: workStopField.RESTART_DT1,
-    RESTART_TIME2: workStopField.RESTART_TIME2.substring(0, 5),
+    RESTART_TIME2: workStopField.RESTART_TIME2 ? workStopField.RESTART_TIME2.substring(0, 5) : '',
     RESTART_DIV: workStopField.RESTART_DIV,
     RESTART_DESC: workStopField.RESTART_DESC,
     JSTOP_EMP_NO: workStopField.JSTOP_EMP_NO,
@@ -281,11 +246,12 @@ const saveData = () => {
     JSTOP_DEPT_CD: workStopField.JSTOP_DEPT_CD,
     USER_ID: userStore.userId,
     SAVE_YN: workStopField.SAVE_YN === 'Y' ? 'Y' : 'N',
-    COMPANY: workStopField.COMPANY,
+    COMPANY: workStopField.CMPNY_DIV || userStore.cmpnyDiv,
     FILE_ID: workStopField.FILE_ID,
-    SAGO_DIV_L: workStopField.SAGO_DIV_L,
-    SAGO_DIV_M: workStopField.SAGO_DIV_M,
-    SAGO_DIV_S: workStopField.SAGO_DIV_S,
+    FILE_ID2: workStopField.FILE_ID2,
+    SAGO_DIV_L: workStopField.SAGO_DIV_L || 'L01',
+    SAGO_DIV_M: workStopField.SAGO_DIV_M || 'M01',
+    SAGO_DIV_S: workStopField.SAGO_DIV_S || 'S01',
   }
   saveParam.push(saveData)
   return commonExecuteApi({
@@ -294,237 +260,60 @@ const saveData = () => {
   })
 }
 
-const afterSave = () => {  
-  setHdPayStop()
-  closePopup()
-}
-
-const getMailMsg = () => {
-  let mailMsg = ''
-
-  ///console.log('11111') 
-  
-  mailMsg += '<head><style>table { width: 98%; border: 1px solid #444444; border-collapse: collapse; } th, td { border: 1px solid #444444; padding: 5px; font-size: 14px; } .title{ background-color:lightsteelblue; font-weight: bold; text-align: center; } </style> </head> <body>'
-    
-  mailMsg += '작업중지 등록 사항을 아래와 같이 안내 드립니다.'
-  mailMsg += '<br/>&nbsp;&nbsp; *작업중지 상세 내용 확인 : HiSEs [안전]–[안전수칙]–[안전수칙위반 현황/등록]–[작업중지 탭] 화면에서 해당 내용을 더블 클릭 후 확인'  
-  
-  mailMsg += '<br/><br/>'
-  mailMsg += '◎ 작업중지 내용'
-  mailMsg += '<br/>'  
-  mailMsg += '<table><tr class="title">'  
-  mailMsg += '<th>중지일자</th>'
-  mailMsg += '<th>중지시간</th>'
-  mailMsg += '<th>작업담당소속</th>'
-  mailMsg += '<th>작업담당자</th>'
-  mailMsg += '<th>장소분류</th>'    
-  mailMsg += '<th>작업장소</th>'    
-  mailMsg += '<th>호선번호</th>'  
-  mailMsg += '<th>중지사유</th>'  
-  mailMsg += '<th>조치구분</th>'  
-  mailMsg += '<th>작업중지 처리자</th>'  
-  mailMsg += '</tr>'  
-  mailMsg += '<tr>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JSTOP_DT1) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JSTOP_TIME2) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.ASGN_NM) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.CHG_EMP_NM) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JOB_SPLC_NM) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JOB_PLC_DESC) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.SHIP_NO) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JSTOP_DESC) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(getRESTART_DIV_NM(workStopField.RESTART_DIV)) + '</td>'
-  mailMsg += '<td>' + nullToEmpty(workStopField.JSTOP_EMP_NM) + '</td>'
-        
-  mailMsg += '</tr>'
-  mailMsg += '</table></body>'
- 
-  return mailMsg
-}
-
-const sendMailDetail = async (pCmpnyDiv, pDeptCd, pAsgnCd, pSubject, pMsg) => {
-  const mailList1 = await commonSearchApi({
-    queryId : 'SAFDD0010_SEARCH_04',
-    param: {
-      CMPNY_DIV: pCmpnyDiv,
-      DEPT_CD: pDeptCd,
-      ASGN_CD: pAsgnCd,
-    },
-  })
-
-  const mails1 = []
-
-  mailList1.ORESULT_CUR.forEach(mail => {
-    if(mail.EMAIL) {
-      mails1.push(mail.EMAIL)
-    }
-  })
-
-  // 메일전송
-  await commonSendApi({
-    EMAIL: mails1,
-    SUBJECT: pSubject,
-    CONTENT: pMsg,
-  })
-}
-
-const getRESTART_DIV_NM = (code) => {
-  const sRESTART_DIV = codeList.RESTART_DIV.find(item => item.COD === code)
-  return sRESTART_DIV ? sRESTART_DIV.TXT : "";
-}
-
-//저장관련 로직 끝
-
-//안전페이 지급중단 로직 시작
-const setHdPayStop = async () => {
-  if(workStopField.CHG_CMPNY_DIV !== '') {
-    let saveParam = []
-    let day = dayjs()
-    let setHdPayStopParam = {
-      CMPNY_DIV: workStopField.CHG_CMPNY_DIV, //사업장구분
-      YEAR: dayjs().$y, //현재년도
-      MNTH: (dayjs().$M + 1).toString().padStart(2, '0'), //현재월
-      EMP_NO: workStopField.CHG_EMP_NO, //지급중단 대상자 사번
-      PAYMENT_STOP_SEQ: 0, //지급중단 SEQ
-      BSNS_CD: workStopField.BSNS_CD, //지급중단 대상자 사업부
-      DEPT_CD: workStopField.DEPT_CD, //지급중단 대상자 부서코드
-      ASGN_CD: workStopField.ASGN_CD, //지급중단 대상자 소속코드
-      ASGN_NAME: workStopField.ASGN_NM, //지급중단 대상자 소속명
-      EMP_NAME: workStopField.CHG_EMP_NM, //지급중단 대상자 성명
-      ORGN_DIV: workStopField.USER_DIV, //지급중단 대상자 조직구분(A=직업,B=사내협력사)
-      PAYMENT_STOP_TYPE: 'A', //지급중단타입(A:개인,B:조직)
-      PAYMENT_STOP_CD: '30', //지급중단구분(HHIC40)
-      PAYMENT_STOP_DETAIL_CD: '80', //지급중단상세(HHIC50)
-      PAYMENT_STOP_INSERT_DATE: '', //지급중단 등록일
-      PAYMENT_STOP_FROM: day.format('YYYY-MM-DD'), //지급중단 시작일
-      PAYMENT_STOP_TO: day.add(1, 'day').format('YYYY-MM-DD'), //지급중단 종료일
-      PAYMENT_YN: 'Y', //지급중단 여부
-      REMARK: '', //비고
-      INSERT_USER_ID: userStore.userId, //등록자
-      INSERT_USER_IP: userStore.clientIp, //등록자 IP
-      UPDATE_USER_ID: '', //수정자
-      UPDATE_USER_IP: '', //수정자IP
-    }
-    saveParam.push(setHdPayStopParam)
-    console.log('안전페이', saveParam)
-    await commonExecuteApi({
-      queryId: 'EDUDB0040_TAB01_SAVE_01',
-      list: saveParam,
-    })
-  }
-}
-//안전페이 지급중단 로직 끝
-
-//잠재사고유형 오픈 이벤트
-const openSagoDivPopup = () => {
-  sagoDivPopup.value.openPopup('잠재사고')
-}
-
-//잠재사고유형 선택 이벤트
-const selectedSagoDivPopup = (val) => {
-  workStopField.SAGO_DIV_L = val[0].COD
-  workStopField.SAGO_DIV_L_NM = val[0].TXT
-  workStopField.SAGO_DIV_M = val[1].COD
-  workStopField.SAGO_DIV_M_NM = val[1].TXT
-  workStopField.SAGO_DIV_S = val[2].COD
-  workStopField.SAGO_DIV_S_NM = val[2].TXT
-}
-
-//작업장소 클릭 이벤트
+// 팝업 열기 매핑
 const openWorkStopLocation = () => {
-  workStopLocation.value.openPopup('장소')
+  workStopLocation.value.openPopup('2')
 }
-
-//작업장소 선택 이벤트
 const selectedWorkStopLocation = (val) => {
-  workStopField.JOB_LPLC = val[0].COD
-  workStopField.JOB_LPLC_NM = val[0].TXT
-  workStopField.JOB_MPLC = val[1].COD
-  workStopField.JOB_MPLC_NM = val[1].TXT
-  workStopField.JOB_SPLC = val[2].COD
-  workStopField.JOB_SPLC_NM = val[2].TXT
+  workStopField.JOB_LPLC = val.L_CD
+  workStopField.JOB_MPLC = val.M_CD
+  workStopField.JOB_SPLC = val.S_CD
+  workStopField.JOB_LPLC_NM = val.L_NM
+  workStopField.JOB_MPLC_NM = val.M_NM
+  workStopField.JOB_SPLC_NM = val.S_NM
 }
 
-//작업담당자성명 클릭 이벤트
 const openWorkStopEmpPopup = () => {
   workStopEmpPopup.value.openPopup({
     CMPNY_DIV: userStore.cmpnyDiv,
-    HSE_ONLY: 'Y',
-    EMP_NM: workStopField.CHG_EMP_NM,
+    readonly: true,
   })
 }
-
-//작업담당자성명 선택 이벤트
 const selectedWorkStopEmpPopup = (val) => {
   workStopField.CHG_EMP_NM = val.EMP_NM
   workStopField.CHG_EMP_NO = val.EMP_NO
+  workStopField.CHG_JOB_TIT_NM = val.JOB_TIT_NM || '선임매니저'
+  workStopField.VIO_EMP_ASGN = val.ASGN_NM
+  workStopField.ASGN_NM = val.ASGN_NM
+  workStopField.ASGN_CD = val.ASGN_CD
   workStopField.BSNS_CD = val.BSNS_CD
   workStopField.DEPT_CD = val.DEPT_CD
-  workStopField.ASGN_CD = val.ASGN_CD
-  workStopField.COMPANY = val.CMPNY_DIV
-  workStopField.VIO_EMP_ASGN = val.ASGN_NM
-  if(val.USER_DIV === 'D'){
-    workStopField.ASGN_NM = null //위반조직
-  }else{
-    workStopField.ASGN_NM = val.ASGN_NM //위반조직
-  }
-  workStopField.USER_DIV = val.USER_DIV
-  workStopField.CHG_CMPNY_DIV = val.CMPNY_DIV
 }
 
-//작업담당소속 클릭 이벤트
 const openWorkStopDeptPopup = () => {
   workStopDeptPopup.value.openPopup()
 }
-
-//작업담당소속 선택 이벤트
 const selectedWorkStopDeptPopup = (val) => {
-  workStopField.ASGN_NM = val.ASGN_FULL_NM
+  workStopField.ASGN_NM = val.ASGN_NM
   workStopField.ASGN_CD = val.ASGN_CD
   workStopField.BSNS_CD = val.BSNS_CD
   workStopField.DEPT_CD = val.DEPT_CD
-  workStopField.COMPANY = val.CMPNY_DIV
 }
 
-//작업중지처리자 성명 클릭 이벤트
 const openWorkStopProcessEmpPopup = () => {
   workStopProcessEmpPopup.value.openPopup({
     CMPNY_DIV: userStore.cmpnyDiv,
-    HSE_ONLY: 'Y',
-    EMP_NM: workStopField.JSTOP_EMP_NM,
+    readonly: true,
   })
 }
-
-//작업중지처리자 선택 이벤트
 const selectedWorkStopProcessEmpPopup = (val) => {
   workStopField.JSTOP_EMP_NM = val.EMP_NM
   workStopField.JSTOP_EMP_NO = val.EMP_NO
-  workStopField.JSTOP_DEPT_CD = val.DEPT_CD
+  workStopField.JSTOP_JOB_TIT_NM = val.JOB_TIT_NM || '기사'
   workStopField.JSTOP_ASGN_NM = val.ASGN_NM
   workStopField.JSTOP_ASGN_CD = val.ASGN_CD
+  workStopField.JSTOP_DEPT_CD = val.DEPT_CD
 }
-
-//파일첨부 클릭 이벤트
-const openFileUpload = () => {
-  if (!workStopField.FILE_ID) {
-    fileUpload.value.openPopup()
-  } else {
-    fileUpload.value.openPopup(workStopField.FILE_ID)
-  }
-}
-
-//파일첨부 이벤트
-const fileUploaded = (val) => {
-  if (!workStopField.FILE_ID) {
-    workStopField.FILE_ID = val.fileId
-  }
-}
-
-onMounted(() => {
-  vm.$nextTick(() => {
-    initWorkStopCodeList()
-  })
-})
 
 defineExpose({
   openPopup,
@@ -542,261 +331,346 @@ defineExpose({
     @mousemove="handleDragging"
     @mouseup="stopDragging"
   >
+    <!-- Header with Title and Actions -->
     <v-sheet
-      color="primarySub"
+      color="primary"
       height="50"
-      class="px-4 d-flex align-center rounded-t-5 cursor-move"
+      class="px-4 d-flex align-center justify-space-between rounded-t-5 cursor-move text-white font-weight-bold"
       @mousedown="startDragging"
     >
-      <span>작업중지조치</span>
+      <span>작업중지등록</span>
+      <div class="d-flex gap-2">
+        <v-btn color="success" size="small" @click="onSave" class="font-weight-bold mr-1">저장</v-btn>
+        <v-btn color="secondary" size="small" @click="closePopup" class="font-weight-bold">닫기</v-btn>
+      </div>
     </v-sheet>
+
     <v-card class="pa-0 fill-height rounded-b-5">
-      <v-card-title class="pa-4 pb-2">
-        <IGridTitle
-          ref="menuTitle"
-          :use-permission="false"
-          :button-list="['btnSendMail', 'btnUpdate', 'btnClose']"
-          @click-button="onButtonsClick"
-        />
-      </v-card-title>
-      <v-card-text class="pa-4 pt-0 content-area">
+      <v-card-text class="pa-4 pt-4 content-area scroll-y">
         <div class="d-flex flex-column fill-height">
-          <v-sheet class="searchArea mb-0">
-            <span class="sheetTitle">기본정보</span>
-            <div class="d-flex mt-2">
-              <i-input
-                width="150px"
-                :label="$t('중지일시')"
-                top-label
-                type="date"
-                v-model="workStopField.JSTOP_DT1"
-              ></i-input>
-              <i-input
-                width="150px"
-                class="mt-5"
-                type="time"
-                v-model="workStopField.JSTOP_TIME2"
-              ></i-input>
-              <!-- <i-input
-                width="150px"
-                :label="$t('호선')"
-                top-label
-                v-model="workStopField.SHIP_NO"
-              ></i-input> -->
-              <i-select 
-                v-model="workStopField.SHIP_NO"
-                :label="$t('호선No.')"
-                top-label
-                label-width="50px"
-                width="200px"
-                :items="codeList.SHIP_NO"
-                item-value="WORK_NO"
-                item-title="WORK_NO"
-              />
-              <i-input
-                width="80px"
-                :label="$t('작업인원')"
-                top-label
-                v-model="workStopField.WORKER_CNT"
-                number
-                required
-              >
-              </i-input>
-            </div>
-            <div class="d-flex mt-2">
-              <i-input
-                width="200px"
-                :label="$t('작업장소')"
-                top-label
-                v-model="workStopField.JOB_LPLC_NM"
-                readonly
-                required
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopLocation"
-              ></i-input>
-              <i-input
-                width="200px"
-                class="mt-5"
-                v-model="workStopField.JOB_MPLC_NM"
-                readonly
-              ></i-input>
-              <i-input
-                width="200px"
-                class="mt-5"
-                v-model="workStopField.JOB_SPLC_NM"
-                readonly
-              ></i-input>
-              <i-input
-                :label="$t('작업장소상세')"
-                top-label
-                width="300px"
-                v-model="workStopField.JOB_PLC_DESC"
-              ></i-input>
-              <v-btn class="mt-5" @click="openFileUpload">파일첨부</v-btn>
-            </div>
-            <div class="d-flex mt-2">
-              <i-input
-                :label="$t('잠재사고유형')"
-                width="200px"
-                top-label
-                v-model="workStopField.SAGO_DIV_L_NM"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="openSagoDivPopup"
-                required
-                readonly
-              >
-              </i-input>
-              <i-input
-                width="200px"
-                class="mt-5"
-                v-model="workStopField.SAGO_DIV_M_NM"
-                readonly
-              ></i-input>
-              <i-input
-                width="200px"
-                class="mt-5"
-                v-model="workStopField.SAGO_DIV_S_NM"
-                readonly
-              ></i-input>
-            </div>
-            <div class="d-flex mt-2">
-              <i-textarea
-                width="100%"
-                :label="$t('중지사유')"
-                top-label
-                required
-                v-model="workStopField.JSTOP_DESC"
-              ></i-textarea>
-            </div>
-            <div class="d-flex mt-2">
-              <i-input
-                :label="$t('작업담당자성명')"
-                top-label
-                width="200px"
-                v-model="workStopField.CHG_EMP_NM"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopEmpPopup"
-                required
-              ></i-input>
-              <i-input
-                :label="$t('사번')"
-                top-label
-                width="200px"
-                v-model="workStopField.CHG_EMP_NO"
-                readonly
-              ></i-input>
-              <i-input
-                  v-model="workStopField.VIO_EMP_ASGN"
-                  :label="$t('소속조직')"
+          
+          <!-- Section 1: 일시 및 장소 -->
+          <div class="section-container mb-4 pa-4 bg-lightgrey rounded-5">
+            <div class="section-title mb-3 font-weight-bold text-subtitle-1">①일시 및 장소</div>
+            <div class="d-flex align-center flex-wrap gap-4">
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width required">중지일시</span>
+                <i-input
+                  width="150px"
+                  type="date"
+                  v-model="workStopField.JSTOP_DT1"
+                  hide-details
+                ></i-input>
+                <i-input
+                  width="130px"
+                  type="time"
+                  v-model="workStopField.JSTOP_TIME2"
+                  class="ml-1"
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width required">장소</span>
+                <i-input
                   width="200px"
-                  top-label
+                  v-model="workStopField.JOB_SPLC_NM"
+                  append-inner-icon="mdi-magnify"
+                  @click:appendInner="openWorkStopLocation"
                   readonly
-              ></i-input>
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">장소상세</span>
+                <i-input
+                  width="220px"
+                  v-model="workStopField.JOB_PLC_DESC"
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">호선/프로젝트No.</span>
+                <i-select
+                  width="200px"
+                  v-model="workStopField.SHIP_NO"
+                  :items="codeList.SHIP_NO"
+                  item-value="WORK_NO"
+                  item-title="WORK_NO"
+                  hide-details
+                ></i-select>
+              </div>
             </div>
-            <div class="d-flex mt-2">
-              
-               <i-input
-                :label="$t('작업담당소속')"
-                width="300px"
-                top-label
-                v-model="workStopField.ASGN_NM"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopDeptPopup"
-                required
-              ></i-input>
-              <span class="mt-5">(작업담당소속이 다를 경우 수정 바랍니다.)</span>
+          </div>
+
+          <!-- Section 2: 작업중지 정보 -->
+          <div class="section-container mb-4 pa-4 bg-lightgrey rounded-5">
+            <div class="section-title mb-3 font-weight-bold text-subtitle-1">②작업중지 정보</div>
+            <div class="d-flex align-center flex-wrap gap-4 mb-3">
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width required">작업담당자성명</span>
+                <i-input
+                  width="150px"
+                  v-model="workStopField.CHG_EMP_NM"
+                  append-inner-icon="mdi-magnify"
+                  @click:appendInner="openWorkStopEmpPopup"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">사번</span>
+                <i-input
+                  width="130px"
+                  v-model="workStopField.CHG_EMP_NO"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">직위</span>
+                <i-input
+                  width="120px"
+                  v-model="workStopField.CHG_JOB_TIT_NM"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width required">작업인원</span>
+                <i-input
+                  width="80px"
+                  type="number"
+                  v-model="workStopField.WORKER_CNT"
+                  hide-details
+                ></i-input>
+              </div>
             </div>
-            <span class="sheetTitle mt-2">작업재개 및 조치 정보</span>
-            <span class="mt-5 ml-2" style="color:red">
-              ※문제점이 조치되어 작업이 재개되었으나 정보가 미입력된 경우, 아래 작업중지처리자(단속자)에게 정보 기입을 요청하시기 바랍니다.
-            </span>
-            <div class="d-flex mt-2">
-              <i-input
-                :label="$t('작업재개')"
-                top-label
-                width="150px"
-                type="date"
-                v-model="workStopField.RESTART_DT1"
-              ></i-input>
-              <i-input
-                width="150px"
-                class="mt-5"
-                type="time"
-                v-model="workStopField.RESTART_TIME2"
-              ></i-input>
-              <i-select
-                :label="$t('작업재개구분')"
-                top-label
-                width="200px"
-                v-model="workStopField.RESTART_DIV"
-                :items="codeList.RESTART_DIV"
-                item-title="TXT"
-                item-value="COD"
-              ></i-select>
+
+            <div class="d-flex align-center flex-wrap gap-4">
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">소속조직</span>
+                <i-input
+                  width="250px"
+                  v-model="workStopField.VIO_EMP_ASGN"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width required">작업담당조직</span>
+                <i-input
+                  width="250px"
+                  v-model="workStopField.ASGN_NM"
+                  append-inner-icon="mdi-magnify"
+                  @click:appendInner="openWorkStopDeptPopup"
+                  readonly
+                  hide-details
+                ></i-input>
+                <span class="ml-2 text-caption text-grey">※작업담당조직이 다를 경우 수정 바랍니다.</span>
+              </div>
             </div>
-            <div class="d-flex mt-2">
-              <i-input
-                :label="$t('조치내용')"
-                top-label
-                width="90%"
-                v-model="workStopField.RESTART_DESC"
-              ></i-input>
+          </div>
+
+          <!-- Section 3: 작업중지내용 -->
+          <div class="section-container mb-4 pa-4 bg-lightgrey rounded-5">
+            <div class="section-title mb-3 font-weight-bold text-subtitle-1">③작업중지내용</div>
+            <div class="mb-3">
+              <span class="font-weight-bold text-body-2 mb-1 d-block required">중지사유</span>
+              <v-textarea
+                rows="3"
+                variant="outlined"
+                v-model="workStopField.JSTOP_DESC"
+                hide-details
+                density="compact"
+              ></v-textarea>
             </div>
-            <span class="sheetTitle mt-2">작업중지처리자(단속자)</span>
-            <div class="d-flex mt-2">
-              <i-input
-                :label="$t('단속자 성명')"
-                top-label
-                width="200px"
-                v-model="workStopField.JSTOP_EMP_NM"
-                append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopProcessEmpPopup"
-                readonly
-              ></i-input>
-              <i-input
-                :label="$t('사번')"
-                top-label
-                width="200px"
-                v-model="workStopField.JSTOP_EMP_NO"
-                readonly
-              ></i-input>
-              <i-input
-                :label="$t('소속')"
-                top-label
-                width="200px"
-                v-model="workStopField.JSTOP_ASGN_NM"
-                readonly
-              >
-              </i-input>
+            
+            <div class="d-flex gap-4">
+              <div class="flex-grow-1 w-50">
+                <div class="font-weight-bold text-body-2 mb-1">사진첨부</div>
+                <IUploadImageMulit
+                  ref="safetyImageUpload"
+                  :file-id="workStopField.FILE_ID"
+                ></IUploadImageMulit>
+              </div>
+              <div class="flex-grow-1 w-50">
+                <div class="font-weight-bold text-body-2 mb-1">파일첨부</div>
+                <IUpload
+                  ref="safetyFileUpload"
+                  :file-id="workStopField.FILE_ID"
+                ></IUpload>
+              </div>
             </div>
-          </v-sheet>
+          </div>
+
+          <!-- Section 4: 작업 재개 및 조치 내용 -->
+          <div class="section-container mb-4 pa-4 bg-lightgrey rounded-5">
+            <div class="section-title mb-3 font-weight-bold text-subtitle-1">④작업 재개 및 조치 내용</div>
+            <div class="d-flex align-center flex-wrap gap-4 mb-3">
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">재개일시</span>
+                <i-input
+                  width="150px"
+                  type="date"
+                  v-model="workStopField.RESTART_DT1"
+                  hide-details
+                ></i-input>
+                <i-input
+                  width="130px"
+                  type="time"
+                  v-model="workStopField.RESTART_TIME2"
+                  class="ml-1"
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">작업재개구분</span>
+                <i-select
+                  width="180px"
+                  v-model="workStopField.RESTART_DIV"
+                  :items="codeList.RESTART_DIV"
+                  item-title="TXT"
+                  item-value="COD"
+                  hide-details
+                ></i-select>
+              </div>
+            </div>
+
+            <div class="mb-3 d-flex gap-4 align-start">
+              <div class="flex-grow-1">
+                <span class="font-weight-bold text-body-2 mb-1 d-block">조치내용</span>
+                <v-textarea
+                  rows="3"
+                  variant="outlined"
+                  v-model="workStopField.RESTART_DESC"
+                  hide-details
+                  density="compact"
+                ></v-textarea>
+              </div>
+              <div class="text-caption text-error pt-6 w-30 font-weight-bold" style="line-height: 1.5;">
+                ※ 문제점 조치 후 작업이 재개되었으나 정보가 입력되지 않은 경우, 단속자에게 정보 입력을 요청하시기 바랍니다.
+              </div>
+            </div>
+
+            <div class="d-flex gap-4">
+              <div class="flex-grow-1 w-50">
+                <div class="font-weight-bold text-body-2 mb-1">사진첨부</div>
+                <IUploadImageMulit
+                  ref="actionImageUpload"
+                  :file-id="workStopField.FILE_ID2"
+                ></IUploadImageMulit>
+              </div>
+              <div class="flex-grow-1 w-50">
+                <div class="font-weight-bold text-body-2 mb-1">파일첨부</div>
+                <IUpload
+                  ref="actionFileUpload"
+                  :file-id="workStopField.FILE_ID2"
+                ></IUpload>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: 단속자정보 -->
+          <div class="section-container pa-4 bg-lightgrey rounded-5">
+            <div class="section-title mb-3 font-weight-bold text-subtitle-1">⑤단속자정보</div>
+            <div class="d-flex align-center flex-wrap gap-4">
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">단속자성명</span>
+                <i-input
+                  width="150px"
+                  v-model="workStopField.JSTOP_EMP_NM"
+                  append-inner-icon="mdi-magnify"
+                  @click:appendInner="openWorkStopProcessEmpPopup"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">사번</span>
+                <i-input
+                  width="130px"
+                  v-model="workStopField.JSTOP_EMP_NO"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">직위</span>
+                <i-input
+                  width="120px"
+                  v-model="workStopField.JSTOP_JOB_TIT_NM"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+
+              <div class="d-flex align-center">
+                <span class="mr-2 label-width">소속</span>
+                <i-input
+                  width="250px"
+                  v-model="workStopField.JSTOP_ASGN_NM"
+                  readonly
+                  hide-details
+                ></i-input>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <EmpPopup
-          ref="workStopEmpPopup"
-          @selected="selectedWorkStopEmpPopup"
-        ></EmpPopup>
-        <EmpPopup
-          ref="workStopProcessEmpPopup"
-          @selected="selectedWorkStopProcessEmpPopup"
-        ></EmpPopup>
-        <CommonCodePopUpSAF
-          ref="workStopLocation"
-          @selected="selectedWorkStopLocation"
-        ></CommonCodePopUpSAF>
-        <CommonCodePopUpSAF ref="sagoDivPopup" @selected="selectedSagoDivPopup">
-        </CommonCodePopUpSAF>
-        <IUploadPopup ref="fileUpload" @uploaded="fileUploaded"></IUploadPopup>
-        <DeptPopup
-          ref="workStopDeptPopup"
-          @selected="selectedWorkStopDeptPopup"
-        ></DeptPopup>
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <!-- Child Popups -->
+  <LocationPopup ref="workStopLocation" @selected="selectedWorkStopLocation" />
+  <EmpPopup ref="workStopEmpPopup" @selected="selectedWorkStopEmpPopup" />
+  <DeptPopup ref="workStopDeptPopup" @selected="selectedWorkStopDeptPopup" />
+  <EmpPopup ref="workStopProcessEmpPopup" @selected="selectedWorkStopProcessEmpPopup" />
 </template>
-<style>
-.sheetTitle {
-  font-size: 20px;
+
+<style scoped lang="scss">
+.scroll-y {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.section-container {
+  border: 1px solid #e0e0e0;
+}
+.section-title {
+  color: #1a237e;
+  border-bottom: 2px solid #1a237e;
+  padding-bottom: 4px;
+}
+.label-width {
   font-weight: bold;
+  font-size: 13px;
+  min-width: 90px;
+  display: inline-block;
+  &.required::after {
+    content: ' *';
+    color: red;
+  }
+}
+.bg-lightgrey {
+  background-color: #fcfcfc !important;
+}
+.w-30 {
+  width: 30%;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-4 {
+  gap: 16px;
 }
 </style>
