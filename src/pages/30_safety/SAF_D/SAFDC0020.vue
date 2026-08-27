@@ -1,808 +1,524 @@
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
+import { useLogsStore } from '@hiway/stores/logs'
 import { useUserStore } from '@hiway/stores/user'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import {
-  commonExecuteApi,
   commonSearchApi,
+  commonExecuteApi,
   getCodeList,
 } from '@hiway/api/commonApi'
-import saveFlowHelper from '@/utils/saveFlowHelper'
-import deleteFlowHelper from '@/utils/deleteFlowHelper'
-import Message from '@hiway/utils/notify'
-import dayjs from 'dayjs'
-import DeptPopup from '@/components/popup/DeptPopup.vue'
-import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF.vue'
-import EmpPopup from '@/components/popup/EmpPopup.vue'
-import IUpload from '@/components/IUpload.vue'
-import IUploadImageMulit from '@/components/IUploadImageMulit.vue'
 import IGridTitle from '@/components/IGridTitle.vue'
-import { isEmpty } from 'lodash-es'
+import RealGrid from '@/components/RealGrid.vue'
+import deleteFlowHelper from '@/utils/deleteFlowHelper'
+import queryFlowHelper from '@/utils/searchFlowHelper'
+import dayjs from 'dayjs'
+import Message from '@hiway/utils/notify'
+import SAFDC0020_01Popup01 from './SAFDC0020_01Popup01.vue'
 
 defineOptions({
   name: '30_safety-SAF_D-SAFDC0020',
 })
 
-const router = useRouter()
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
+const gridTitle = ref(null)
+const grdMain = ref(null)
 const userStore = useUserStore()
+const sAFDC0020_01_Popup01 = ref(null)
 
-const uploaded = (val) => {
-  console.log('Uploaded event:', val)
-}
-
-const safetyImageUpload = ref(null)
-const safetyFileUpload = ref(null)
-const actionImageUpload = ref(null)
-const actionFileUpload = ref(null)
-
-const locationPopup = ref(null)
-const deptPopup = ref(null)
-const safetyActEmpPopup = ref(null)
-const safetyChkEmpPopup = ref(null)
-const safetyAppEmpPopup = ref(null)
-
-const isAppSameAsChk = ref(false)
-
-const municipalField = reactive({
+const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
-  MNG_NO: '',
-  BSNS_CD: userStore.bsnsCd,
-  REC_DEPT_CD: '',
-  NOTI_SCAN: '',       // 위반사항 파일/사진 ID (FILE_ID1)
-  ACT_RSLT_SCAN: '',   // 조치사항 파일/사진 ID (FILE_ID2)
-  NOTI_TITLE: '',
-  PROBLEM_DESC: '',
-  REQUIRE_DESC: '',
-  LOCATION_NM: '',
-  NOTI_PLC_DESC: '',
-  SHIP_NO: '',
-  REQ_REPLY_DT: '',
-  NOTI_DT: '',
-  REC_ASGN_NM: '',
-  REC_ASGN_CD: '',
-  
-  // 조치자 정보
-  ACT_EMP_NM: '',
+  TYPE: 'A',
+  ACT_YN: '',
   ACT_EMP_NO: '',
-  ACT_JOB_TIT_NM: '',
-  ACT_ASGN_NM: '',
-  ACT_TEL_NO: '',
-  ACT_RSLT: '',
-  ACT_DIV: '조치대기', // 초기상태
-  
-  // 점검자 정보
-  CHK_EMP_NM: userStore.empNm,
-  CHK_EMP_NO: userStore.empNo,
-  CHK_JOB_TIT_NM: userStore.jobTitNm || '',
-  CHK_ASGN_NM: userStore.asgnFullNm,
-  CHK_TEL_NO: userStore.hndPhn || '',
-  
-  // 승인자 정보
-  APP_EMP_NM: '',
-  APP_EMP_NO: '',
-  APPROVE_ID: '',
-  STATUS: '10', // 작성중
+  GUBUN: 'A',
+  NOTI_CHK: 'Y',
+  NOTI_FROM: '',
+  NOTI_TO: '',
+  SEND_DEPT_CD: '',
+  SEND_BSNS_CD: 'AN00',
+  REC_BSNS_CD: userStore.bsnsCd,
+  REC_DEPT_CD: userStore.deptCd,
+  SUBJECT_CD: '',
+  REQ_REPLY_CHK: 'Y',
+  REQ_REPLY_FROM: '',
+  REQ_REPLY_TO: '',
+  SAGO_DIV_M: '',
+  STATUS: '',
 })
 
 const codeList = reactive({
-  APP_EMP_NO: [],
-  SHIP_NO: [],
+  SEND_BSNS_CD: [],
+  SEND_DEPT_CD: [],
+  REC_BSNS_CD: [],
+  REC_DEPT_CD: [],
+  DEPT_CD: [],
+  SAGO_DIV: [],
+  STATUS: [],
+  SUBJECT: [],
 })
 
-const initUploads = () => {
-  vm.$nextTick(() => {
-    if (safetyImageUpload.value) {
-      if (!municipalField.NOTI_SCAN) {
-        safetyImageUpload.value.setGuid()
-        municipalField.NOTI_SCAN = safetyImageUpload.value.guid
-      } else {
-        safetyImageUpload.value.setGuid(municipalField.NOTI_SCAN)
-        safetyImageUpload.value.onButtonsClick({ id: 'btnSearch' })
-      }
-    }
-    if (safetyFileUpload.value) {
-      if (!municipalField.NOTI_SCAN) {
-        safetyFileUpload.value.setGuid()
-        municipalField.NOTI_SCAN = safetyFileUpload.value.guid
-      } else {
-        safetyFileUpload.value.setGuid(municipalField.NOTI_SCAN)
-        safetyFileUpload.value.onButtonsClick({ id: 'btnSearch' })
-      }
-    }
-    if (actionImageUpload.value) {
-      if (!municipalField.ACT_RSLT_SCAN) {
-        actionImageUpload.value.setGuid()
-        municipalField.ACT_RSLT_SCAN = actionImageUpload.value.guid
-      } else {
-        actionImageUpload.value.setGuid(municipalField.ACT_RSLT_SCAN)
-        actionImageUpload.value.onButtonsClick({ id: 'btnSearch' })
-      }
-    }
-    if (actionFileUpload.value) {
-      if (!municipalField.ACT_RSLT_SCAN) {
-        actionFileUpload.value.setGuid()
-        municipalField.ACT_RSLT_SCAN = actionFileUpload.value.guid
-      } else {
-        actionFileUpload.value.setGuid(municipalField.ACT_RSLT_SCAN)
-        actionFileUpload.value.onButtonsClick({ id: 'btnSearch' })
-      }
-    }
-  })
-}
-
-const initField = () => {
-  municipalField.NOTI_DT = dayjs().format('YYYY-MM-DD')
-  municipalField.REQ_REPLY_DT = dayjs().add(3, 'day').format('YYYY-MM-DD')
-  
-  municipalField.CHK_EMP_NM = userStore.empNm
-  municipalField.CHK_EMP_NO = userStore.empNo
-  municipalField.CHK_JOB_TIT_NM = userStore.jobTitNm || ''
-  municipalField.CHK_ASGN_NM = userStore.asgnFullNm
-  municipalField.CHK_TEL_NO = userStore.hndPhn || ''
-  
-  municipalField.ACT_DIV = '조치대기'
-  municipalField.STATUS = '10'
-}
-
-const initCodList = () => {
+const initCodeList = () => {
   Promise.all([
     commonSearchApi({
-      queryId: 'SAFDC0010_SEARCH_04',
-      param: {
-        CMPNY_DIV: municipalField.CMPNY_DIV,
-        DANSOK_EMP_NO: municipalField.CHK_EMP_NO,
-      },
+      queryId: 'searchBSNS',
+      param: { CMPNY_DIV: userStore.cmpnyDiv },
     }),
     commonSearchApi({
-      queryId: 'SAFDC0010_SEARCH_17',
-      param: {},
+      queryId: 'SAFDC0010_SEARCH_05',
+      param: {
+        CMPNY_DIV: userStore.cmpnyDiv,
+      },
     }),
+    getCodeList('HHIF190'),
+    getCodeList('HHIF120'),
   ]).then((res) => {
-    codeList.APP_EMP_NO = res[0].ORESULT_CUR
-    codeList.SHIP_NO = res[1].ORESULT_CUR
+    codeList.SEND_BSNS_CD = res[0].ORESULT_CUR
+    codeList.REC_BSNS_CD = res[0].ORESULT_CUR
+    codeList.SAGO_DIV = res[1].ORESULT_CUR
+    codeList.STATUS = res[2].ORESULT_CUR
+    codeList.SUBJECT = res[3].ORESULT_CUR   
+    
+    codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
+    codeList.SAGO_DIV.unshift({ TXT: '전체', COD: '' })
+    codeList.STATUS.unshift({ TXT: '전체', COD: '' })
+    codeList.SUBJECT.unshift({ TXT: '전체', COD: '' })
   })
 }
 
-// 팝업 열기 지원 (State 데이터 존재 시)
-onMounted(() => {
-  initField()
-  initCodList()
-  
-  const stateData = history.state?.rowData || history.state?.sliSAFDC0010_02Tab01Popup
-  if (stateData) {
-    for (const [key, value] of Object.entries(stateData)) {
-      if (municipalField.hasOwnProperty(key)) {
-        municipalField[key] = value
-      }
-    }
-    isAppSameAsChk.value = (municipalField.APP_EMP_NO === municipalField.CHK_EMP_NO && municipalField.APP_EMP_NO !== '')
-  }
-  
-  initUploads()
-})
-
-// 장소 선택
-const openLocationPopup = () => {
-  locationPopup.value.openPopup('장소')
-}
-const selectedLocation = (val) => {
-  municipalField.NOTI_LPLC = val[0].COD
-  municipalField.NOTI_MPLC = val[1].COD
-  municipalField.NOTI_SPLC = val[2].COD
-  municipalField.LOCATION_NM = val[2].TXT
-}
-
-// 수신조직 선택
-const openDeptPopup = () => {
-  deptPopup.value.openPopup()
-}
-const selectedDept = (val) => {
-  municipalField.REC_ASGN_NM = val.ASGN_FULL_NM
-  municipalField.REC_ASGN_CD = val.ASGN_CD
-  municipalField.REC_DEPT_CD = val.DEPT_CD
-}
-
-// 조치자 팝업
-const openSafetyActEmpPopup = () => {
-  safetyActEmpPopup.value.openPopup({
-    CMPNY_DIV: userStore.cmpnyDiv,
-    HSE_ONLY: 'Y',
-    readonly: true,
-  })
-}
-const selectedSafetyActEmp = (val) => {
-  municipalField.ACT_EMP_NM = val.EMP_NM
-  municipalField.ACT_EMP_NO = val.EMP_NO
-  municipalField.ACT_JOB_TIT_NM = val.JOB_TIT_NM
-  municipalField.ACT_ASGN_NM = val.ASGN_NM
-  municipalField.ACT_TEL_NO = val.TEL_NO || val.HND_PHN
-}
-
-// 점검자 팝업
-const openSafetyChkEmpPopup = () => {
-  safetyChkEmpPopup.value.openPopup({
-    CMPNY_DIV: userStore.cmpnyDiv,
-    HSE_ONLY: 'Y',
-    readonly: true,
-  })
-}
-const selectedSafetyChkEmp = (val) => {
-  municipalField.CHK_EMP_NM = val.EMP_NM
-  municipalField.CHK_EMP_NO = val.EMP_NO
-  municipalField.CHK_JOB_TIT_NM = val.JOB_TIT_NM
-  municipalField.CHK_ASGN_NM = val.ASGN_NM
-  municipalField.CHK_TEL_NO = val.TEL_NO || val.HND_PHN
-}
-
-// 승인자 팝업
-const openSafetyAppEmpPopup = () => {
-  if (isAppSameAsChk.value) return
-  safetyAppEmpPopup.value.openPopup({
-    CMPNY_DIV: userStore.cmpnyDiv,
-    HSE_ONLY: 'Y',
-    readonly: true,
-  })
-}
-const selectedAppEmp = (val) => {
-  municipalField.APP_EMP_NM = val.EMP_NM
-  municipalField.APP_EMP_NO = val.EMP_NO
-}
-
-// 승인자동일 체크박스
-watch(isAppSameAsChk, (newValue) => {
-  if (newValue) {
-    municipalField.APP_EMP_NM = municipalField.CHK_EMP_NM
-    municipalField.APP_EMP_NO = municipalField.CHK_EMP_NO
-  } else {
-    municipalField.APP_EMP_NM = ''
-    municipalField.APP_EMP_NO = ''
-  }
-})
-
-// 점검자 변경 시 승인자 콤보박스 및 자동동일 동기화
-watch(() => municipalField.CHK_EMP_NO, (newValue) => {
-  commonSearchApi({
-    queryId: 'SAFDC0010_SEARCH_04',
-    param: {
-      CMPNY_DIV: municipalField.CMPNY_DIV,
-      DANSOK_EMP_NO: newValue,
+const grdMainProps = reactive({
+  gridViewOption: { checkBar: true },
+  fields: [
+    {
+      fieldName: 'MNG_NO',
+      dataType: 'text',
+      width: '200',
+      editable: false,
+      header: { text: t('관리번호') },
     },
-  }).then((res) => {
-    codeList.APP_EMP_NO = res.ORESULT_CUR
-  })
-  if (isAppSameAsChk.value) {
-    municipalField.APP_EMP_NM = municipalField.CHK_EMP_NM
-    municipalField.APP_EMP_NO = municipalField.CHK_EMP_NO
-  }
+    {
+      fieldName: 'SEND_ASGN_NM',
+      dataType: 'text',
+      width: '200',
+      editable: false,
+      styleName: 'left-column',
+      header: { text: t('발신') },
+    },
+    {
+      fieldName: 'REC_ASGN_NM',
+      dataType: 'text',
+      width: '200',
+      editable: false,
+      styleName: 'left-column',
+      header: { text: t('수신') },
+    },
+    {
+      fieldName: 'PROBLEM_DESC',
+      dataType: 'text',
+      width: '300',
+      editable: false,
+      styleName: 'left-column',
+      header: { text: t('문제점') },
+    },
+    {
+      fieldName: 'NOTI_DT',
+      dataType: 'text',
+      width: '150',
+      editable: false,
+      header: { text: t('점검일자') },
+    },
+    {
+      fieldName: 'REQ_REPLY_DT',
+      dataType: 'text',
+      width: '150',
+      editable: false,
+      header: { text: t('회신요구일자') },
+    },
+    {
+      fieldName: 'STATUS_NM',
+      dataType: 'text',
+      width: '120',
+      editable: false,
+      header: { text: t('진행상태') },
+    },
+    {
+      fieldName: 'ACT_DT',
+      dataType: 'text',
+      width: '100',
+      editable: false,
+      header: { text: t('회신일') },
+    },
+    {
+      fieldName: 'CHK_EMP_NM',
+      dataType: 'text',
+      width: '100',
+      editable: false,
+      header: { text: t('점검자') },
+    },
+    {
+      fieldName: 'SHIP_NO',
+      dataType: 'text',
+      width: '100',
+      editable: false,
+      header: { text: t('호선번호') },
+    },
+    {
+      fieldName: 'REJ_DESC',
+      dataType: 'text',
+      width: '100',
+      visible: false,
+      editable: false,
+      header: { text: t('반려사유') },
+    },
+    {
+      fieldName: 'COMPANY',
+      dataType: 'text',
+      visible: false,
+      header: { text: t('') },
+    },
+    {
+      fieldName: 'REASON',
+      dataType: 'text',
+      visible: false,
+      header: { text: t('') },
+    },
+    {
+      fieldName: 'STATUS',
+      dataType: 'text',
+      visible: false,
+      header: { text: t('') },
+    },
+    {
+      fieldName: 'VEND_NAME',
+      dataType: 'text',
+      visible: false,
+      header: { text: t('') },
+    },
+    {
+      fieldName: 'CMPNY_DIV',
+      dataType: 'text',
+      visible: false,
+      header: { text: t('') },
+    },
+  ],
 })
 
-// 저장 로직
-const beforeSave = () => {
-  if (!municipalField.NOTI_DT) {
-    Message.warn(t('점검일자는 필수값입니다.'))
-    return false
-  } else if (!municipalField.LOCATION_NM) {
-    Message.warn(t('장소는 필수값입니다.'))
-    return false
-  } else if (!municipalField.NOTI_TITLE) {
-    Message.warn(t('제목은 필수값입니다.'))
-    return false
-  } else if (!municipalField.REC_ASGN_CD) {
-    Message.warn(t('수신조직은 필수값입니다.'))
-    return false
-  } else if (!municipalField.PROBLEM_DESC) {
-    Message.warn(t('문제점은 필수값입니다.'))
-    return false
-  } else if (!municipalField.CHK_EMP_NM) {
-    Message.warn(t('점검자는 필수값입니다.'))
+grdMainProps.columns = grdMainProps.fields
+
+const onButtonsClick = (btn) => {
+  if (btn.id === 'btnSearch') {
+    new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
+  } else if (btn.id === 'btnMuniNotice') {
+    sAFDC0020_01_Popup01.value.openPopup()
+  } else {
+    new deleteFlowHelper(vm, t)
+      .setBefore(beforeDelete)
+      .setQuery(deleteData)
+      .setAfter(afterDelete)
+      .run()
+  }
+}
+
+const searchData = () => {
+  return commonSearchApi({
+    queryId: 'SAFDC0010_SEARCH_14',
+    param: searchParam,
+  })
+}
+
+const afterSearch = (res) => {
+  grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
+}
+
+const beforeDelete = () => {
+  let chekedRow = grdMain.value.getGridView().getCheckedRows()
+  if (chekedRow.length === 0) {
+    Message.warn(t('삭제할 데이터를 선택해주세요.'))
     return false
   }
   return true
 }
 
-const onSave = () => {
-  new saveFlowHelper(vm, t)
-    .setBefore(beforeSave)
-    .setQuery(saveDataQuery)
-    .setAfter(() => {
-      Message.success(t('저장되었습니다.'))
-    })
-    .run()
-}
-
-const saveDataQuery = () => {
-  let saveParam = []
-  let saveData = {
-    CMPNY_DIV: userStore.cmpnyDiv,
-    MNG_NO: municipalField.MNG_NO,
-    NOTI_DT: municipalField.NOTI_DT,
-    BSNS_CD: userStore.bsnsCd,
-    REC_DEPT_CD: municipalField.REC_DEPT_CD,
-    NOTI_TITLE: municipalField.NOTI_TITLE,
-    NOTI_SCAN: municipalField.NOTI_SCAN,
-    PROBLEM_DESC: municipalField.PROBLEM_DESC,
-    REQUIRE_DESC: municipalField.REQUIRE_DESC,
-    NOTI_LPLC: municipalField.NOTI_LPLC,
-    NOTI_MPLC: municipalField.NOTI_MPLC,
-    NOTI_SPLC: municipalField.NOTI_SPLC,
-    NOTI_PLC_DESC: municipalField.NOTI_PLC_DESC,
-    SEND_ASGN_CD: userStore.asgnCd,
-    CHK_EMP_NO: municipalField.CHK_EMP_NO,
-    CHK_TEL_NO: municipalField.CHK_TEL_NO,
-    REQ_REPLY_DT: municipalField.REQ_REPLY_DT,
-    APPROVE_ID: municipalField.APPROVE_ID,
-    ACT_RSLT: municipalField.ACT_RSLT,
-    ACT_RSLT_SCAN: municipalField.ACT_RSLT_SCAN,
-    ACT_DEPT_CD: municipalField.ACT_ASGN_NM,
-    ACT_ASGN_CD: municipalField.ACT_ASGN_NM,
-    ACT_EMP_NO: municipalField.ACT_EMP_NO,
-    ACT_TEL_NO: municipalField.ACT_TEL_NO,
-    STATUS: municipalField.MNG_NO === '' ? '10' : municipalField.STATUS,
-    CLOSE_DT: '',
-    CLOSE_ASGN_CD: '',
-    CLOSE_EMP_NO: '',
-    SAGO_DIV_LIST: '',
-    CLOSE_DEPT_CD: '',
-    SEND_DEPT_CD: userStore.deptCd,
-    REC_ASGN_CD: municipalField.REC_ASGN_CD,
-    USER_ID: userStore.userId,
-    SHIP_NO: municipalField.SHIP_NO,
-    COMPANY: userStore.cmpnyDiv,
-    APP_EMP_NO: municipalField.APP_EMP_NO,
-  }
-  saveParam.push(saveData)
-  return commonExecuteApi({
-    queryId: 'SAFDC0010_SAVE04',
-    list: saveParam,
-  }).then((res) => {
-    if (!municipalField.MNG_NO && res.list && res.list[0]) {
-      municipalField.MNG_NO = res.list[0].OUT_RES_MNG_NO || res.list[0].MNG_NO
-    }
-  })
-}
-
-// 조치완료 로직
-const beforeActionComplete = () => {
-  if (!municipalField.MNG_NO) {
-    Message.warn(t('먼저 임시저장을 진행해주십시오.'))
-    return false
-  } else if (!municipalField.ACT_RSLT) {
-    Message.warn(t('조치결과를 입력해주십시오.'))
-    return false
-  } else if (!municipalField.ACT_EMP_NO) {
-    Message.warn(t('조치자를 지정해주십시오.'))
-    return false
-  }
-  return true
-}
-
-const onActionComplete = () => {
-  new saveFlowHelper(vm, t)
-    .setBefore(beforeActionComplete)
-    .setQuery(actionCompleteQuery)
-    .setAfter(() => {
-      Message.success(t('조치 완료 처리가 되었습니다.'))
-      municipalField.STATUS = '40'
-      municipalField.ACT_DIV = '조치완료'
-    })
-    .run()
-}
-
-const actionCompleteQuery = () => {
-  let saveParam = []
-  let saveData = {
-    CMPNY_DIV: userStore.cmpnyDiv,
-    MNG_NO: municipalField.MNG_NO,
-    ACT_DT: dayjs().format('YYYY-MM-DD'),
-    ACT_RSLT: municipalField.ACT_RSLT,
-    ACT_RSLT_SCAN: municipalField.ACT_RSLT_SCAN,
-    ACT_DEPT_CD: municipalField.ACT_ASGN_NM,
-    ACT_ASGN_CD: municipalField.ACT_ASGN_NM,
-    ACT_EMP_NO: municipalField.ACT_EMP_NO,
-    ACT_TEL_NO: municipalField.ACT_TEL_NO,
-    STATUS: '40', // 조치완료
-    USER_ID: userStore.userId,
-  }
-  saveParam.push(saveData)
-  return commonExecuteApi({
-    queryId: 'SAFDC0010_SAVE07',
-    list: saveParam,
-  })
-}
-
-// 삭제 로직
-const onDelete = () => {
-  if (!municipalField.MNG_NO) {
-    Message.warn(t('저장되지 않은 지적서는 삭제할 수 없습니다.'))
-    return
-  }
-  new deleteFlowHelper(vm, t)
-    .setBefore(() => true)
-    .setQuery(deleteQuery)
-    .setAfter(() => {
-      Message.success(t('삭제되었습니다.'))
-      router.back()
-    })
-    .run()
-}
-
-const deleteQuery = () => {
-  return commonExecuteApi({
-    queryId: 'SAFDC0010_DELETE01',
-    list: [{
+const deleteData = () => {
+  let deleteParam = []
+  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
+  for (let i in checkedData) {
+    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
+    let deleteData = {
       CMPNY_DIV: userStore.cmpnyDiv,
-      MNG_NO: municipalField.MNG_NO,
+      MNG_NO: data.MNG_NO,
       REASON: '',
       USER_ID: userStore.userId,
-    }]
-  })
-}
-
-// 결재상신 로직
-const onApproval = () => {
-  if (!municipalField.MNG_NO) {
-    Message.warn(t('저장되지 않은 지적서는 결재신청할 수 없습니다.'))
-    return
-  } else if (!municipalField.APP_EMP_NO) {
-    Message.warn(t('승인자를 선택해주십시오.'))
-    return
-  }
-  
-  new saveFlowHelper(vm, t)
-    .setBefore(() => true)
-    .setQuery(approvalQuery)
-    .setAfter(() => {
-      Message.success(t('결재신청 되었습니다.'))
-      municipalField.STATUS = '20' // 승인대기
-    })
-    .run()
-}
-
-const approvalQuery = () => {
-  let day = dayjs()
-  let approvalParam = {
-    CMPNY_DIV: userStore.cmpnyDiv,
-    YEAR: day.format('YYYY'),
-    APPROVE_ID: 'SAFDC0020_' + userStore.userId + '_' + day.format('YYYYMMDDHHmmss'),
-    FORM_ID: 'SAFDC0020',
-    APP_EMP_NO: municipalField.APP_EMP_NO,
-    APPROVE_GBN: 'I',
-    APP_REQ_EMP_NO: userStore.userId,
-    APP_STATUS: 'N',
-    PATH: '/30_safety/SAF_D/SAFDC0020',
-    USER_ID: userStore.userId,
+    }
+    deleteParam.push(deleteData)
   }
   return commonExecuteApi({
-    queryId: 'OPRAB0010_SAVE_01',
-    list: [approvalParam],
-  }).then(() => {
-    municipalField.APPROVE_ID = approvalParam.APPROVE_ID
+    queryId: 'SAFDC0010_DELETE01',
+    list: deleteParam,
   })
 }
 
-// 결재취소 로직
-const onCancelApproval = () => {
-  if (municipalField.STATUS !== '20') {
-    Message.warn(t('승인대기 상태에서만 취소할 수 있습니다.'))
-    return
-  }
-  
-  new saveFlowHelper(vm, t)
-    .setBefore(() => true)
-    .setQuery(cancelApprovalQuery)
-    .setAfter(() => {
-      Message.success(t('결재 신청이 취소되었습니다.'))
-      municipalField.STATUS = '10' // 작성중
+const afterDelete = () => {
+  onButtonsClick({ id: 'btnSearch' })
+}
+
+const defaultDate = () => {
+  let date = dayjs()
+  let dateFrom = dayjs().subtract(7, 'day')
+  searchParam.NOTI_FROM = dateFrom.format('YYYY-MM-DD')
+  searchParam.NOTI_TO = date.format('YYYY-MM-DD')
+  searchParam.REQ_REPLY_FROM = dateFrom.format('YYYY-MM-DD')
+  searchParam.REQ_REPLY_TO = date.format('YYYY-MM-DD')
+}
+
+onMounted(() => {
+  defaultDate()
+  initCodeList()
+  onButtonsClick({ id: 'btnSearch' })
+})
+
+const onCellDblClicked = (grid, clickData) => {
+  let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
+  sAFDC0020_01_Popup01.value.openPopup2(data)
+}
+
+const closedPopup = () => {
+  onButtonsClick({ id: 'btnSearch' })
+}
+
+// 수신 사업부 변경
+watch(
+  () => searchParam.REC_BSNS_CD,
+  (newValue, oldValue) => {
+    commonSearchApi({
+      queryId: 'searchDept3',
+      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
+    }).then((res) => {
+      if (oldValue !== undefined) {
+        searchParam.REC_DEPT_CD = ''
+        codeList.REC_DEPT_CD = res.ORESULT_CUR
+        codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      } else {
+        codeList.REC_DEPT_CD = res.ORESULT_CUR
+        codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      }
     })
-    .run()
-}
+  },
+  { immediate: true }
+)
 
-const cancelApprovalQuery = () => {
-  return commonExecuteApi({
-    queryId: 'SAFDC0010_CANCEL01',
-    list: [{
-      CMPNY_DIV: userStore.cmpnyDiv,
-      VIO_NO: municipalField.MNG_NO, // Wait, uses VIO_NO or MNG_NO depending on mapping
-      MNG_NO: municipalField.MNG_NO,
-      USER_ID: userStore.userId,
-    }]
-  })
-}
+// 수신 부서 변경
+watch(
+  () => searchParam.REC_DEPT_CD,
+  (newValue, oldValue) => {
+    commonSearchApi({
+      queryId: 'searchTeam',
+      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.REC_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
+    }).then((res) => {
+      if (oldValue !== undefined) {
+        searchParam.REC_ASGN_CD = ''
+        codeList.REC_ASGN_CD = res.ORESULT_CUR
+        codeList.REC_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
+      } else {
+        codeList.REC_ASGN_CD = res.ORESULT_CUR
+        codeList.REC_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
+      }
+    })
+  },
+  { immediate: true }
+)
 
-const onClose = () => {
-  router.back()
-}
+// 발신 사업부 변경
+watch(
+  () => searchParam.SEND_BSNS_CD,
+  (newValue, oldValue) => {
+    commonSearchApi({
+      queryId: 'searchDept3',
+      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
+    }).then((res) => {
+      if (oldValue !== undefined) {
+        searchParam.SEND_DEPT_CD = ''
+        codeList.SEND_DEPT_CD = res.ORESULT_CUR
+        codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      } else {
+        codeList.SEND_DEPT_CD = res.ORESULT_CUR
+        codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      }
+    })
+  },
+  { immediate: true }
+)
+
+// 발신 부서 변경
+watch(
+  () => searchParam.SEND_DEPT_CD,
+  (newValue, oldValue) => {
+    commonSearchApi({
+      queryId: 'searchTeam',
+      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.SEND_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
+    }).then((res) => {
+      if (oldValue !== undefined) {
+        searchParam.SEND_ASGN_CD = ''
+        codeList.SEND_ASGN_CD = res.ORESULT_CUR
+        codeList.SEND_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
+      } else {
+        codeList.SEND_ASGN_CD = res.ORESULT_CUR
+        codeList.SEND_ASGN_CD.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
+      }
+    })
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
-  <v-card class="pa-0 fill-height rounded-5">
-    <!-- Header -->
-    <v-sheet
-      color="primarySub"
-      height="50"
-      class="px-4 d-flex align-center rounded-t-5 text-white font-weight-bold"
-    >
-      시정통보등록
-    </v-sheet>
-    
-    <!-- Top Buttons -->
-    <div class="d-flex justify-end gap-2 pa-3 bg-white border-b">
-      <v-btn color="primary" @click="onSave" class="mr-2">저장</v-btn>
-      <v-btn color="success" @click="onActionComplete" class="mr-2">조치완료</v-btn>
-      <v-btn color="error" @click="onDelete" class="mr-2">삭제</v-btn>
-      <v-btn color="grey" @click="onClose">닫기</v-btn>
-    </div>
+  <v-card class="pa-0 fill-height">
+    <v-card-title class="pa-3 pb-0">
+      <IGridTitle
+        ref="gridTitle"
+        :button-list="['btnSearch', 'btnMuniNotice', 'btnDelete']"
+        @click-button="onButtonsClick"
+      />
+    </v-card-title>
 
-    <!-- Main Content Area -->
-    <v-card-text class="pa-4 pt-0 content-area">
+    <v-card-text class="pa-3 pt-0 content-area">
       <div class="d-flex flex-column fill-height">
-        <v-sheet class="searchArea pa-4">
-          
-          <!-- ① 일시 및 장소 -->
-          <div class="sheetTitle mb-2">① 일시 및 장소</div>
-          <div class="d-flex mt-2 mb-4 flex-wrap">
+        <v-sheet class="searchArea">
+          <div class="d-flex mb-2 flex-wrap align-center">
+            <v-checkbox
+              label="점검일자"
+              class="mr-5"
+              true-value="Y"
+              false-value="N"
+              v-model="searchParam.NOTI_CHK"
+              hide-details
+            ></v-checkbox>
             <i-input
-              :label="$t('점검일자')"
               width="150px"
-              top-label
               type="date"
-              v-model="municipalField.NOTI_DT"
-              required
+              class="mr-0"
+              v-model="searchParam.NOTI_FROM"
+              hide-details
             ></i-input>
+            <span class="mx-1 mt-2">~</span>
             <i-input
-              :label="$t('회신요구일')"
               width="150px"
-              top-label
               type="date"
-              v-model="municipalField.REQ_REPLY_DT"
-              required
-            ></i-input>
-            <i-input
-              :label="$t('장소')"
-              top-label
-              width="200px"
-              readonly
-              append-inner-icon="mdi-magnify"
-              @click:appendInner="openLocationPopup"
-              v-model="municipalField.LOCATION_NM"
-              required
-            ></i-input>
-            <i-input
-              :label="$t('장소상세')"
-              top-label
-              width="300px"
-              v-model="municipalField.NOTI_PLC_DESC"
+              v-model="searchParam.NOTI_TO"
+              hide-details
             ></i-input>
             <i-select
-              :label="$t('호선/프로젝트No.')"
-              top-label
+              label-width="70px"
+              :label="$t('발신 사업부')"
               width="250px"
-              v-model="municipalField.SHIP_NO"
-              :items="codeList.SHIP_NO"
-              item-value="WORK_NO"
-              item-title="WORK_NO"
+              item-title="BSNS_NM"
+              item-value="BSNS_CD"
+              :items="codeList.SEND_BSNS_CD"
+              v-model="searchParam.SEND_BSNS_CD"
+              hide-details
+            ></i-select>
+            <i-select
+              :label="$t('부서')"
+              width="200px"
+              item-title="DEPT_NM"
+              item-value="DEPT_CD"
+              :items="codeList.SEND_DEPT_CD"
+              v-model="searchParam.SEND_DEPT_CD"
+              hide-details
+            ></i-select>
+            <i-select
+              :label="$t('팀/협력사')"
+              width="200px"
+              item-title="ASGN_NM"
+              item-value="ASGN_CD"
+              :items="codeList.SEND_ASGN_CD"
+              v-model="searchParam.SEND_ASGN_CD"
+              hide-details
             ></i-select>
           </div>
-
-          <!-- ② 위반정보 -->
-          <div class="sheetTitle mb-2">② 위반정보</div>
-          <div class="d-flex mt-2 mb-4 flex-wrap">
-            <i-input
-              :label="$t('제목')"
-              width="600px"
-              top-label
-              v-model="municipalField.NOTI_TITLE"
-              required
-            ></i-input>
-            <i-input
-              :label="$t('수신조직')"
-              width="300px"
-              top-label
-              readonly
-              append-inner-icon="mdi-magnify"
-              @click:appendInner="openDeptPopup"
-              required
-              v-model="municipalField.REC_ASGN_NM"
-            ></i-input>
-          </div>
-
-          <!-- ③ 위반내용 -->
-          <div class="sheetTitle mb-2">③ 위반내용</div>
-          <div class="d-flex mt-2 mb-4">
-            <i-textarea
-              :label="$t('문제점')"
-              width="50%"
-              top-label
-              v-model="municipalField.PROBLEM_DESC"
-              required
+          <div class="d-flex flex-wrap align-center">
+            <v-checkbox
+              label="회신요구일"
               class="mr-2"
-            ></i-textarea>
-            <i-textarea
-              :label="$t('시정요구안')"
-              width="50%"
-              top-label
-              v-model="municipalField.REQUIRE_DESC"
-            ></i-textarea>
-          </div>
-
-          <!-- 위반사항 사진/파일 첨부 -->
-          <div class="mb-6">
-            <IUploadImageMulit
-              title="사진첨부"
-              ref="safetyImageUpload"
-              height="300"
-            ></IUploadImageMulit>
-            <IUpload
-              gridTitle="파일첨부"
-              ref="safetyFileUpload"
-              height="250"
-            ></IUpload>
-          </div>
-
-          <!-- ④ 조치내용 -->
-          <div class="sheetTitle mb-2">④ 조치내용</div>
-          <div class="d-flex mt-2 mb-2 flex-wrap">
+              true-value="Y"
+              false-value="N"
+              v-model="searchParam.REQ_REPLY_CHK"
+              hide-details
+            ></v-checkbox>
             <i-input
-              v-model="municipalField.ACT_EMP_NM"
-              :label="$t('조치자성명')"
-              width="200px"
-              top-label
-              append-inner-icon="mdi-magnify"
-              @click:appendInner="openSafetyActEmpPopup"
-            ></i-input>
-            <i-input
-              v-model="municipalField.ACT_EMP_NO"
-              :label="$t('사번')"
-              width="200px"
-              top-label
-              readonly
-            ></i-input>
-            <i-input
-              v-model="municipalField.ACT_JOB_TIT_NM"
-              :label="$t('직위')"
               width="150px"
-              top-label
-              readonly
+              type="date"
+              class="mr-0"
+              v-model="searchParam.REQ_REPLY_FROM"
+              hide-details
             ></i-input>
+            <span class="mx-1 mt-2">~</span>
             <i-input
-              v-model="municipalField.ACT_ASGN_NM"
-              :label="$t('소속')"
+              width="150px"
+              type="date"
+              v-model="searchParam.REQ_REPLY_TO"
+              hide-details
+            ></i-input>
+            <i-select
+              label-width="70px"
+              :label="$t('수신 사업부')"
               width="250px"
-              top-label
-              readonly
-            ></i-input>
-            <i-input
-              v-model="municipalField.ACT_TEL_NO"
-              :label="$t('전화번호')"
+              item-title="BSNS_NM"
+              item-value="BSNS_CD"
+              :items="codeList.REC_BSNS_CD"
+              v-model="searchParam.REC_BSNS_CD"
+              hide-details
+            ></i-select>
+            <i-select
+              :label="$t('부서')"
               width="200px"
-              top-label
-            ></i-input>
-          </div>
-          <div class="d-flex mb-4 flex-wrap">
-            <i-input
-              v-model="municipalField.ACT_RSLT"
-              :label="$t('조치결과')"
-              width="600px"
-              top-label
-            ></i-input>
-            <i-input
-              v-model="municipalField.ACT_DIV"
-              :label="$t('조치구분')"
+              item-title="DEPT_NM"
+              item-value="DEPT_CD"
+              :items="codeList.REC_DEPT_CD"
+              v-model="searchParam.REC_DEPT_CD"
+              hide-details
+            ></i-select>
+            <i-select
+              :label="$t('진행상태')"
               width="200px"
-              top-label
-              readonly
-            ></i-input>
+              labelWidth="50px"
+              item-title="TXT"
+              item-value="COD"
+              :items="codeList.STATUS"
+              v-model="searchParam.STATUS"
+              hide-details
+            ></i-select>
           </div>
-
-          <!-- 조치사항 사진/파일 첨부 -->
-          <div class="mb-6">
-            <IUploadImageMulit
-              title="사진첨부"
-              ref="actionImageUpload"
-              height="300"
-            ></IUploadImageMulit>
-            <IUpload
-              gridTitle="파일첨부"
-              ref="actionFileUpload"
-              height="250"
-            ></IUpload>
-          </div>
-
-          <!-- ⑤ 단속자/승인자정보 -->
-          <div class="sheetTitle mb-2">⑤ 단속자/승인자정보</div>
-          <div class="d-flex mt-2 mb-4 align-center flex-wrap">
-            <i-input
-              v-model="municipalField.CHK_EMP_NM"
-              :label="$t('점검자성명')" 
-              width="200px"
-              top-label
-              append-inner-icon="mdi-magnify"
-              @click:appendInner="openSafetyChkEmpPopup"
-              required
-            ></i-input>
-            <i-input
-              v-model="municipalField.CHK_EMP_NO"
-              :label="$t('사번')"
-              width="150px"
-              top-label
-              readonly
-            ></i-input>
-            <i-input
-              v-model="municipalField.CHK_JOB_TIT_NM"
-              :label="$t('직위')"
-              width="150px"
-              top-label
-              readonly
-            ></i-input>
-            <i-input
-              v-model="municipalField.CHK_ASGN_NM"
-              :label="$t('소속')"
-              width="250px"
-              top-label
-              readonly
-            ></i-input>
-            <i-input
-              v-model="municipalField.CHK_TEL_NO"
-              :label="$t('전화번호')"
-              width="200px"
-              top-label
-            ></i-input>
-
-            <!-- 승인자 부분 -->
-            <div class="d-flex align-center mt-5 ml-4">
-              <v-checkbox
-                v-model="isAppSameAsChk"
-                label="승인자동일"
-                hide-details
-                class="mr-2"
-              ></v-checkbox>
-              <i-input
-                v-model="municipalField.APP_EMP_NM"
-                label="승인자"
-                width="200px"
-                append-inner-icon="mdi-magnify"
-                :readonly="isAppSameAsChk"
-                @click:appendInner="openSafetyAppEmpPopup"
-                hide-details
-              ></i-input>
-            </div>
-
-            <v-btn class="mt-5 ml-4" color="primary" @click="onApproval">승인신청</v-btn>
-            <v-btn class="mt-5 ml-2" color="warning" @click="onCancelApproval">승인신청취소</v-btn>
-          </div>
-
+        </v-sheet>
+        <v-sheet style="height: -webkit-fill-available">
+          <RealGrid
+            ref="grdMain"
+            :grid-view-option="grdMainProps.gridViewOption"
+            :fields="grdMainProps.fields"
+            :columns="grdMainProps.columns"
+            @onCellDblClicked="onCellDblClicked"
+          />
         </v-sheet>
       </div>
     </v-card-text>
   </v-card>
 
-  <DeptPopup ref="deptPopup" @selected="selectedDept" check-bar="true"></DeptPopup>
-  <CommonCodePopUpSAF ref="locationPopup" @selected="selectedLocation"></CommonCodePopUpSAF>
-  <EmpPopup ref="safetyActEmpPopup" @selected="selectedSafetyActEmp"></EmpPopup>
-  <EmpPopup ref="safetyChkEmpPopup" @selected="selectedSafetyChkEmp"></EmpPopup>
-  <EmpPopup ref="safetyAppEmpPopup" @selected="selectedAppEmp"></EmpPopup>
+  <SAFDC0020_01Popup01
+    ref="sAFDC0020_01_Popup01"
+    @closed="closedPopup"
+  ></SAFDC0020_01Popup01>
 </template>
 
 <style scoped lang="scss">
 .content-area {
   position: relative;
-  height: calc(100vh - 160px);
+  height: calc(100vh - 250px);
   overflow-y: auto;
   > div {
-    min-height: 800px;
+    min-height: 500px;
   }
 }
-.sheetTitle {
-  font-size: 16px;
-  font-weight: bold;
-  border-bottom: 2px solid #1a237e;
-  padding-bottom: 4px;
-}
-.border-b {
-  border-bottom: 1px solid #e0e0e0;
-}
 </style>
+
 
