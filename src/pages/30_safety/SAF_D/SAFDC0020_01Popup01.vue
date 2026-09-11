@@ -78,7 +78,7 @@ const notiActEmpPopup = ref(null)
 const notiChkEmpPopup = ref(null)
 
 const notiAppEmpPopup = ref(null)
-const notiCloseEmpPopup = ref(null) //2026.09.11 수정
+const notiCloseEmpPopup = ref(null) //2026.09.11 수정 (종결자)
 
 const approvalReadOnly = ref(true) // 승인자 필드 활성/비활성 제어 플래그
 
@@ -194,21 +194,21 @@ const municipalField = reactive({
 
   APPROVE_ID: '',
 
-  CLOSE_DT: '', //2026.09.11 수정
+  CLOSE_DT: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_ASGN_CD: '', //2026.09.11 수정
+  CLOSE_ASGN_CD: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_EMP_NO: '', //2026.09.11 수정
+  CLOSE_EMP_NO: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_DEPT_CD: '', //2026.09.11 수정
+  CLOSE_DEPT_CD: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_EMP_NM: '', //2026.09.11 수정
+  CLOSE_EMP_NM: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_JOB_TIT_NM: '', //2026.09.11 수정
+  CLOSE_JOB_TIT_NM: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_ASGN_NM: '', //2026.09.11 수정
+  CLOSE_ASGN_NM: '', //2026.09.11 수정 (종결자)
 
-  CLOSE_TEL_NO: '', //2026.09.11 수정
+  CLOSE_TEL_NO: '', //2026.09.11 수정 (종결자)
 
   LOCATION_NM: '',
 
@@ -288,15 +288,15 @@ const openPopup2 = rowData => {
 
   }
 
-  // 종결자 정보 바인딩 //2026.09.11 수정
-  municipalField.CLOSE_EMP_NM = rowData.CLOSE_EMP_NM || rowData.close_emp_nm || municipalField.CLOSE_EMP_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_EMP_NO = rowData.CLOSE_EMP_NO || rowData.close_emp_no || municipalField.CLOSE_EMP_NO || '' //2026.09.11 수정
-  municipalField.CLOSE_JOB_TIT_NM = rowData.CLOSE_JOB_TIT_NM || rowData.close_job_tit_nm || municipalField.CLOSE_JOB_TIT_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_ASGN_NM = rowData.CLOSE_ASGN_NM || rowData.close_asgn_nm || municipalField.CLOSE_ASGN_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_ASGN_CD = rowData.CLOSE_ASGN_CD || rowData.close_asgn_cd || municipalField.CLOSE_ASGN_CD || '' //2026.09.11 수정
-  municipalField.CLOSE_DEPT_CD = rowData.CLOSE_DEPT_CD || rowData.close_dept_cd || municipalField.CLOSE_DEPT_CD || '' //2026.09.11 수정
-  municipalField.CLOSE_TEL_NO = rowData.CLOSE_TEL_NO || rowData.close_tel_no || municipalField.CLOSE_TEL_NO || '' //2026.09.11 수정
-  municipalField.CLOSE_DT = rowData.CLOSE_DT || rowData.close_dt || municipalField.CLOSE_DT || '' //2026.09.11 수정
+  // 종결자 정보 바인딩 //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_EMP_NM = rowData.CLOSE_EMP_NM || rowData.close_emp_nm || municipalField.CLOSE_EMP_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_EMP_NO = rowData.CLOSE_EMP_NO || rowData.close_emp_no || municipalField.CLOSE_EMP_NO || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_JOB_TIT_NM = rowData.CLOSE_JOB_TIT_NM || rowData.close_job_tit_nm || municipalField.CLOSE_JOB_TIT_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_ASGN_NM = rowData.CLOSE_ASGN_NM || rowData.close_asgn_nm || municipalField.CLOSE_ASGN_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_ASGN_CD = rowData.CLOSE_ASGN_CD || rowData.close_asgn_cd || municipalField.CLOSE_ASGN_CD || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_DEPT_CD = rowData.CLOSE_DEPT_CD || rowData.close_dept_cd || municipalField.CLOSE_DEPT_CD || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_TEL_NO = rowData.CLOSE_TEL_NO || rowData.close_tel_no || municipalField.CLOSE_TEL_NO || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_DT = rowData.CLOSE_DT || rowData.close_dt || municipalField.CLOSE_DT || '' //2026.09.11 수정 (종결자)
 
   isEntryMode.value = false
 
@@ -476,21 +476,21 @@ const initField = () => {
 
   municipalField.APPROVE_ID = ''
 
-  municipalField.CLOSE_DT = '' //2026.09.11 수정
+  municipalField.CLOSE_DT = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_ASGN_CD = '' //2026.09.11 수정
+  municipalField.CLOSE_ASGN_CD = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_EMP_NO = '' //2026.09.11 수정
+  municipalField.CLOSE_EMP_NO = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_DEPT_CD = '' //2026.09.11 수정
+  municipalField.CLOSE_DEPT_CD = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_EMP_NM = '' //2026.09.11 수정
+  municipalField.CLOSE_EMP_NM = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_JOB_TIT_NM = '' //2026.09.11 수정
+  municipalField.CLOSE_JOB_TIT_NM = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_ASGN_NM = '' //2026.09.11 수정
+  municipalField.CLOSE_ASGN_NM = '' //2026.09.11 수정 (종결자)
 
-  municipalField.CLOSE_TEL_NO = '' //2026.09.11 수정
+  municipalField.CLOSE_TEL_NO = '' //2026.09.11 수정 (종결자)
 
 }
 
@@ -816,21 +816,21 @@ const saveNotiData = () => {
 
     APPROVE_ID: municipalField.APPROVE_ID,
 
-    CLOSE_DT: municipalField.CLOSE_DT || (municipalField.CLOSE_EMP_NO ? dayjs().format('YYYY-MM-DD') : ''), //2026.09.11 수정
+    CLOSE_DT: municipalField.CLOSE_DT || (municipalField.CLOSE_EMP_NO ? dayjs().format('YYYY-MM-DD') : ''), //2026.09.11 수정 (종결자)
 
-    CLOSE_ASGN_CD: municipalField.CLOSE_ASGN_CD, //2026.09.11 수정
+    CLOSE_ASGN_CD: municipalField.CLOSE_ASGN_CD, //2026.09.11 수정 (종결자)
 
-    CLOSE_EMP_NO: municipalField.CLOSE_EMP_NO, //2026.09.11 수정
+    CLOSE_EMP_NO: municipalField.CLOSE_EMP_NO, //2026.09.11 수정 (종결자)
 
-    CLOSE_DEPT_CD: municipalField.CLOSE_DEPT_CD, //2026.09.11 수정
+    CLOSE_DEPT_CD: municipalField.CLOSE_DEPT_CD, //2026.09.11 수정 (종결자)
 
-    CLOSE_EMP_NM: municipalField.CLOSE_EMP_NM, //2026.09.11 수정
+    CLOSE_EMP_NM: municipalField.CLOSE_EMP_NM, //2026.09.11 수정 (종결자)
 
-    CLOSE_JOB_TIT_NM: municipalField.CLOSE_JOB_TIT_NM, //2026.09.11 수정
+    CLOSE_JOB_TIT_NM: municipalField.CLOSE_JOB_TIT_NM, //2026.09.11 수정 (종결자)
 
-    CLOSE_ASGN_NM: municipalField.CLOSE_ASGN_NM, //2026.09.11 수정
+    CLOSE_ASGN_NM: municipalField.CLOSE_ASGN_NM, //2026.09.11 수정 (종결자)
 
-    CLOSE_TEL_NO: municipalField.CLOSE_TEL_NO, //2026.09.11 수정
+    CLOSE_TEL_NO: municipalField.CLOSE_TEL_NO, //2026.09.11 수정 (종결자)
 
   }
 
@@ -1182,23 +1182,23 @@ const selectedAppEmp = val => {
 
 }
 
-const openCloseEmpPopup = () => { //2026.09.11 수정
-  notiCloseEmpPopup.value.openPopup({ //2026.09.11 수정
+const openCloseEmpPopup = () => { //2026.09.11 수정 (종결자)
+  notiCloseEmpPopup.value.openPopup({ //2026.09.11 수정 (종결자)
     CMPNY_DIV: userStore.cmpnyDiv, //2026.09.11 수정
     HSE_ONLY: 'Y', //2026.09.11 수정
-    EMP_NM: municipalField.CLOSE_EMP_NM, //2026.09.11 수정
+    EMP_NM: municipalField.CLOSE_EMP_NM, //2026.09.11 수정 (종결자)
     readonly: true, //2026.09.11 수정
   }) //2026.09.11 수정
 } //2026.09.11 수정
 
-const selectedCloseEmp = val => { //2026.09.11 수정
-  municipalField.CLOSE_EMP_NM = val.EMP_NM || val.KOR_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_EMP_NO = val.EMP_NO || '' //2026.09.11 수정
-  municipalField.CLOSE_JOB_TIT_NM = val.JOB_TIT_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_ASGN_NM = val.ASGN_NM || val.ASGN_FULL_NM || val.DEPT_NM || '' //2026.09.11 수정
-  municipalField.CLOSE_ASGN_CD = val.ASGN_CD || '' //2026.09.11 수정
-  municipalField.CLOSE_DEPT_CD = val.DEPT_CD || '' //2026.09.11 수정
-  municipalField.CLOSE_TEL_NO = val.TEL_NO || val.HND_PHN || '' //2026.09.11 수정
+const selectedCloseEmp = val => { //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_EMP_NM = val.EMP_NM || val.KOR_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_EMP_NO = val.EMP_NO || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_JOB_TIT_NM = val.JOB_TIT_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_ASGN_NM = val.ASGN_NM || val.ASGN_FULL_NM || val.DEPT_NM || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_ASGN_CD = val.ASGN_CD || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_DEPT_CD = val.DEPT_CD || '' //2026.09.11 수정 (종결자)
+  municipalField.CLOSE_TEL_NO = val.TEL_NO || val.HND_PHN || '' //2026.09.11 수정 (종결자)
 } //2026.09.11 수정
 
 const onApproval = () => { //2026.09.11 수정

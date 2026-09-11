@@ -29,7 +29,7 @@ import dayjs from "dayjs"
 
 import Message from "@hiway/utils/notify"
 
-import SAFDC0020_02Popup01 from "./SAFDC0020_02Popup01.vue" //2026.09.11 수정
+import SAFDC0020_02Popup01 from "./SAFDC0020_02Popup01.vue" //2026.09.11 수정 (종결자)
 
 defineOptions({
 
@@ -45,7 +45,7 @@ const grdMain = ref(null)
 
 const userStore = useUserStore()
 
-const sAFDC0020_02_Popup01 = ref(null) //2026.09.11 수정
+const sAFDC0020_02_Popup01 = ref(null) //2026.09.11 수정 (종결자)
 
 const empPopup = ref(null) // 점검자 팝업
 
@@ -419,7 +419,7 @@ const onSearch = () => {
 
 const onRegister = () => {
 
-  sAFDC0020_02_Popup01.value.openPopup() //2026.09.11 수정
+  sAFDC0020_02_Popup01.value.openPopup() //2026.09.11 수정 (종결자)
 
 }
 
@@ -609,7 +609,7 @@ const onCellDblClicked = (grid, clickData) => {
 
   let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
 
-  sAFDC0020_02_Popup01.value.openPopup2(data) //2026.09.11 수정
+  sAFDC0020_02_Popup01.value.openPopup2(data) //2026.09.11 수정 (종결자)
 
 }
 
@@ -948,7 +948,7 @@ watch(
     <SAFDC0020_02Popup01
       ref="sAFDC0020_02_Popup01"
       @closed="closedPopup"
-    /> <!-- 2026.09.11 수정 -->
+    /> <!-- 2026.09.11 수정 (종결자) -->
 
     <EmpPopup
       ref="empPopup"
