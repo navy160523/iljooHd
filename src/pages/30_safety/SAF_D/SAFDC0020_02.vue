@@ -101,19 +101,19 @@ const searchParam = reactive({
 
 const codeList = reactive({
 
-  SEND_BSNS_CD: [],
+  SEND_BSNS_CD: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  CHK_DEPT_CD: [],
+  CHK_DEPT_CD: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정
 
-  SEND_ASGN_CD: [],
+  SEND_ASGN_CD: [{ ASGN_NM: "전체", ASGN_CD: "" }], //2026.09.11 수정
 
-  REC_BSNS_CD: [],
+  REC_BSNS_CD: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  REC_DEPT_CD: [],
+  REC_DEPT_CD: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정
 
-  REC_ASGN_CD: [],
+  REC_ASGN_CD: [{ ASGN_NM: "전체", ASGN_CD: "" }], //2026.09.11 수정
 
-  STATUS: [],
+  STATUS: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
 })
 
@@ -737,9 +737,15 @@ watch(
 
       searchParam.CHK_DEPT_CD = ""
 
-      codeList.CHK_DEPT_CD = res.ORESULT_CUR
+      codeList.CHK_DEPT_CD = res.ORESULT_CUR || []
 
-      codeList.CHK_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
+      // 중복 방지 체크 후 "전체" 추가 (CHK_DEPT_CD) //2026.09.11 수정
+
+      if (codeList.CHK_DEPT_CD.length === 0 || codeList.CHK_DEPT_CD[0].DEPT_CD !== "") {
+
+        codeList.CHK_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" }) //2026.09.11 수정
+
+      }
 
     })
 
@@ -775,9 +781,15 @@ watch(
 
       searchParam.SEND_ASGN_CD = ""
 
-      codeList.SEND_ASGN_CD = res.ORESULT_CUR
+      codeList.SEND_ASGN_CD = res.ORESULT_CUR || []
 
-      codeList.SEND_ASGN_CD.unshift({ ASGN_NM: "전체", ASGN_CD: "" })
+      // 중복 방지 체크 후 "전체" 추가 (SEND_ASGN_CD) //2026.09.11 수정
+
+      if (codeList.SEND_ASGN_CD.length === 0 || codeList.SEND_ASGN_CD[0].ASGN_CD !== "") {
+
+        codeList.SEND_ASGN_CD.unshift({ ASGN_NM: "전체", ASGN_CD: "" }) //2026.09.11 수정
+
+      }
 
     })
 
