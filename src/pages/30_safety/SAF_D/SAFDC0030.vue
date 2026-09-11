@@ -1,5 +1,4 @@
 <script setup>
-
 import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
 
 import { useLogsStore } from '@hiway/stores/logs'
@@ -108,7 +107,7 @@ const initCodeList = () => {
 
         BSNS_CD: searchParam.BSNS_CD,
 
-        USE_DIV: 'Y'
+        USE_DIV: 'Y',
 
       },
 
@@ -116,7 +115,7 @@ const initCodeList = () => {
 
     getPgCodeList('HHIG170'),
 
-  ]).then((res) => {
+  ]).then(res => {
 
     codeList.bsnsCd = res[0].ORESULT_CUR
 
@@ -330,7 +329,7 @@ const onDelete = () => {
 
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
 
   if (btn.id === 'btnSearch') {
 
@@ -392,7 +391,7 @@ const searchData = () => {
 
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
 
   let list = res.ORESULT_CUR || []
 
@@ -462,7 +461,7 @@ watch(
 
   () => searchParam.CMPNY_DIV,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -470,7 +469,7 @@ watch(
 
       param: { CMPNY_DIV: newValue },
 
-    }).then((res) => {
+    }).then(res => {
 
       searchParam.BSNS_CD = ''
 
@@ -480,7 +479,7 @@ watch(
 
     })
 
-  }
+  },
 
 )
 
@@ -488,7 +487,7 @@ watch(
 
   () => searchParam.BSNS_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -496,7 +495,7 @@ watch(
 
       param: { CMPNY_DIV: searchParam.CMPNY_DIV, BSNS_CD: newValue, USE_DIV: 'Y' },
 
-    }).then((res) => {
+    }).then(res => {
 
       searchParam.DEPT_CD = ''
 
@@ -506,7 +505,7 @@ watch(
 
     })
 
-  }
+  },
 
 )
 
@@ -514,17 +513,17 @@ watch(
 
   () => searchParam.DEPT_CD,
 
-  (newValue) => {
+  newValue => {
 
     // 만약 부서가 선택되지 않았거나 빈 값('전체')이면 팀 목록을 비우고 차단
 
     if (!newValue) {
 
-      searchParam.ASGN_CD = "";
+      searchParam.ASGN_CD = ""
 
-      codeList.asgnCd = [{ ASGN_NM: "전체", ASGN_CD: "" }];
+      codeList.asgnCd = [{ ASGN_NM: "전체", ASGN_CD: "" }]
 
-      return;
+      return
 
     }
 
@@ -540,108 +539,144 @@ watch(
 
         DEPT_CD: newValue,
 
-        USE_DIV: "Y"
+        USE_DIV: "Y",
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.ASGN_CD = "";
+      searchParam.ASGN_CD = ""
 
       // API 응답 구조 검증 및 대입
 
-      const teamData = res?.ORESULT_CUR || res || [];
+      const teamData = res?.ORESULT_CUR || res || []
 
-      codeList.asgnCd = Array.isArray(teamData) ? teamData : [];
+      codeList.asgnCd = Array.isArray(teamData) ? teamData : []
 
       // 중복 체크 후 배열의 맨 앞에 "전체" 항목 추가
 
       if (codeList.asgnCd.length === 0 || codeList.asgnCd[0].ASGN_CD !== "") {
 
-        codeList.asgnCd.unshift({ ASGN_NM: "전체", ASGN_CD: "" });
+        codeList.asgnCd.unshift({ ASGN_NM: "전체", ASGN_CD: "" })
 
       }
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
-
+)
 </script>
 
 <template>
-
   <v-card class="pa-0 fill-height">
-
     <v-card-title class="pa-3 pb-0">
+      <IMenuTitle
+        ref="menuTitle"
+        :title="`${$t(useLogsStore().menuId)}`"
+      />
 
-      <IMenuTitle ref="menuTitle" :title="`${$t(useLogsStore().menuId)}`" />
-
-      <IGridTitle class="mt-0" :button-list="['btnSearch', 'btnRegist', 'btnDelete']" @click-button="onButtonsClick" />
-
+      <IGridTitle
+        class="mt-0"
+        :button-list="['btnSearch', 'btnRegist', 'btnDelete']"
+        @click-button="onButtonsClick"
+      />
     </v-card-title>
 
     <v-card-text class="pa-3 pt-0 content-area">
-
       <div class="d-flex flex-column fill-height">
-
         <v-sheet class="searchArea d-flex mb-2">
+          <i-input
+            v-model="searchParam.JSTOP_DATE_FR"
+            label-width="25px"
+            :label="$t('일자')"
+            width="170px"
+            class="mr-1"
 
-          <i-input v-model="searchParam.JSTOP_DATE_FR" label-width="25px" :label="$t('일자')" width="170px" class="mr-1"
-
-            type="date"></i-input>
+            type="date"
+          />
 
           <span class="mt-2">~</span>
 
-          <i-input v-model="searchParam.JSTOP_DATE_TO" class="ml-1" type="date" width="150px"></i-input>
+          <i-input
+            v-model="searchParam.JSTOP_DATE_TO"
+            class="ml-1"
+            type="date"
+            width="150px"
+          />
 
-          <!-- <i-select v-model="searchParam.CMPNY_DIV" :label="$t('대상조직')" label-width="60px" width="220px"
+          <!--
+            <i-select v-model="searchParam.CMPNY_DIV" :label="$t('대상조직')" label-width="60px" width="220px"
 
-            :items="codeList.company" item-title="TXT" item-value="COD"></i-select> -->
+            :items="codeList.company" item-title="TXT" item-value="COD"></i-select> 
+          -->
 
-          <i-select v-model="searchParam.BSNS_CD" width="180px" :label="$t('대상조직')" :items="codeList.bsnsCd"
+          <i-select
+            v-model="searchParam.BSNS_CD"
+            width="180px"
+            :label="$t('대상조직')"
+            :items="codeList.bsnsCd"
 
-            item-title="BSNS_NM" item-value="BSNS_CD"></i-select>
+            item-title="BSNS_NM"
+            item-value="BSNS_CD"
+          />
 
-          <i-select v-model="searchParam.DEPT_CD" width="220px" :items="codeList.deptCd" item-title="DEPT_NM"
+          <i-select
+            v-model="searchParam.DEPT_CD"
+            width="220px"
+            :items="codeList.deptCd"
+            item-title="DEPT_NM"
 
-            item-value="DEPT_CD"></i-select>
+            item-value="DEPT_CD"
+          />
 
-          <i-select v-model="searchParam.ASGN_CD" width="220px" :items="codeList.asgnCd" item-title="ASGN_NM"
+          <i-select
+            v-model="searchParam.ASGN_CD"
+            width="220px"
+            :items="codeList.asgnCd"
+            item-title="ASGN_NM"
 
-            item-value="ASGN_CD"></i-select>
+            item-value="ASGN_CD"
+          />
 
-          <i-select v-model="searchParam.RESTART_DIV" :label="$t('조치구분')" label-width="60px" width="220px"
+          <i-select
+            v-model="searchParam.RESTART_DIV"
+            :label="$t('조치구분')"
+            label-width="60px"
+            width="220px"
 
-            :items="codeList.restartDiv" item-title="TXT" item-value="COD"></i-select>
-
+            :items="codeList.restartDiv"
+            item-title="TXT"
+            item-value="COD"
+          />
         </v-sheet>
 
         <v-sheet style="height: -webkit-fill-available">
+          <RealGrid
+            ref="grdMain"
+            :grid-view-option="grdMainProps.gridViewOption"
+            :keys="grdMainProps.keys"
 
-          <RealGrid ref="grdMain" :grid-view-option="grdMainProps.gridViewOption" :keys="grdMainProps.keys"
+            :fields="grdMainProps.fields"
+            :columns="grdMainProps.columns"
+            :column-layout="grdMainProps.columnLayout"
 
-            :fields="grdMainProps.fields" :columns="grdMainProps.columns" :column-layout="grdMainProps.columnLayout"
-
-            @onCellDblClicked="onCellDblClicked" />
-
+            @on-cell-dbl-clicked="onCellDblClicked"
+          />
         </v-sheet>
-
       </div>
-
     </v-card-text>
-
   </v-card>
 
-  <SAFDC0030_Popup01 ref="sAFDC0030_Popup01" @closed="closedPopup"></SAFDC0030_Popup01>
-
+  <SAFDC0030_Popup01
+    ref="sAFDC0030_Popup01"
+    @closed="closedPopup"
+  />
 </template>
 
 <style scoped lang="scss">
-
 .content-area {
 
   position: relative;
@@ -665,5 +700,4 @@ watch(
   }
 
 }
-
 </style>

@@ -22,6 +22,8 @@ import IUploadPopup from '@/components/popup/IUploadPopup.vue'
 import EmpPopup from '@/components/popup/EmpPopup.vue'
 import { MenuItemType } from 'realgrid'
 import OZReport from '@/components/OZReport.vue'
+
+const emit = defineEmits(['closed'])
 const imageUpload = ref(null)
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
@@ -32,10 +34,10 @@ const grdMain = ref(null)
 const empPopup = ref(null)
 const reportParam = reactive(['IN_CMPNY_DIV=', 'IN_MNG_NO='])
 const reportName = ref('/manage/hse/SAFDC0010.ozr')
+
 // OzReport 팝업 여부
 
 const showOz = ref(false)
-const emit = defineEmits(['closed'])
 const images = ref([])
 const images2 = ref([])
 const model = ref(null)
@@ -43,6 +45,7 @@ const model2 = ref(null)
 const fileUploadPopup = ref(null)
 const menuTitle = ref(null)
 const END_DATE_MAX = ref(dayjs().format('YYYY-MM-DD')) //종결일시 최대값 오늘로
+
 const municipalField = reactive({
   CMPNY_DIV: '', //사업장구분
   MNG_NO: '', //관리번호
@@ -90,7 +93,7 @@ const municipalField = reactive({
   REJECT_DESC: '', //재요청사유
 })
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnReAction') {
     new saveFlowHelper(vm, t)
       .setBefore(beforeSave01)
@@ -110,6 +113,8 @@ const onButtonsClick = (btn) => {
     closePopup()
   }
 }
+
+
 //출력관련 로직 시작
 const print = () => {
   reportParam[0] = 'IN_CMPNY_DIV='
@@ -118,14 +123,17 @@ const print = () => {
   reportParam[1] += municipalField.MNG_NO
   showOz.value = true
 }
+
 //출력관련 로직 끝
 
 //재조치요청 관련 로직 시작
 const beforeSave01 = () => {
   if (!municipalField.REJECT_DESC) {
     Message.warn(t('재조치사유는 필수입력입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -151,6 +159,7 @@ const saveData01 = () => {
   }
   saveParam.push(saveData)
   console.log('세이브파람', saveParam)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE07',
     list: saveParam,
@@ -160,17 +169,21 @@ const saveData01 = () => {
 const afterSave01 = () => {
   closePopup()
 }
+
 //재조치요청 관련 로직 끝
 
 //종결관련 로직 시작
 const beforeSave02 = () => {
   if (!municipalField.CLOSE_EMP_NO) {
     Message.warn(t('종결자는 필수입력입니다.'))
+    
     return false
   } else if (!municipalField.CLOSE_DT) {
     Message.warn(t('종결일은 필수입력입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -196,6 +209,7 @@ const saveData02 = () => {
   }
   saveParam.push(saveData)
   console.log('세이브파람', saveParam)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE07',
     list: saveParam,
@@ -220,24 +234,28 @@ const setButtonStatus = () => {
     menuTitle.value.disableBtn('btnReAction', true) //재조치요청 활성화
     menuTitle.value.disableBtn('btnComplete', true) //종결 비활성화
   }
+
   //재조치요청 상태일때 
   else if (municipalField.STATUS === '31') {
     console.log('재조치요청 상태일때')
     menuTitle.value.disableBtn('btnReAction', true) //재조치요청 비활성화
     menuTitle.value.disableBtn('btnComplete', true) //종결 비활성화
   }
+
   //조치완료 상태일때
   else if (municipalField.STATUS === '40') {
     console.log('조치완료 상태일때')
     menuTitle.value.disableBtn('btnReAction', false) //재조치요청 활성화
     menuTitle.value.disableBtn('btnComplete', false) //종결 비활성화
   }
+
   //종결상태일때
   else if (municipalField.STATUS === '50') {
     console.log('종결상태일때')
     menuTitle.value.disableBtn('btnReAction', true) //재조치요청 비활성화
     menuTitle.value.disableBtn('btnComplete', true) //종결 비활성화
   }
+
   //해당되지 않을때
   else {
     console.log('해당되지 않을때')
@@ -251,7 +269,7 @@ const setButtonStatus = () => {
   }
 }
 
-const openPopup = (rowData) => {
+const openPopup = rowData => {
   console.log('받은데이터', rowData)
   dialog.value = true
   for (const [key, value] of Object.entries(rowData)) {
@@ -310,19 +328,20 @@ const closePopup = () => {
 }
 
 //문제점 파일 가져오는 함수
-const getImages = async (FILE_ID) => {
+const getImages = async FILE_ID => {
   await commonSearchApi({
     queryId: 'searchFile',
     param: {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: FILE_ID,
     },
-  }).then((res) => {
+  }).then(res => {
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
         const blob = new Blob([res])
         const url = URL.createObjectURL(blob)
+
         images.value.push(url)
       })
     }
@@ -330,20 +349,22 @@ const getImages = async (FILE_ID) => {
 }
 
 //조치결과 파일아이디 존재시 실행
-const getImages2 = async (FILE_ID) => {
+const getImages2 = async FILE_ID => {
   await commonSearchApi({
     queryId: 'searchFile',
     param: {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: FILE_ID,
     },
-  }).then((res) => {
+  }).then(res => {
     console.log('여기는??', res)
+
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
         const blob = new Blob([res])
         const url = URL.createObjectURL(blob)
+
         images2.value.push(url)
       })
     }
@@ -354,7 +375,7 @@ const uploadFile = () => {
   fileUploadPopup.value.openPopup()
 }
 
-const uploadedFile = async (val) => {
+const uploadedFile = async val => {
   console.log('파일아이디', val.fileId)
   municipalField.ACT_RSLT_SCAN = val.fileId
   await commonSearchApi({
@@ -363,12 +384,13 @@ const uploadedFile = async (val) => {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: municipalField.ACT_RSLT_SCAN,
     },
-  }).then((res) => {
+  }).then(res => {
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
         const blob = new Blob([res])
         const url = URL.createObjectURL(blob)
+
         images2.value.push(url)
       })
     }
@@ -384,7 +406,7 @@ const openEmpPopup = () => {
 }
 
 //종결자 선택 이벤트
-const selectedEmpPopup = (val) => {
+const selectedEmpPopup = val => {
   console.log('종결자선택값', val)
   municipalField.CLOSE_EMP_NM = val.EMP_NM //성명
   municipalField.CLOSE_EMP_NO = val.EMP_NO //사번
@@ -431,87 +453,90 @@ defineExpose({
           <v-sheet class="searchArea mb-0">
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.SEND_ASGN_NM"
                 :label="$t('발신')"
                 width="400px"
                 top-label
                 readonly
-                v-model="municipalField.SEND_ASGN_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_EMP_NM"
                 :label="$t('점검자')"
                 width="200px"
                 top-label
                 readonly
-                v-model="municipalField.CHK_EMP_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_TEL_NO"
                 :label="$t('전화')"
                 width="200px"
                 top-label
-                v-model="municipalField.CHK_TEL_NO"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.NOTI_DT"
                 :label="$t('점검일자')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.NOTI_DT"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.REQ_REPLY_DT"
                 :label="$t('회신요구일')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.REQ_REPLY_DT"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.REC_ASGN_NM"
                 :label="$t('수신')"
                 width="400px"
                 top-label
                 readonly
-                v-model="municipalField.REC_ASGN_NM"
-              ></i-input>
+              />
 
               <i-input
+                v-model="municipalField.NOTI_TITLE"
                 :label="$t('제목')"
                 width="600px"
                 top-label
-                v-model="municipalField.NOTI_TITLE"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.NOTI_NM"
                 :label="$t('장소')"
                 top-label
                 width="200px"
                 readonly
-                v-model="municipalField.NOTI_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.NOTI_PLC_DESC"
                 :label="$t('장소상세')"
                 top-label
                 width="300px"
-                v-model="municipalField.NOTI_PLC_DESC"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.SHIP_NO"
                 :label="$t('호선No.')"
                 top-label
                 width="200px"
-                v-model="municipalField.SHIP_NO"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-textarea
+                v-model="municipalField.REJECT_DESC"
                 :label="$t('재조치 요청사유')"
                 top-label
                 width="100%"
-                v-model="municipalField.REJECT_DESC"
-              ></i-textarea>
+              />
             </div>
           </v-sheet>
-          <v-sheet height="100%" class="h-auto searchArea">
+          <v-sheet
+            height="100%"
+            class="h-auto searchArea"
+          >
             <div class="h-grow">
               <v-sheet width="40%">
                 <v-slide-group
@@ -524,43 +549,50 @@ defineExpose({
                   <v-slide-group-item
                     v-for="(image, index) in images"
                     :key="index"
-                    :value="image"
                     v-slot="{ isSelected, toggle }"
+                    :value="image"
                   >
                     <v-img
-                      @click="toggle"
                       width="100"
                       height="100"
                       :src="image"
-                    ></v-img>
+                      @click="toggle"
+                    />
                   </v-slide-group-item>
                 </v-slide-group>
                 <v-expand-transition>
-                  <v-sheet height="200" width="100%">
+                  <v-sheet
+                    height="200"
+                    width="100%"
+                  >
                     <div class="d-flex fill-height align-center justify-center">
-                      <v-img :src="model" width="350" height="200"> </v-img>
+                      <v-img
+                        :src="model"
+                        width="350"
+                        height="200"
+                      />
                     </div>
                   </v-sheet>
                 </v-expand-transition>
                 <div class="h-grow">
                   <v-sheet width="50%">
                     <i-textarea
+                      v-model="municipalField.PROBLEM_DESC"
                       width="100%"
                       label="문제점"
                       top-label
                       style="margin-top: 21px"
-                      v-model="municipalField.PROBLEM_DESC"
-                    ></i-textarea>
+                    />
                   </v-sheet>
-                  <span class="mx-2"></span>
+                  <span class="mx-2" />
                   <v-sheet width="50%">
                     <i-textarea
+                      v-model="municipalField.REQUIRE_DESC"
                       width="100%"
                       label="시정요구(안)"
                       top-label
                       style="margin-top: 21px"
-                      v-model="municipalField.REQUIRE_DESC"
-                    ></i-textarea>
+                    />
                   </v-sheet>
                 </div>
               </v-sheet>
@@ -575,97 +607,106 @@ defineExpose({
                   <v-slide-group-item
                     v-for="(image, index) in images2"
                     :key="index"
-                    :value="image"
                     v-slot="{ isSelected, toggle }"
+                    :value="image"
                   >
                     <v-img
-                      @click="toggle"
                       width="100"
                       height="100"
                       :src="image"
-                    >
-                    </v-img>
+                      @click="toggle"
+                    />
                   </v-slide-group-item>
                 </v-slide-group>
                 <v-expand-transition>
-                  <v-sheet height="200" width="100%">
+                  <v-sheet
+                    height="200"
+                    width="100%"
+                  >
                     <div class="d-flex fill-height align-center justify-center">
-                      <v-img :src="model2" width="350" height="200"> </v-img>
+                      <v-img
+                        :src="model2"
+                        width="350"
+                        height="200"
+                      />
                     </div>
                   </v-sheet>
                 </v-expand-transition>
                 <i-textarea
+                  v-model="municipalField.ACT_RSLT"
                   label="조치결과"
                   width="100%"
                   class="mx-3"
                   style="margin-top: 21px"
-                  v-model="municipalField.ACT_RSLT"
-                ></i-textarea>
+                />
               </v-sheet>
-              <v-sheet class="ml-5" width="20%">
+              <v-sheet
+                class="ml-5"
+                width="20%"
+              >
                 <div class="d-flex justify-center flex-wrap">
                   <span>조치자</span>
                   <i-input
+                    v-model="municipalField.ACT_ASGN_NM"
                     width="90%"
                     :label="$t('소속')"
                     top-label
-                    v-model="municipalField.ACT_ASGN_NM"
                     readonly
-                  ></i-input>
+                  />
                   <i-input
+                    v-model="municipalField.ACT_EMP_NO"
                     width="90%"
                     :label="$t('사번')"
                     top-label
-                    v-model="municipalField.ACT_EMP_NO"
                     readonly
-                  ></i-input>
+                  />
                   <i-input
+                    v-model="municipalField.ACT_EMP_NM"
                     width="90%"
                     :label="$t('성명')"
                     top-label
-                    v-model="municipalField.ACT_EMP_NM"
                     readonly
-                  ></i-input>
+                  />
                   <i-input
+                    v-model="municipalField.ACT_TEL_NO"
                     width="90%"
                     :label="$t('연락처')"
                     top-label
-                    v-model="municipalField.ACT_TEL_NO"
-                  ></i-input>
+                  />
                 </div>
                 <div class="d-flex justify-center flex-wrap">
                   <span>종결자</span>
                   <i-input
+                    v-model="municipalField.CLOSE_ASGN_NM"
                     width="90%"
                     :label="$t('소속')"
                     top-label
                     readonly
-                    v-model="municipalField.CLOSE_ASGN_NM"
-                  ></i-input>
+                  />
                   <i-input
+                    v-model="municipalField.CLOSE_EMP_NO"
                     width="90%"
                     :label="$t('사번')"
                     top-label
                     append-inner-icon="mdi-magnify"
-                    @click:appendInner="openEmpPopup"
                     readonly
-                    v-model="municipalField.CLOSE_EMP_NO"
-                  ></i-input>
+                    @click:append-inner="openEmpPopup"
+                  />
                   <i-input
+                    v-model="municipalField.CLOSE_EMP_NM"
                     width="90%"
                     :label="$t('성명')"
                     top-label
                     readonly
-                    v-model="municipalField.CLOSE_EMP_NM"
-                  ></i-input>
+                  />
                   <i-input
+                    v-model="municipalField.CLOSE_DT"
                     width="90%"
                     :label="$t('종결일')"
                     top-label
                     type="date"
-                    v-model="municipalField.CLOSE_DT"
                     :max="END_DATE_MAX"
-                  ></i-input>
+                  />
                 </div>
               </v-sheet>
             </div>
@@ -677,16 +718,20 @@ defineExpose({
       ref="fileUploadPopup"
       :img-only="true"
       @uploaded="uploadedFile"
-    ></IUploadPopup>
-    <EmpPopup ref="empPopup" @selected="selectedEmpPopup"></EmpPopup>
+    />
+    <EmpPopup
+      ref="empPopup"
+      @selected="selectedEmpPopup"
+    />
     <OZReport
-      :showPop="showOz"
-      :reportName="reportName"
+      :show-pop="showOz"
+      :report-name="reportName"
       :params="reportParam"
       @close="showOz = $event"
     />
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

@@ -30,6 +30,7 @@ import SAFDC0010VioCntPopup from './SAFDC0010VioCntPopup.vue'
 import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF.vue'
 import SAFDC0010_01PopupTab02Popup01 from './SAFDC0010_01PopupTab02Popup01.vue'
 
+const emit = defineEmits(['closed'])
 const vm = getCurrentInstance().proxy
 const userStore = useUserStore()
 const userLogStore = useLogsStore()
@@ -51,10 +52,9 @@ const appEmail = ref('')
 const safetyActionFileUpload = ref(null)  // 조치사항 파일첨부
 const fileBtnVisible = ref('')
 
-const emit = defineEmits(['closed'])
 //교통수칙위반등록 관련 로직 시작
 //교통위반등록 버튼 이벤트
-const onButtonsClick2 = (btn) => {
+const onButtonsClick2 = btn => {
   if (btn.id === 'btnClose') {
     closePopup()
   } else if (btn.id === 'btnUpdate') {
@@ -79,6 +79,7 @@ const deleteTrafficData = () => {
     USER_ID: userStore.userId,
   }
   deleteParam.push(deleteData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_DELETE04',
     list: deleteParam,
@@ -173,7 +174,7 @@ const initTrafficCodeList = () => {
         DANSOK_EMP_NO: trafficField.CRADN_EMP_NO,
       },
     }),
-  ]).then((res) => {
+  ]).then(res => {
     traffiCodeList.IO_DIV = res[0].ORESULT_CUR
     traffiCodeList.VIO_SPLC = res[1].ORESULT_CUR
     traffiCodeList.APP_EMP_NO = res[2].ORESULT_CUR
@@ -191,43 +192,53 @@ const beforeTrafficSave = () => {
   if (trafficField.VIO_DIV === 'A' || trafficField.VIO_DIV === 'C') {
     if (!trafficField.CAR_NO) {
       Message.warn(t('차량번호를 입력하세요!'))
+      
       return false
     }
   }
+
   //오토바이를 선택하고 등록번호를 입력하지 않았을경우
   if (trafficField.VIO_DIV === 'A') {
     if (!trafficField.BIKE_REG_NO) {
       Message.warn(t('등록번호를 입력하세요!'))
+      
       return false
     }
   }
 
   if (!trafficField.VIOLATOR) {
     Message.warn(t('위반자성명을 입력하세요!'))
+    
     return false
   }
   if (!trafficField.ASGN_NM) {
     Message.warn(t('소속조직을 입력하세요!'))
+    
     return false
   }
   if (!trafficField.VIO_TIME || !trafficField.VIO_TIME1) {
     Message.warn(t('위반일시를 입력하세요!'))
+    
     return false
   }
   if (!trafficField.VIO_SPLC) {
     Message.warn(t('위반장소를 입력하세요!'))
+    
     return false
   }
   if (!trafficField.VIO_ITEM_NM) {
     Message.warn(t('위반항목을 입력하세요!'))
+    
     return false
   }
   if (!trafficField.CRADN_EMP_NM) {
     Message.warn(t('단속자를 입력하세요!'))
+    
     return false
   }
   if (!trafficField.APP_EMP_NO) {
     Message.warn(t('승인자를 입력하세요!'))
+    
     return false
   }
 
@@ -274,10 +285,11 @@ const saveTrafficData = () => {
     APP_EMP_NO: trafficField.APP_EMP_NO,
   }
   saveParam.push(saveData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE05',
     list: saveParam,
-  }).then((res) => {
+  }).then(res => {
     console.log('교통 저장 :: ', res)
   })
 }
@@ -286,11 +298,14 @@ const afterTrafficSave = () => {
   mailSet()
   closePopup()
 }
+
 //교통위반항목 저장관련 로직 끝
 
 
 const mailSet = async () => {
   dialog.value = false
+
+
   /* ******************** 메일 SET ******************* */
   const mailParams = reactive({
     EMAIL: [],
@@ -317,7 +332,7 @@ const mailSet = async () => {
       </html>`
       
   mailParams.EMAIL = [appEmail.value]
-  commonSendApi(mailParams).then((res) => {
+  commonSendApi(mailParams).then(res => {
     Message.success(t('메일이 전송되었습니다.'))
   })
 }
@@ -338,13 +353,13 @@ const openPopup = () => {
   fileBtnVisible.value = false  // 조치사항 파일 첨부 버튼 비활성화
 }
 
-const openPopup2 = (rowData) => {
+const openPopup2 = rowData => {
   console.log(rowData)
   initTrafficCodeList()
   commonSearchApi({
     queryId: 'SAFDC0010_SEARCH_15',
     param: { CMPNY_DIV: rowData.CMPNY_DIV, VIO_NO: rowData.VIO_NO },
-  }).then((res) => {
+  }).then(res => {
     console.log('교통수칙위반 데이터', res)
     for (const [key, value] of Object.entries(res.ORESULT_CUR[0])) {
       if (key === 'VIO_ITEM1_NM' && value) {
@@ -409,6 +424,7 @@ const openPopup2 = (rowData) => {
 
 const closePopup = () => {
   dialog.value = false
+
   //팝업 닫을때 팝업데이터 초기화
   for (let i in trafficField) {
     trafficField[i] = ''
@@ -423,7 +439,7 @@ const openCarPopup = async () => {
     let result = await vm.$swal({
       title: t(
         '차량번호를 입력하지 않고 조회시 조회시간이 오래 소요될수 있습니다.\n' +
-          '계속 진행하시겠습니까?'
+          '계속 진행하시겠습니까?',
       ),
       showCancelButton: true,
     })
@@ -435,6 +451,7 @@ const openCarPopup = async () => {
     if (trafficField.VIO_DIV === 'A') {
       bikeNoPopup.value.openPopup()
     }
+
     //차량일때
     else if (trafficField.VIO_DIV === 'C') {
       carNoPopup.value.openPopup()
@@ -444,6 +461,7 @@ const openCarPopup = async () => {
     if (trafficField.VIO_DIV === 'A') {
       bikeNoPopup.value.openPopup(trafficField.CAR_NO)
     }
+
     //차량일때
     else if (trafficField.VIO_DIV === 'C') {
       carNoPopup.value.openPopup()
@@ -452,7 +470,7 @@ const openCarPopup = async () => {
 }
 
 //오토바이 선택팝업 이벤트
-const bikeNoSelected = (val) => {
+const bikeNoSelected = val => {
   trafficField.CAR_NO = val.BIKE_NO
   trafficField.BIKE_REG_NO = val.BIKE_REG_NO
   trafficField.VIOLATOR = val.EMP_NM
@@ -465,8 +483,10 @@ const bikeNoSelected = (val) => {
   trafficField.DEPT_CD = val.DEPT_CD
   trafficField.ASGN_CD = val.ASGN_CD
 }
+
+
 //차량번호 선택팝업 이벤트
-const carNoSelected = (val) => {
+const carNoSelected = val => {
   trafficField.CAR_NO = val.CAR_NO //차량번호
   trafficField.VIOLATOR = val.EMP_NM //위반자 성명
   trafficField.HP_NO = val.HP_NO //위반자 휴대폰 번호
@@ -483,7 +503,7 @@ const checkResistCarNo = () => {
   commonSearchApi({
     queryId: 'SAFDC0010_SEARCH_09',
     param: param,
-  }).then((res) => {
+  }).then(res => {
     if (res.ORESULT_CUR.length > 0) {
       trafficField.ASGN_CD = res.ORESULT_CUR[0].ASGN_CD //위반자 소속코드
       trafficField.ASGN_NM = res.ORESULT_CUR[0].ASGN_NM //위반자 소속명
@@ -500,6 +520,7 @@ const checkResistCarNo = () => {
       Message.success(t('등록번호 조회 완료'))
     } else {
       Message.warn(t('등록되지 않은 번호입니다!'))
+      
       return false
     }
   })
@@ -516,7 +537,7 @@ const openVioEmpPopup = () => {
 }
 
 //위반자성명 선택이벤트
-const selectedVioEmpPopup = (val) => {
+const selectedVioEmpPopup = val => {
   trafficField.VIOLATOR = val.EMP_NM
   trafficField.VIO_EMP_NO = val.EMP_NO
   trafficField.ASGN_NM = val.ASGN_NM
@@ -532,6 +553,7 @@ const selectedVioEmpPopup = (val) => {
   } else {
     trafficField.IO_DIV = val.USER_DIV
   }
+
   //최근1년간 위반횟수 조회
   let param = {
     CMPNY_DIV: userStore.cmpnyDiv,
@@ -540,7 +562,7 @@ const selectedVioEmpPopup = (val) => {
   commonSearchApi({
     queryId: 'SAFDC0010_SEARCH_10',
     param: param,
-  }).then((res) => {
+  }).then(res => {
     trafficField.VIOCNT = res.ORESULT_CUR[0].VIOCNT
   })
 }
@@ -550,14 +572,14 @@ const openVioDeptPopup = () => {
   //위반자 소속 회사구분 변경가능하게 요청 엄정준책임
   asgnPopup.value.openPopup({
     CMP_DISABLE: false,
-  }
+  },
   )
   
 
 }
 
 //위반자 소속조직 선택 이벤트
-const selectedVioDeptPopup = (val) => {
+const selectedVioDeptPopup = val => {
   trafficField.ASGN_NM = val.ASGN_FULL_NM
   trafficField.ASGN_CD = val.ASGN_CD
   trafficField.BSNS_CD = val.BSNS_CD
@@ -582,7 +604,7 @@ const openTrafficVioEmpPopup = () => {
 }
 
 //교통수칙위반등록 단속자 선택 이벤트
-const selectedTrafficVioEmp = (val) => {
+const selectedTrafficVioEmp = val => {
   trafficField.CRADN_EMP_NM = val.EMP_NM
   trafficField.CRADN_EMP_NO = val.EMP_NO
   trafficField.CMPNY_DIV = val.CMPNY_DIV
@@ -597,7 +619,7 @@ const trafficOpenFileUpload = () => {
   }
 }
 
-const trafficFileUploded = (fileId) => {
+const trafficFileUploded = fileId => {
   if (!trafficField.FILE_ID1) {
     trafficField.FILE_ID1 = fileId.fileId
   }
@@ -613,6 +635,7 @@ const violoationActionFileUpload = () => {
     safetyActionFileUpload.value.setGuid()
     trafficField.FILE_ID2 = safetyActionFileUpload.value.guid
     safetyActionFileUpload.value.openPopup(trafficField.FILE_ID2)
+
     //처음 등록할때 파일업로드 하지않고 저장했다가 나중에 파일업로드 할때(승인상태에 따라서 수정이 안되는 경우가 있는데 값은 수정못해도 파일은 업로드 할수있게 하기 위해)
     if (trafficField.VIO_NO) {
       let paramData = []
@@ -622,7 +645,7 @@ const violoationActionFileUpload = () => {
         COMPANY: trafficField.COMPANY,
         FILE_ID2: trafficField.FILE_ID2,
         DIV:  trafficField.DIV,
-        USER_ID: userStore.userId
+        USER_ID: userStore.userId,
       }
       paramData.push(param)
       commonExecuteApi({
@@ -640,7 +663,7 @@ const vioListSearch = () => {
 }
 
 //위반항목 선택 이벤트
-const selectedTrafficVio = (val) => {
+const selectedTrafficVio = val => {
   //항목관련 변수 초기화
   trafficField.VIO_ITEM_NM = ''
   trafficField.VIO_ITEM1 = ''
@@ -669,11 +692,13 @@ const selectedTrafficVio = (val) => {
   if (val.length === 1) {
     trafficField.VIO_ITEM1 = val[0].SYS_CD
   }
+
   //2개를 체크했을경우
   else if (val.length === 2) {
     trafficField.VIO_ITEM1 = val[0].SYS_CD
     trafficField.VIO_ITEM2 = val[1].SYS_CD
   }
+
   //3개를 체크했을경우
   else {
     trafficField.VIO_ITEM1 = val[0].SYS_CD
@@ -716,6 +741,7 @@ watch(
       readOnlyValue.CAR_NO_ICON = 'mdi-magnify'
       readOnlyValue.RESIST_NO_ICON = 'mdi-check'
     }
+
     //차량일때
     else if (newValue === 'C') {
       readOnlyValue.CAR_NO = false
@@ -724,6 +750,7 @@ watch(
       readOnlyValue.CAR_NO_ICON = 'mdi-magnify'
       readOnlyValue.RESIST_NO_ICON = ''
     }
+
     //자전거,보행자일때
     else if (newValue === 'B' || newValue === 'D') {
       readOnlyValue.CAR_NO = true
@@ -732,6 +759,7 @@ watch(
       readOnlyValue.CAR_NO_ICON = ''
       readOnlyValue.RESIST_NO_ICON = ''
     }
+
     //기타일때
     else {
       readOnlyValue.CAR_NO = false
@@ -740,7 +768,7 @@ watch(
       readOnlyValue.CAR_NO_ICON = ''
       readOnlyValue.RESIST_NO_ICON = ''
     }
-  }
+  },
 )
 
 //교통수칙위반등록 위치(본공장, 해양 등)
@@ -755,11 +783,12 @@ watch(
     await commonSearchApi({
       queryId: 'SAFDC0010_SEARCH_12',
       param: locationParam,
-    }).then((res) => {
+    }).then(res => {
       traffiCodeList.VIO_SPLC = res.ORESULT_CUR
     })
-  }
+  },
 )
+
 //교통수칙위반등록 위치(본공장, 해양 등)
 watch(
   () => trafficField.VIO_LPLC,
@@ -772,11 +801,12 @@ watch(
     await commonSearchApi({
       queryId: 'SAFDC0010_SEARCH_12',
       param: param,
-    }).then((res) => {
+    }).then(res => {
       traffiCodeList.VIO_SPLC = res.ORESULT_CUR
     })
-  }
+  },
 )
+
 //교통수칙위반등록 위치(본공장, 해양 등)
 watch(
   () => trafficField.VIO_MPLC,
@@ -789,10 +819,10 @@ watch(
     await commonSearchApi({
       queryId: 'SAFDC0010_SEARCH_12',
       param: param,
-    }).then((res) => {
+    }).then(res => {
       traffiCodeList.VIO_SPLC = res.ORESULT_CUR
     })
-  }
+  },
 )
 
 // 단속자 변경시
@@ -803,7 +833,7 @@ watch(() => trafficField.CRADN_EMP_NO, (newValue, oldValue) => {
       CMPNY_DIV: 'HHI',
       DANSOK_EMP_NO: newValue,
     },
-  }).then((res) => {
+  }).then(res => {
     let search = false
     for(var result of res.ORESULT_CUR) {
       if(trafficField.APP_EMP_NO == result.APP_EMP_NO) {
@@ -862,242 +892,312 @@ defineExpose({
       <v-card-text class="pa-3 pt-0">
         <div class="d-flex flex-column fill-height">
           <v-sheet class="searchArea">
-            <div class="sheetTitle mt-2">{{ `차량정보` }}</div>
+            <div class="sheetTitle mt-2">
+              차량정보
+            </div>
             <div class="d-flex">
               <div class="mt-4">
-                <v-radio-group inline v-model="trafficField.VIO_DIV" @update:model-value="changeVioDiv">
-                  <v-radio label="오토바이" value="A"></v-radio>
-                  <v-radio label="차량" value="C"></v-radio>
-                  <v-radio label="자전거" value="B"></v-radio>
-                  <v-radio label="보행자" value="D"></v-radio>
-                  <v-radio label="기타" value="Z"></v-radio>
+                <v-radio-group
+                  v-model="trafficField.VIO_DIV"
+                  inline
+                  @update:model-value="changeVioDiv"
+                >
+                  <v-radio
+                    label="오토바이"
+                    value="A"
+                  />
+                  <v-radio
+                    label="차량"
+                    value="C"
+                  />
+                  <v-radio
+                    label="자전거"
+                    value="B"
+                  />
+                  <v-radio
+                    label="보행자"
+                    value="D"
+                  />
+                  <v-radio
+                    label="기타"
+                    value="Z"
+                  />
                 </v-radio-group>
               </div>
-              <div class="d-flex ml-4" style="position: relative; bottom: 6px">
+              <div
+                class="d-flex ml-4"
+                style="position: relative; bottom: 6px"
+              >
                 <i-input
+                  v-model="trafficField.CAR_NO"
                   :label="$t('차량번호')"
                   width="200px"
                   top-label
                   required
-                  v-model="trafficField.CAR_NO"
                   :append-inner-icon="readOnlyValue.CAR_NO_ICON"
-                  @click:append-inner="openCarPopup"
                   :disabled="readOnlyValue.CAR_NO"
-                ></i-input>
+                  @click:append-inner="openCarPopup"
+                />
                 <i-input
+                  v-model="trafficField.BIKE_REG_NO"
                   :label="$t('등록번호')"
                   width="200px"
                   top-label
                   required
-                  v-model="trafficField.BIKE_REG_NO"
                   :readonly="readOnlyValue.RESIST_NO"
                 >
                   <template
-                    v-slot:append-inner
                     v-if="readOnlyValue.ICON === true"
+                    #append-inner
                   >
                     <v-icon
                       :icon="readOnlyValue.RESIST_NO_ICON"
                       @click="checkResistCarNo"
-                    ></v-icon>
+                    />
                   </template>
                 </i-input>
               </div>
             </div>
-            <div class="sheetTitle mt-5 mb-2">{{ `위반자정보` }}</div>
+            <div class="sheetTitle mt-5 mb-2">
+              위반자정보
+            </div>
             <div class="d-flex mt-2">
               <i-input
+                v-model="trafficField.VIOLATOR"
                 :label="$t('위반자성명')"
                 width="200px"
                 top-label
                 append-inner-icon="mdi-magnify"
-                v-model="trafficField.VIOLATOR"
-                @click:appendInner="openVioEmpPopup('위반자성명')"
                 required
-              ></i-input>
+                @click:append-inner="openVioEmpPopup('위반자성명')"
+              />
               <i-input
+                v-model="trafficField.VIO_EMP_NO"
                 :label="$t('위반자사번')"
                 width="200px"
                 top-label
-                v-model="trafficField.VIO_EMP_NO"
                 readonly
-              ></i-input>
+              />
               <i-input
+                v-model="trafficField.ASGN_NM"
                 :label="$t('소속조직')"
                 width="350px"
                 top-label
-                v-model="trafficField.ASGN_NM"
                 append-inner-icon="mdi-magnify"
                 required
-                @click:appendInner="openVioDeptPopup"
                 readonly
-              ></i-input>
+                @click:append-inner="openVioDeptPopup"
+              />
               <i-input
+                v-model="trafficField.VEND_CD"
                 :label="$t('업체코드')"
                 width="200px"
                 top-label
-                v-model="trafficField.VEND_CD"
                 readonly
-              ></i-input>
+              />
               <i-input
+                v-model="trafficField.VEND_NAME"
                 width="300px"
                 class="mt-5"
-                v-model="trafficField.VEND_NAME"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
+                v-model="trafficField.TEL_NO"
                 :label="$t('사내전화')"
                 width="200px"
                 top-label
-                v-model="trafficField.TEL_NO"
-              ></i-input>
+              />
               <i-input
+                v-model="trafficField.HP_NO"
                 :label="$t('핸드폰번호')"
                 width="200px"
                 top-label
-                v-model="trafficField.HP_NO"
-              ></i-input>
+              />
               <i-select
+                v-model="trafficField.IO_DIV"
                 :label="$t('소속구분')"
                 width="200px"
                 top-label
                 readonly
-                v-model="trafficField.IO_DIV"
                 :items="traffiCodeList.IO_DIV"
                 item-title="TXT"
                 item-value="COD"
-              ></i-select>
+              />
               <i-input
+                v-model="trafficField.VIOCNT"
                 :label="$t('년 누적위반')"
                 width="200px"
                 top-label
-                v-model="trafficField.VIOCNT"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openVioCntPopup"
                 readonly
-              ></i-input>
+                @click:append-inner="openVioCntPopup"
+              />
               <v-checkbox
-                :label="$t('등록번호 불일치')"
                 v-model="trafficField.REG_NO_YN"
+                :label="$t('등록번호 불일치')"
                 true-value="Y"
                 false-value="N"
                 class="mt-5"
-              ></v-checkbox>
+              />
               <v-checkbox
-                :label="$t('등록증 미부착')"
                 v-model="trafficField.REG_YN"
+                :label="$t('등록증 미부착')"
                 true-value="Y"
                 false-value="N"
                 class="mt-5 ml-3"
-              ></v-checkbox>
-              <v-btn class="mt-5" style="margin: 10px;" @click="trafficOpenFileUpload">위반사항 파일첨부</v-btn>
-              <v-btn v-if = "fileBtnVisible"
-                  class="mt-5" 
-                  @click="violoationActionFileUpload"
-              >조치사항 파일첨부</v-btn>
+              />
+              <v-btn
+                class="mt-5"
+                style="margin: 10px;"
+                @click="trafficOpenFileUpload"
+              >
+                위반사항 파일첨부
+              </v-btn>
+              <v-btn
+                v-if="fileBtnVisible"
+                class="mt-5" 
+                @click="violoationActionFileUpload"
+              >
+                조치사항 파일첨부
+              </v-btn>
             </div>
-            <div class="sheetTitle mt-5">{{ `위반내역` }}</div>
+            <div class="sheetTitle mt-5">
+              위반내역
+            </div>
             <div class="d-flex mt-2">
               <i-input
+                v-model="trafficField.VIO_TIME"
                 :label="$t('위반일시')"
                 width="180px"
                 top-label
                 required
-                v-model="trafficField.VIO_TIME"
                 type="date"
-              ></i-input>
+              />
               <i-input
+                v-model="trafficField.VIO_TIME1"
                 width="150px"
                 class="mt-4"
-                v-model="trafficField.VIO_TIME1"
                 type="time"
-              ></i-input>
+              />
 
-              <ILabel :label="$t('장소구분1')" labelLoc="top">
+              <ILabel
+                :label="$t('장소구분1')"
+                label-loc="top"
+              >
                 <template #editor="editorProps">
-                  <v-radio-group inline v-model="trafficField.VIO_LPLC">
-                    <v-radio label="본공장" value="C"></v-radio>
-                    <v-radio label="해양" value="Q"></v-radio>
+                  <v-radio-group
+                    v-model="trafficField.VIO_LPLC"
+                    inline
+                  >
+                    <v-radio
+                      label="본공장"
+                      value="C"
+                    />
+                    <v-radio
+                      label="해양"
+                      value="Q"
+                    />
                   </v-radio-group>
                 </template>
               </ILabel>
 
-              <ILabel :label="$t('장소구분2')" labelLoc="top">
+              <ILabel
+                :label="$t('장소구분2')"
+                label-loc="top"
+              >
                 <template #editor="editorProps">
-                  <v-radio-group inline v-model="trafficField.VIO_MPLC">
-                    <v-radio label="출입문" value="A"></v-radio>
-                    <v-radio label="교차로" value="B"></v-radio>
-                    <v-radio label="도로" value="C"></v-radio>
-                    <v-radio label="기타" value="Z"></v-radio>
+                  <v-radio-group
+                    v-model="trafficField.VIO_MPLC"
+                    inline
+                  >
+                    <v-radio
+                      label="출입문"
+                      value="A"
+                    />
+                    <v-radio
+                      label="교차로"
+                      value="B"
+                    />
+                    <v-radio
+                      label="도로"
+                      value="C"
+                    />
+                    <v-radio
+                      label="기타"
+                      value="Z"
+                    />
                   </v-radio-group>
                 </template>
               </ILabel>
               
               <i-select
-                width="150px"
                 v-model="trafficField.VIO_SPLC"
+                width="150px"
                 item-title="VIO_SPLC_NM"
                 item-value="VIO_SPLC"
                 :items="traffiCodeList.VIO_SPLC"
                 class="ml-3 mt-4"
-              ></i-select>
-              
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
+                v-model="trafficField.VIO_PLC_DESC"
                 :label="$t('위반장소상세')"
                 width="300px"
                 top-label
-                v-model="trafficField.VIO_PLC_DESC"
-              ></i-input>
+              />
               <i-input
+                v-model="trafficField.VIO_ITEM_NM"
                 :label="$t('위반항목')"
                 width="500px"
                 top-label
                 required
-                v-model="trafficField.VIO_ITEM_NM"
                 readonly
-              ></i-input>
-              <v-btn class="mt-5" @click="vioListSearch">위반항목 조회</v-btn>
+              />
+              <v-btn
+                class="mt-5"
+                @click="vioListSearch"
+              >
+                위반항목 조회
+              </v-btn>
               <i-input
+                v-model="trafficField.SPEED"
                 :label="$t('주행속도')"
                 width="100px"
                 top-label
                 number
-                v-model="trafficField.SPEED"
                 class="ml-5"
-              ></i-input>
+              />
               <span style="margin-top: 24px">Km/h</span>
               <v-checkbox
+                v-model="trafficField.HVIO_YN"
                 class="mt-5"
                 :label="$t('절대수칙위반')"
-                v-model="trafficField.HVIO_YN"
                 true-value="Y"
                 false-value="N"
                 style="margin: 10px;"
                 disabled
-              ></v-checkbox>
+              />
             </div>
             <div class="mt-2">
               <i-textarea
+                v-model="trafficField.VIO_DESC"
                 :label="$t('위반내용 상세 입력')"
                 width="100%"
                 top-label
-                v-model="trafficField.VIO_DESC"
-              >
-              </i-textarea>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
+                v-model="trafficField.CRADN_EMP_NM"
                 :label="$t('단속자')"
                 width="200px"
                 top-label
                 required
-                v-model="trafficField.CRADN_EMP_NM"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openTrafficVioEmpPopup"
-              ></i-input>
+                @click:append-inner="openTrafficVioEmpPopup"
+              />
               <i-select
                 v-model="trafficField.APP_EMP_NO"
                 :label="$t('승인자')"
@@ -1107,7 +1207,7 @@ defineExpose({
                 item-title="APP_EMP_NM"
                 item-value="APP_EMP_NO"
                 required
-              ></i-select>
+              />
             </div>
           </v-sheet>
         </div>
@@ -1115,32 +1215,37 @@ defineExpose({
       <SAFDC0010BikeNoPopup
         ref="bikeNoPopup"
         @selected="bikeNoSelected"
-      ></SAFDC0010BikeNoPopup>
+      />
       <SAFDC0010CarNoPopup
         ref="carNoPopup"
         @selected="carNoSelected"
-      ></SAFDC0010CarNoPopup>
+      />
       <EmpPopup
         ref="trafficEmpPopup"
         @selected="selectedVioEmpPopup"
-      ></EmpPopup>
-      <EmpPopup ref="trafficeCrandEmpNm" @selected="selectedTrafficVioEmp">
-      </EmpPopup>
-      <DeptPopup ref="asgnPopup" @selected="selectedVioDeptPopup"></DeptPopup>
-      <SAFDC0010VioCntPopup ref="yearVioPopup"></SAFDC0010VioCntPopup>
+      />
+      <EmpPopup
+        ref="trafficeCrandEmpNm"
+        @selected="selectedTrafficVioEmp"
+      />
+      <DeptPopup
+        ref="asgnPopup"
+        @selected="selectedVioDeptPopup"
+      />
+      <SAFDC0010VioCntPopup ref="yearVioPopup" />
       <IUploadPopup
         ref="trafficFileUpload"
         @uploaded="trafficFileUploded"
-      ></IUploadPopup>
+      />
       <SAFDC0010_01PopupTab02Popup01
-        @selected="selectedTrafficVio"
         ref="vioSearch"
-      >
-      </SAFDC0010_01PopupTab02Popup01>
-      <IUploadPopup ref="safetyActionFileUpload"></IUploadPopup>
+        @selected="selectedTrafficVio"
+      />
+      <IUploadPopup ref="safetyActionFileUpload" />
     </v-card>
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

@@ -22,6 +22,8 @@ import saveFlowHelper from '@/utils/saveFlowHelper'
 import IGridTitle from '@/components/IGridTitle.vue'
 import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF.vue'
 
+//파일첨부
+const emit = defineEmits(['closed'])
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
 const userStore = useUserStore()
@@ -31,10 +33,10 @@ const workStopLocation = ref(null) //작업장소
 const workStopEmpPopup = ref(null) //작업담당
 const workStopDeptPopup = ref(null) //작업담당소속
 const workStopProcessEmpPopup = ref(null) //작업중지처리자
-const fileUpload = ref(null) //파일첨부
-const emit = defineEmits(['closed'])
+const fileUpload = ref(null)
 const workCntMaxNumber = ref(4)
 const sagoDivPopup = ref(null)
+
 const workStopField = reactive({
   CMPNY_DIV: '', //사업장구분
   JSTOP_NO: '', //중지NO
@@ -95,7 +97,7 @@ const initWorkStopCodeList = () => {
       queryId: 'SAFDC0010_SEARCH_17',
       param: {},
     }),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.RESTART_DIV = res[0].ORESULT_CUR
     codeList.SHIP_NO = res[1].ORESULT_CUR
   })
@@ -118,10 +120,13 @@ const openPopup = () => {
   dialog.value = true
   initWorkStopCodeList()
 }
+
+
 //로우 더블클릭 했을때 실행 (수정시)
-const openPopup2 = (rowData) => {
+const openPopup2 = rowData => {
   console.log('받은데이터', rowData)
   dialog.value = true
+
   // workStopField.JSTOP_DT1 =
   //   rowData.JSTOP_DT.substr(0, 4) +
   //   '-' +
@@ -146,6 +151,7 @@ const openPopup2 = (rowData) => {
   workStopField.VIO_EMP_ASGN = rowData.VIO_EMP_ASGN 
   if (rowData.RESTART_DT) {
     workStopField.RESTART_DT1 = rowData.RESTART_DT
+
     // workStopField.RESTART_DT1 =
     //   rowData.RESTART_DT.substr(0, 4) +
     //   '-' +
@@ -179,6 +185,7 @@ const openPopup2 = (rowData) => {
 
 const closePopup = () => {
   dialog.value = false
+
   //팝업닫을때 초기화
   for (let i in workStopField) {
     workStopField[i] = ''
@@ -186,7 +193,7 @@ const closePopup = () => {
   emit('closed')
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnUpdate') {
     new saveFlowHelper(vm, t)
       .setBefore(beforeSave)
@@ -202,30 +209,39 @@ const onButtonsClick = (btn) => {
 const beforeSave = () => {
   if (!workStopField.JOB_SPLC) {
     Message.warn(t('작업장소는 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.WORKER_CNT) {
     Message.warn(t('작업인원은 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.SAGO_DIV_L_NM) {
     Message.warn(t('잠재사고유형은 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.JSTOP_DESC) {
     Message.warn(t('중지상세는 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.CHG_EMP_NO) {
     Message.warn(t('작업담당자는 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.ASGN_NM) {
     Message.warn(t('소속조직은 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.BSNS_CD) {
     Message.warn(t('소속조직은 필수값입니다.'))
-    return false
+    
+return false
   } else if (!workStopField.SAGO_DIV_L) {
     Message.warn(t('잠재사고유형은 필수값입니다.'))
-    return false
+    
+return false
   }
-  return true
+  
+return true
 }
 
 const saveData = () => {
@@ -264,7 +280,8 @@ const saveData = () => {
     SAGO_DIV_S: workStopField.SAGO_DIV_S,
   }
   saveParam.push(saveData)
-  return commonExecuteApi({
+  
+return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE06',
     list: saveParam,
   })
@@ -315,6 +332,7 @@ const setHdPayStop = async () => {
     })
   }
 }
+
 //안전페이 지급중단 로직 끝
 
 //잠재사고유형 오픈 이벤트
@@ -323,7 +341,7 @@ const openSagoDivPopup = () => {
 }
 
 //잠재사고유형 선택 이벤트
-const selectedSagoDivPopup = (val) => {
+const selectedSagoDivPopup = val => {
   workStopField.SAGO_DIV_L = val[0].COD
   workStopField.SAGO_DIV_L_NM = val[0].TXT
   workStopField.SAGO_DIV_M = val[1].COD
@@ -338,7 +356,7 @@ const openWorkStopLocation = () => {
 }
 
 //작업장소 선택 이벤트
-const selectedWorkStopLocation = (val) => {
+const selectedWorkStopLocation = val => {
   workStopField.JOB_LPLC = val[0].COD
   workStopField.JOB_LPLC_NM = val[0].TXT
   workStopField.JOB_MPLC = val[1].COD
@@ -357,7 +375,7 @@ const openWorkStopEmpPopup = () => {
 }
 
 //작업담당자성명 선택 이벤트
-const selectedWorkStopEmpPopup = (val) => {
+const selectedWorkStopEmpPopup = val => {
   workStopField.CHG_EMP_NM = val.EMP_NM
   workStopField.CHG_EMP_NO = val.EMP_NO
   workStopField.BSNS_CD = val.BSNS_CD
@@ -379,7 +397,7 @@ const openWorkStopDeptPopup = () => {
 }
 
 //작업담당소속 선택 이벤트
-const selectedWorkStopDeptPopup = (val) => {
+const selectedWorkStopDeptPopup = val => {
   workStopField.ASGN_NM = val.ASGN_FULL_NM
   workStopField.ASGN_CD = val.ASGN_CD
   workStopField.BSNS_CD = val.BSNS_CD
@@ -396,7 +414,7 @@ const openWorkStopProcessEmpPopup = () => {
 }
 
 //작업중지처리자 선택 이벤트
-const selectedWorkStopProcessEmpPopup = (val) => {
+const selectedWorkStopProcessEmpPopup = val => {
   workStopField.JSTOP_EMP_NM = val.EMP_NM
   workStopField.JSTOP_EMP_NO = val.EMP_NO
   workStopField.JSTOP_DEPT_CD = val.DEPT_CD
@@ -414,7 +432,7 @@ const openFileUpload = () => {
 }
 
 //파일첨부 이벤트
-const fileUploaded = (val) => {
+const fileUploaded = val => {
   if (!workStopField.FILE_ID) {
     workStopField.FILE_ID = val.fileId
   }
@@ -468,21 +486,23 @@ defineExpose({
                 width="150px"
                 :label="$t('중지일시')"
                 top-label
-                type="date"
                 v-model="workStopField.JSTOP_DT1"
-              ></i-input>
+                type="date"
+              />
               <i-input
                 width="150px"
                 class="mt-5"
-                type="time"
                 v-model="workStopField.JSTOP_TIME2"
-              ></i-input>
-              <!-- <i-input
+                type="time"
+              />
+              <!--
+ <i-input
                 width="150px"
                 :label="$t('호선')"
                 top-label
                 v-model="workStopField.SHIP_NO"
-              ></i-input> -->
+                ></i-input> 
+-->
               <i-select 
                 v-model="workStopField.SHIP_NO"
                 :label="$t('호선No.')"
@@ -496,117 +516,115 @@ defineExpose({
               <i-input
                 width="80px"
                 :label="$t('작업인원')"
-                top-label
                 v-model="workStopField.WORKER_CNT"
+                top-label
                 number
                 required
-              >
-              </i-input>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
                 width="200px"
                 :label="$t('작업장소')"
-                top-label
                 v-model="workStopField.JOB_LPLC_NM"
+                top-label
                 readonly
                 required
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopLocation"
-              ></i-input>
+                @click:append-inner="openWorkStopLocation"
+              />
               <i-input
                 width="200px"
-                class="mt-5"
                 v-model="workStopField.JOB_MPLC_NM"
+                class="mt-5"
                 readonly
-              ></i-input>
+              />
               <i-input
                 width="200px"
-                class="mt-5"
                 v-model="workStopField.JOB_SPLC_NM"
+                class="mt-5"
                 readonly
-              ></i-input>
+              />
               <i-input
                 :label="$t('작업장소상세')"
                 top-label
-                width="300px"
                 v-model="workStopField.JOB_PLC_DESC"
-              ></i-input>
-              <v-btn class="mt-5" @click="openFileUpload">파일첨부</v-btn>
+                width="300px"
+              />
+              <v-btn class="mt-5"
+@click="openFileUpload">
+파일첨부
+</v-btn>
             </div>
             <div class="d-flex mt-2">
               <i-input
                 :label="$t('잠재사고유형')"
                 width="200px"
-                top-label
                 v-model="workStopField.SAGO_DIV_L_NM"
+                top-label
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSagoDivPopup"
                 required
+                @click:appendInner="openSagoDivPopup"
                 readonly
-              >
-              </i-input>
+              />
               <i-input
                 width="200px"
-                class="mt-5"
                 v-model="workStopField.SAGO_DIV_M_NM"
+                class="mt-5"
                 readonly
-              ></i-input>
+              />
               <i-input
                 width="200px"
-                class="mt-5"
                 v-model="workStopField.SAGO_DIV_S_NM"
+                class="mt-5"
                 readonly
-              ></i-input>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-textarea
                 width="100%"
                 :label="$t('중지중지사유')"
                 top-label
-                required
                 v-model="workStopField.JSTOP_DESC"
-              ></i-textarea>
+                required
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
                 :label="$t('작업담당자성명')"
                 top-label
-                width="200px"
                 v-model="workStopField.CHG_EMP_NM"
+                width="200px"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopEmpPopup"
                 required
-              ></i-input>
+                @click:appendInner="openWorkStopEmpPopup"
+              />
               <i-input
                 :label="$t('사번')"
                 top-label
-                width="200px"
                 v-model="workStopField.CHG_EMP_NO"
+                width="200px"
                 readonly
-              ></i-input>
+              />
               <i-input
-                  v-model="workStopField.VIO_EMP_ASGN"
-                  :label="$t('소속조직')"
-                  width="200px"
-                  top-label
-                  readonly
-              ></i-input>
+                v-model="workStopField.VIO_EMP_ASGN"
+                :label="$t('소속조직')"
+                width="200px"
+                top-label
+                readonly
+              />
             </div>
             <div class="d-flex mt-2">
-              
-               <i-input
+<i-input
                 :label="$t('작업담당소속')"
                 width="300px"
-                top-label
                 v-model="workStopField.ASGN_NM"
+                top-label
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopDeptPopup"
                 required
-              ></i-input>
-              <span class="mt-5"
-                >(작업담당소속이 다를 경우 수정 바랍니다.)</span
-              >
+                @click:appendInner="openWorkStopDeptPopup"
+              />
+              <span class="mt-5">(작업담당소속이 다를 경우 수정 바랍니다.)</span>
             </div>
             <span class="sheetTitle mt-2">작업재개</span>
             <div class="d-flex mt-2">
@@ -614,85 +632,86 @@ defineExpose({
                 :label="$t('작업재개')"
                 top-label
                 width="150px"
-                type="date"
                 v-model="workStopField.RESTART_DT1"
-              ></i-input>
+                type="date"
+              />
               <i-input
                 width="150px"
                 class="mt-5"
-                type="time"
                 v-model="workStopField.RESTART_TIME2"
-              ></i-input>
+                type="time"
+              />
               <i-select
                 :label="$t('작업재개구분')"
                 top-label
-                width="200px"
                 v-model="workStopField.RESTART_DIV"
+                width="200px"
                 :items="codeList.RESTART_DIV"
                 item-title="TXT"
                 item-value="COD"
-              ></i-select>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
                 :label="$t('조치내용')"
                 top-label
-                width="90%"
                 v-model="workStopField.RESTART_DESC"
-              ></i-input>
+                width="90%"
+              />
             </div>
             <span class="sheetTitle mt-2">작업중지처리자</span>
             <div class="d-flex mt-2">
               <i-input
                 :label="$t('성명')"
                 top-label
-                width="200px"
                 v-model="workStopField.JSTOP_EMP_NM"
+                width="200px"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openWorkStopProcessEmpPopup"
                 readonly
-              ></i-input>
+                @click:appendInner="openWorkStopProcessEmpPopup"
+              />
               <i-input
                 :label="$t('사번')"
                 top-label
-                width="200px"
                 v-model="workStopField.JSTOP_EMP_NO"
+                width="200px"
                 readonly
-              ></i-input>
+              />
               <i-input
                 :label="$t('단속자소속')"
                 top-label
-                width="200px"
                 v-model="workStopField.JSTOP_ASGN_NM"
+                width="200px"
                 readonly
-              >
-              </i-input>
+              />
             </div>
           </v-sheet>
         </div>
         <EmpPopup
           ref="workStopEmpPopup"
           @selected="selectedWorkStopEmpPopup"
-        ></EmpPopup>
+        />
         <EmpPopup
           ref="workStopProcessEmpPopup"
           @selected="selectedWorkStopProcessEmpPopup"
-        ></EmpPopup>
+        />
         <CommonCodePopUpSAF
           ref="workStopLocation"
           @selected="selectedWorkStopLocation"
-        ></CommonCodePopUpSAF>
-        <CommonCodePopUpSAF ref="sagoDivPopup" @selected="selectedSagoDivPopup">
-        </CommonCodePopUpSAF>
-        <IUploadPopup ref="fileUpload" @uploaded="fileUploaded"></IUploadPopup>
+        />
+        <CommonCodePopUpSAF ref="sagoDivPopup"
+@selected="selectedSagoDivPopup"/>
+        <IUploadPopup ref="fileUpload"
+@uploaded="fileUploaded"/>
         <DeptPopup
           ref="workStopDeptPopup"
           @selected="selectedWorkStopDeptPopup"
-        ></DeptPopup>
+        />
       </v-card-text>
     </v-card>
   </v-dialog>
 </template>
+
 <style>
 .sheetTitle {
   font-size: 20px;

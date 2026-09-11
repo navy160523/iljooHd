@@ -1,10 +1,9 @@
 <script setup>
+import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from "vue"
 
-import { ref, reactive, computed, onMounted, nextTick, getCurrentInstance } from "vue";
+import { useUserStore } from "@hiway/stores/user"
 
-import { useUserStore } from "@hiway/stores/user";
-
-import { useLogsStore } from "@hiway/stores/logs";
+import { useLogsStore } from "@hiway/stores/logs"
 
 import {
 
@@ -16,71 +15,45 @@ import {
 
   commonSendApi,
 
-} from "@hiway/api/commonApi";
+} from "@hiway/api/commonApi"
 
-import Message from "@hiway/utils/notify";
+import Message from "@hiway/utils/notify"
 
-import IGridTitle from "@/components/IGridTitle.vue";
+import IGridTitle from "@/components/IGridTitle.vue"
 
-import { useI18n } from "vue-i18n";
+import { useI18n } from "vue-i18n"
 
-import { startDragging, handleDragging, stopDragging } from "@/utils/useDrag";
+import { startDragging, handleDragging, stopDragging } from "@/utils/useDrag"
 
-import { isEmpty } from "lodash-es";
+import { isEmpty } from "lodash-es"
 
-import dayjs from "dayjs";
+import dayjs from "dayjs"
 
-import EmpPopup from "@/pages/COM/components/EmpPopup.vue";
+import EmpPopup from "@/components/popup/EmpPopup.vue"
 
-import SafeRuleGbnPopup from "@/components/popup/SafeRuleGbnPopup.vue";
+import SafeRuleGbnPopup from "@/components/popup/SafeRuleGbnPopup.vue"
 
-import DeptPopup from "@/pages/COM/components/DeptPopup.vue";
+import DeptPopup from "@/components/popup/DeptPopup.vue"
 
-import saveFlowHelper from "@/utils/saveFlowHelper";
+import saveFlowHelper from "@/utils/saveFlowHelper"
 
-import deleteFlowHelper from "@/utils/deleteFlowHelper";
+import deleteFlowHelper from "@/utils/deleteFlowHelper"
 
-import SAFDC0010BikeNoPopup from "./SAFDC0010BikeNoPopup.vue";
+import SAFDC0010BikeNoPopup from "./SAFDC0010BikeNoPopup.vue"
 
-import SAFDC0010CarNoPopup from "./SAFDC0010CarNoPopup.vue";
+import SAFDC0010CarNoPopup from "./SAFDC0010CarNoPopup.vue"
 
-import SAFDC0010VioCntPopup from "./SAFDC0010VioCntPopup.vue";
+import SAFDC0010VioCntPopup from "./SAFDC0010VioCntPopup.vue"
 
-import CommonCodePopUpSAF from "@/components/popup/CommonCodePopUpSAF.vue";
+import CommonCodePopUpSAF from "@/components/popup/CommonCodePopUpSAF.vue"
 
-import SAFDC0010VioDivPopup from "./SAFDC0010VioDivPopup.vue";
+import SAFDC0010VioDivPopup from "./SAFDC0010VioDivPopup.vue"
 
-import IUploadCom from "@/pages/COM/components/IUploadCom.vue";
+import IUpload from "@/components/IUpload.vue"
 
-import IUploadImageMulitCom from "@/pages/COM/components/IUploadImageMulitCom.vue";
+import IUploadImageMulit from "@/components/IUploadImageMulit.vue"
 
-import WorkLocationPopup from "@/components/popup/WorkLocationPopup.vue";
-
-const vehicleTypeOptions = [
-
-  { value: "A", label: "차량" },
-
-  { value: "B", label: "오토바이" },
-
-  { value: "C", label: "자전거" },
-
-  { value: "D", label: "보행자" },
-
-  { value: "Z", label: "기타" },
-
-];
-
-const normalizeVehicleType = (value) => {
-
-  const option = vehicleTypeOptions.find(
-
-    ({ value: code, label }) => code === value || label === value
-
-  );
-
-  return option?.value ?? String(value ?? "").trim().toUpperCase();
-
-};
+import LocationPopup from "@/components/popup/LocationPopup.vue"
 
 const props = defineProps({
 
@@ -96,7 +69,7 @@ const props = defineProps({
 
     default() {
 
-      return ["btnFileUpload", "btnDownLoad", "btnDelete", "btnClose"];
+      return ["btnFileUpload", "btnDownLoad", "btnDelete", "btnClose"]
 
     },
 
@@ -126,61 +99,87 @@ const props = defineProps({
 
   width: { type: [Number, String], default: 800 },
 
-});
+})
 
-const emit = defineEmits(["uploaded", "deleted", "closed"]);
+const emit = defineEmits(["uploaded", "deleted", "closed"])
 
-const trafficReg = ref(false);
+const vehicleTypeOptions = [
 
-const vm = getCurrentInstance().proxy;
+  { value: "A", label: "차량" },
 
-const userStore = useUserStore();
+  { value: "B", label: "오토바이" },
 
-const userLogStore = useLogsStore();
+  { value: "C", label: "자전거" },
 
-const dialog = ref(false);
+  { value: "D", label: "보행자" },
 
-const grdMain = ref(null);
+  { value: "Z", label: "기타" },
 
-const t = useI18n().t;
+]
 
-const menuTitle = ref(null);
+const normalizeVehicleType = value => {
 
-const approvalReadOnly = ref(true); //승인신청 disabled
+  const option = vehicleTypeOptions.find(
+
+    ({ value: code, label }) => code === value || label === value,
+
+  )
+
+  return option?.value ?? String(value ?? "").trim().toUpperCase()
+
+}
+
+const trafficReg = ref(false)
+
+const vm = getCurrentInstance().proxy
+
+const userStore = useUserStore()
+
+const userLogStore = useLogsStore()
+
+const dialog = ref(false)
+
+const grdMain = ref(null)
+
+const t = useI18n().t
+
+const menuTitle = ref(null)
+
+const approvalReadOnly = ref(true) //승인신청 disabled
 
 // const approvalCancelDisabled = ref(true);
 
-const locationPopup = ref(null); // 장소 선택
+const locationPopup = ref(null) // 장소 선택
 
-const safetyEmpPopup = ref(null); //성명 팝업
+const safetyEmpPopup = ref(null) //성명 팝업
 
-const imageUpload = ref(null); //위반사항 사진첨부
+const imageUpload = ref(null) //위반사항 사진첨부
 
-const imageUpload2 = ref(null); //조치사항 사진첨부
+const imageUpload2 = ref(null) //조치사항 사진첨부
 
-const safetyFileUpload = ref(null); //위반사항 파일첨부
+const safetyFileUpload = ref(null) //위반사항 파일첨부
 
-const safetyActionFileUpload = ref(null); //조치사항 파일첨부
+const safetyActionFileUpload = ref(null) //조치사항 파일첨부
 
-const safetyActEmpPopup = ref(null); //조치자성명
+const safetyActEmpPopup = ref(null) //조치자성명
 
-const safetyDansokEmpPopup = ref(null); //단속자성명
+const safetyDansokEmpPopup = ref(null) //단속자성명
 
-const checkTargetPopup = ref(null); //점검대상물 팝업
+const checkTargetPopup = ref(null) //점검대상물 팝업
 
-const vioDivPopup = ref(null); //위반종류 팝업
+const vioDivPopup = ref(null) //위반종류 팝업
 
-const sagoDivPopup = ref(null); //잠재사고유형 팝업
+const sagoDivPopup = ref(null) //잠재사고유형 팝업
 
-const safetyVioDeptPopup = ref(null); //위반조직 팝업
+const safetyVioDeptPopup = ref(null) //위반조직 팝업
 
-const appEmail = ref("");
+const appEmail = ref("")
 
-const fileBtnVisible = ref("");
+const fileBtnVisible = ref("")
 
-const onload = ref(false);
+const onload = ref(false)
 
-const isBindingRow = ref(false);
+const isBindingRow = ref(false)
 
 const readOnlyValue = reactive({
 
@@ -194,9 +193,9 @@ const readOnlyValue = reactive({
 
   RESIST_NO_ICON: "",
 
-});
+})
 
-const vehicleInfoEnabled = computed(() => trafficReg.value);
+const vehicleInfoEnabled = computed(() => trafficReg.value)
 
 const safetyField = reactive({
 
@@ -376,13 +375,13 @@ const safetyField = reactive({
 
   DIV: "A", // 위반 구분 (A: 수칙위반, B: 교통위반)
 
-});
+})
 
 const vehicleFieldsDisabled = computed(() =>
 
-  ["C", "D"].includes(safetyField.VEHICLE_TYPE)
+  ["C", "D"].includes(safetyField.VEHICLE_TYPE),
 
-);
+)
 
 // 안전수칙 팝업에서 사용하는 대상구분/승인자/위반종류/호선 목록
 
@@ -400,13 +399,13 @@ const codeList = reactive({
 
   ACT_DIV: [],
 
-});
+})
 
-// 저장된 장소 코드를 WorkLocationPopup 조회 규칙으로 명칭에 복원한다.
+// 저장된 장소 코드를 LocationPopup 조회 규칙으로 명칭에 복원한다.
 
 const loadLocationPath = async () => {
 
-  const cmpnyDiv = safetyField.COMPANY || userStore.cmpnyDiv;
+  const cmpnyDiv = safetyField.COMPANY || userStore.cmpnyDiv
 
   const result = {
 
@@ -416,9 +415,9 @@ const loadLocationPath = async () => {
 
     LOC_SMALL_NM: "",
 
-  };
+  }
 
-  if (!safetyField.VIO_LPLC) return result;
+  if (!safetyField.VIO_LPLC) return result
 
   const largeRes = await commonPgSearchApi(
 
@@ -430,19 +429,19 @@ const loadLocationPath = async () => {
 
     },
 
-    { useProgress: false }
+    { useProgress: false },
 
-  );
+  )
 
   const large = (largeRes.ORESULT_CUR || []).find(
 
-    (row) => row.LOCATION_CODE === safetyField.VIO_LPLC
+    row => row.LOCATION_CODE === safetyField.VIO_LPLC,
 
-  );
+  )
 
-  result.LOC_LARGE_NM = large?.LOCATION_DESC || "";
+  result.LOC_LARGE_NM = large?.LOCATION_DESC || ""
 
-  if (!large || !safetyField.VIO_MPLC) return result;
+  if (!large || !safetyField.VIO_MPLC) return result
 
   const mediumRes = await commonPgSearchApi(
 
@@ -454,23 +453,23 @@ const loadLocationPath = async () => {
 
     },
 
-    { useProgress: false }
+    { useProgress: false },
 
-  );
+  )
 
   const medium = (mediumRes.ORESULT_CUR || []).find(
 
-    (row) =>
+    row =>
 
       row.LOCATION_CODE === safetyField.VIO_MPLC &&
 
-      row.ALL_UP_CD === large.ALL_LOCATION_COD
+      row.ALL_UP_CD === large.ALL_LOCATION_COD,
 
-  );
+  )
 
-  result.LOC_MEDIUM_NM = medium?.LOCATION_DESC || "";
+  result.LOC_MEDIUM_NM = medium?.LOCATION_DESC || ""
 
-  if (!medium || !safetyField.VIO_SPLC) return result;
+  if (!medium || !safetyField.VIO_SPLC) return result
 
   const smallRes = await commonPgSearchApi(
 
@@ -482,25 +481,25 @@ const loadLocationPath = async () => {
 
     },
 
-    { useProgress: false }
+    { useProgress: false },
 
-  );
+  )
 
   const small = (smallRes.ORESULT_CUR || []).find(
 
-    (row) =>
+    row =>
 
       row.LOCATION_CODE === safetyField.VIO_SPLC &&
 
-      row.ALL_UP_CD === medium.ALL_LOCATION_COD
+      row.ALL_UP_CD === medium.ALL_LOCATION_COD,
 
-  );
+  )
 
-  result.LOC_SMALL_NM = small?.LOCATION_DESC || "";
+  result.LOC_SMALL_NM = small?.LOCATION_DESC || ""
 
-  return result;
+  return result
 
-};
+}
 
 //안전수칙위반 코드 초기화
 
@@ -550,29 +549,29 @@ const initcodeList = () => {
 
     getPgCodeList("HHIG170"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
-    codeList.GUBUN = res[0].ORESULT_CUR;
+    codeList.GUBUN = res[0].ORESULT_CUR
 
-    codeList.APP_EMP_NO = res[1].ORESULT_CUR;
+    codeList.APP_EMP_NO = res[1].ORESULT_CUR
 
-    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
+    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter(x => !x.COD.includes('S') && !x.COD.includes('C'))
 
-    codeList.SHIP_NO = res[3].ORESULT_CUR.map((item) => item.SHIP_COD);
+    codeList.SHIP_NO = res[3].ORESULT_CUR.map(item => item.SHIP_COD)
 
-    codeList.ACT_DIV = res[4].ORESULT_CUR;
+    codeList.ACT_DIV = res[4].ORESULT_CUR
 
-  });
+  })
 
-  safetyField.VIO_TIME2 = "00:00"; //위반일시 옆 시간에 자정
+  safetyField.VIO_TIME2 = "00:00" //위반일시 옆 시간에 자정
 
-};
+}
 
 // 작업장소 팝업 열기: 현재 선택된 대/중/소 코드와 명칭을 복원해서 전달한다.
 
 const openLocationPopup = async () => {
 
-  const locationPath = await loadLocationPath();
+  const locationPath = await loadLocationPath()
 
   locationPopup.value?.openPopup({
 
@@ -590,43 +589,43 @@ const openLocationPopup = async () => {
 
     LOC_SMALL_NM: locationPath.LOC_SMALL_NM,
 
-  });
+  })
 
-};
+}
 
 const openPopup = () => {
 
   if (isEmpty(safetyField.VIO_NO)) {
 
-    safetyField.VIO_DT1 = dayjs().format("YYYY-MM-DD");
+    safetyField.VIO_DT1 = dayjs().format("YYYY-MM-DD")
 
-    safetyField.VIO_TIME2 = dayjs().format("HH:mm");
+    safetyField.VIO_TIME2 = dayjs().format("HH:mm")
 
-    safetyField.DANSOK_EMP_NO = userStore.empNo || "";
+    safetyField.DANSOK_EMP_NO = userStore.empNo || ""
 
-    safetyField.DANSOK_EMP_NM = userStore.empNm || "";
+    safetyField.DANSOK_EMP_NM = userStore.empNm || ""
 
-    safetyField.DANSOK_ASGN_CD = userStore.asgnCd || "";
+    safetyField.DANSOK_ASGN_CD = userStore.asgnCd || ""
 
-    safetyField.DANSOK_ASGN_NM = userStore.asgnFullNm || "";
+    safetyField.DANSOK_ASGN_NM = userStore.asgnFullNm || ""
 
-    safetyField.DANSOK_DEPT_CD = userStore.deptCd || "";
+    safetyField.DANSOK_DEPT_CD = userStore.deptCd || ""
 
-    safetyField.APP_EMP_NO = userStore.empNo || "";
+    safetyField.APP_EMP_NO = userStore.empNo || ""
 
     // 신규 등록은 승인자 동일을 해제하고 승인신청/취소 버튼을 활성화한다.
 
-    safetyField.APP_SAME = "N";
+    safetyField.APP_SAME = "N"
 
-    approvalReadOnly.value = false;
+    approvalReadOnly.value = false
 
     //approvalCancelDisabled.value = true;
 
   }
 
-  dialog.value = true;
+  dialog.value = true
 
-};
+}
 
 const mapRowToSafetyField = (rowData = {}) => {
 
@@ -692,49 +691,49 @@ const mapRowToSafetyField = (rowData = {}) => {
 
     VEHICLE_SPEED: "VEHICLE_SPEED",
 
-  };
+  }
 
   Object.entries(rowData).forEach(([key, value]) => {
 
-    const normalizedKey = aliasMap[key.toUpperCase()] ?? key.toUpperCase();
+    const normalizedKey = aliasMap[key.toUpperCase()] ?? key.toUpperCase()
 
-    if (!Object.prototype.hasOwnProperty.call(safetyField, normalizedKey)) return;
+    if (!Object.prototype.hasOwnProperty.call(safetyField, normalizedKey)) return
 
     if (normalizedKey === "VIO_TIME" && value) {
 
-      const vioTime = String(value);
+      const vioTime = String(value)
 
       if (/^\d{12}$/.test(vioTime)) {
 
-        safetyField.VIO_DT1 = `${vioTime.substring(0, 4)}-${vioTime.substring(4, 6)}-${vioTime.substring(6, 8)}`;
+        safetyField.VIO_DT1 = `${vioTime.substring(0, 4)}-${vioTime.substring(4, 6)}-${vioTime.substring(6, 8)}`
 
-        safetyField.VIO_TIME2 = `${vioTime.substring(8, 10)}:${vioTime.substring(10, 12)}`;
+        safetyField.VIO_TIME2 = `${vioTime.substring(8, 10)}:${vioTime.substring(10, 12)}`
 
       } else if (vioTime.length >= 10) {
 
-        safetyField.VIO_DT1 = vioTime.substring(0, 10).replaceAll(".", "-");
+        safetyField.VIO_DT1 = vioTime.substring(0, 10).replaceAll(".", "-")
 
-        safetyField.VIO_TIME2 = vioTime.length >= 16 ? vioTime.substring(11, 16) : "";
+        safetyField.VIO_TIME2 = vioTime.length >= 16 ? vioTime.substring(11, 16) : ""
 
       }
 
-      return;
+      return
 
     }
 
     if (normalizedKey === "ACT_TIME" && typeof value === "string" && value.length >= 10) {
 
-      return;
+      return
 
     }
 
-    safetyField[normalizedKey] = value ?? "";
+    safetyField[normalizedKey] = value ?? ""
 
-  });
+  })
 
   if (safetyField.VIO_TIME && !safetyField.VIO_DT1) {
 
-    safetyField.VIO_DT1 = String(safetyField.VIO_TIME).substring(0, 10);
+    safetyField.VIO_DT1 = String(safetyField.VIO_TIME).substring(0, 10)
 
   }
 
@@ -744,69 +743,69 @@ const mapRowToSafetyField = (rowData = {}) => {
 
       ? String(safetyField.VIO_TIME).substring(11, 16)
 
-      : "";
+      : ""
 
   }
 
   if (safetyField.ACT_TIME && !safetyField.ACT_RSLT) {
 
-    safetyField.ACT_RSLT = String(safetyField.ACT_TIME);
+    safetyField.ACT_RSLT = String(safetyField.ACT_TIME)
 
   }
 
   if (!safetyField.ACT_ASGN_NM && safetyField.ACT_DEPT_CD) {
 
-    safetyField.ACT_ASGN_NM = safetyField.ACT_DEPT_CD;
+    safetyField.ACT_ASGN_NM = safetyField.ACT_DEPT_CD
 
   }
 
-};
+}
 
 //로우 더블클릭시 안전수칙위반 데이터 바인딩
 
-const openPopup2 = async (rowData) => {
+const openPopup2 = async rowData => {
 
-  console.log("받은데이터", rowData);
+  console.log("받은데이터", rowData)
 
-  dialog.value = true;
+  dialog.value = true
 
-  isBindingRow.value = true;
+  isBindingRow.value = true
 
-  const mappedRow = { ...rowData };
+  const mappedRow = { ...rowData }
 
-  mapRowToSafetyField(mappedRow);
+  mapRowToSafetyField(mappedRow)
 
-  safetyField.VEHICLE_TYPE = normalizeVehicleType(safetyField.VEHICLE_TYPE);
+  safetyField.VEHICLE_TYPE = normalizeVehicleType(safetyField.VEHICLE_TYPE)
 
   // 기존 행에 승인자 동일 값이 없던 데이터는 미선택 상태로 연다.
 
   safetyField.APP_SAME = String(
 
-    rowData.APP_SAME ?? rowData.app_same ?? safetyField.APP_SAME ?? "N"
+    rowData.APP_SAME ?? rowData.app_same ?? safetyField.APP_SAME ?? "N",
 
-  ).trim().toUpperCase() === "Y" ? "Y" : "N";
+  ).trim().toUpperCase() === "Y" ? "Y" : "N"
 
   safetyField.APP_EMP_NO =
 
-    rowData.APP_EMP_NO ?? rowData.app_emp_no ?? safetyField.APP_EMP_NO ?? "";
+    rowData.APP_EMP_NO ?? rowData.app_emp_no ?? safetyField.APP_EMP_NO ?? ""
 
-  isBindingRow.value = false;
+  isBindingRow.value = false
 
   // 그리드 조회 결과의 대소문자 차이와 관계없이 위반 파일 ID를 직접 확정한다.
 
   const violationFileId = String(
 
-    rowData.FILE_ID1 ?? rowData.file_id1 ?? safetyField.FILE_ID1 ?? ""
+    rowData.FILE_ID1 ?? rowData.file_id1 ?? safetyField.FILE_ID1 ?? "",
 
-  ).trim();
+  ).trim()
 
-  safetyField.FILE_ID1 = violationFileId;
+  safetyField.FILE_ID1 = violationFileId
 
   // 조회 결과에 장소명이 없으면 장소 코드로 대/중/소 명칭을 복원한다.
 
   if (!safetyField.VIO_SPLC_NM && safetyField.VIO_LPLC) {
 
-    const locationPath = await loadLocationPath();
+    const locationPath = await loadLocationPath()
 
     const locationNames = [
 
@@ -816,15 +815,15 @@ const openPopup2 = async (rowData) => {
 
       locationPath.LOC_SMALL_NM,
 
-    ].filter(Boolean);
+    ].filter(Boolean)
 
-    safetyField.VIO_SPLC_NM = locationNames.join(" › ");
+    safetyField.VIO_SPLC_NM = locationNames.join(" › ")
 
   }
 
   // 다이얼로그와 업로드 컴포넌트가 렌더링된 다음 기존 첨부를 조회한다.
 
-  loadAttachmentFiles();
+  loadAttachmentFiles()
 
   //대상구분,승인자 조회
 
@@ -854,35 +853,35 @@ const openPopup2 = async (rowData) => {
 
     getPgCodeList("HHIG170"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
-    codeList.GUBUN = res[0].ORESULT_CUR;
+    codeList.GUBUN = res[0].ORESULT_CUR
 
-    codeList.APP_EMP_NO = res[1].ORESULT_CUR;
+    codeList.APP_EMP_NO = res[1].ORESULT_CUR
 
-    safetyField.APP_EMP_NO = rowData.APP_EMP_NO ?? rowData.app_emp_no ?? safetyField.APP_EMP_NO;
+    safetyField.APP_EMP_NO = rowData.APP_EMP_NO ?? rowData.app_emp_no ?? safetyField.APP_EMP_NO
 
-    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
+    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter(x => !x.COD.includes('S') && !x.COD.includes('C'))
 
-    codeList.ACT_DIV = res[3].ORESULT_CUR;
+    codeList.ACT_DIV = res[3].ORESULT_CUR
 
-  });
+  })
 
-  console.log("Safety Field:", safetyField);
+  console.log("Safety Field:", safetyField)
 
-  setSafetyButtonStatus(); //상태에 따른 버튼 활성화,비활성화 처리
+  setSafetyButtonStatus() //상태에 따른 버튼 활성화,비활성화 처리
 
-  onload.value = true;
+  onload.value = true
 
-};
+}
 
 // 저장된 사진/파일 ID로 각 업로드 그리드의 기존 목록을 조회한다.
 
 const loadAttachmentFiles = async () => {
 
-  await nextTick();
+  await nextTick()
 
-  await nextTick();
+  await nextTick()
 
   const attachmentTargets = [
 
@@ -894,15 +893,15 @@ const loadAttachmentFiles = async () => {
 
     { component: safetyActionFileUpload.value, fileId: safetyField.FILE_ID2 },
 
-  ];
+  ]
 
   for (const target of attachmentTargets) {
 
-    if (!target.component) continue;
+    if (!target.component) continue
 
     // 이전 행의 첨부 목록을 제거한 뒤 현재 행의 ID를 주입한다.
 
-    target.component.clearGrid?.();
+    target.component.clearGrid?.()
 
     // 저장된 ID가 있을 때만 COM_FILE_SEARCH_01 조회를 실행한다.
 
@@ -910,29 +909,29 @@ const loadAttachmentFiles = async () => {
 
     if (target.fileId) {
 
-      target.component.setGuid(target.fileId);
+      target.component.setGuid(target.fileId)
 
-      target.component.onButtonsClick({ id: "btnSearch" });
+      target.component.onButtonsClick({ id: "btnSearch" })
 
     } else {
 
-      target.component.setGuid();
+      target.component.setGuid()
 
     }
 
   }
 
-};
+}
 
 onMounted(() => {
 
-  initcodeList();
+  initcodeList()
 
-});
+})
 
 const setSafetyButtonStatus = () => {
 
-  console.log("상태값: ", safetyField.STATUS);
+  console.log("상태값: ", safetyField.STATUS)
 
   //안전수칙 삭제 관리자면 삭제 버튼 활성화(2026.05.07)
 
@@ -944,9 +943,9 @@ const setSafetyButtonStatus = () => {
 
   ) {
 
-    console.log("안전수칙 삭제 관리자임");
+    console.log("안전수칙 삭제 관리자임")
 
-    menuTitle.value.disableBtn("btnDelete", false); // 삭제버튼 활성화
+    menuTitle.value.disableBtn("btnDelete", false) // 삭제버튼 활성화
 
   }
 
@@ -958,23 +957,23 @@ const setSafetyButtonStatus = () => {
 
   ) {
 
-    console.log("로그인유저와 일치함");
+    console.log("로그인유저와 일치함")
 
-    menuTitle.value.disableBtn("btnDelete", false); //삭제버튼활성화
+    menuTitle.value.disableBtn("btnDelete", false) //삭제버튼활성화
 
-    approvalReadOnly.value = false; //승인신청 활성화
+    approvalReadOnly.value = false //승인신청 활성화
 
     //승인대기상태 일때는 승인신청,삭제 비활성화
 
     if (safetyField.STATUS === "20") {
 
-      console.log("2");
+      console.log("2")
 
-      approvalReadOnly.value = true; //승인신청 비활성화
+      approvalReadOnly.value = true //승인신청 비활성화
 
       //approvalCancelDisabled.value = false;
 
-      menuTitle.value.disableBtn("btnDelete", true); //삭제버튼 비활성화
+      menuTitle.value.disableBtn("btnDelete", true) //삭제버튼 비활성화
 
     }
 
@@ -982,37 +981,37 @@ const setSafetyButtonStatus = () => {
 
     else if (safetyField.STATUS === "30") {
 
-      console.log("3");
+      console.log("3")
 
-      approvalReadOnly.value = true;
+      approvalReadOnly.value = true
 
       //approvalCancelDisabled.value = true;
 
-      menuTitle.value.disableBtn("btnDelete", true);
+      menuTitle.value.disableBtn("btnDelete", true)
 
     } else if (safetyField.STATUS === "11") {
 
-      console.log("반려");
+      console.log("반려")
 
-      approvalReadOnly.value = true;
+      approvalReadOnly.value = true
 
       //approvalCancelDisabled.value = true;
 
-      menuTitle.value.disableBtn("btnUpdate", true); //저장버튼 비활성화
+      menuTitle.value.disableBtn("btnUpdate", true) //저장버튼 비활성화
 
-      menuTitle.value.disableBtn("btnDelete", false); //삭제버튼 활성화
+      menuTitle.value.disableBtn("btnDelete", false) //삭제버튼 활성화
 
     }
 
   } else {
 
-    console.log("로그인유저와 일치하지 않음");
+    console.log("로그인유저와 일치하지 않음")
 
-    menuTitle.value.disableBtn("btnDelete", true); //삭제버튼 비활성화
+    menuTitle.value.disableBtn("btnDelete", true) //삭제버튼 비활성화
 
-    menuTitle.value.disableBtn("btnUpdate", true); //저장버튼 비활성화
+    menuTitle.value.disableBtn("btnUpdate", true) //저장버튼 비활성화
 
-    approvalReadOnly.value = true; //승인신청 비활성화
+    approvalReadOnly.value = true //승인신청 비활성화
 
     //approvalCancelDisabled.value = true;
 
@@ -1020,25 +1019,25 @@ const setSafetyButtonStatus = () => {
 
   if (safetyField.STATUS === "30") {
 
-    fileBtnVisible.value = true;
+    fileBtnVisible.value = true
 
   } else {
 
-    fileBtnVisible.value = false;
+    fileBtnVisible.value = false
 
   }
 
-  setApprovalStatus();
+  setApprovalStatus()
 
-};
+}
 
 const setApprovalStatus = () => {
 
-  approvalReadOnly.value = safetyField.APP_SAME !== "N";
+  approvalReadOnly.value = safetyField.APP_SAME !== "N"
 
-};
+}
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
 
   if (btn.id === "btnUpdate") {
 
@@ -1050,7 +1049,7 @@ const onButtonsClick = (btn) => {
 
       .setAfter(afterSave)
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnActionComplete") {
 
@@ -1064,7 +1063,7 @@ const onButtonsClick = (btn) => {
 
       .setConfirmMessage("조치완료하시겠습니까?")
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnDelete") {
 
@@ -1076,43 +1075,43 @@ const onButtonsClick = (btn) => {
 
       .setAfter(afterDelete)
 
-      .run();
+      .run()
 
   } else {
 
-    closePopup();
+    closePopup()
 
   }
 
-};
+}
 
 const closePopup = () => {
 
   for (let i in safetyField) {
 
-    safetyField[i] = "";
+    safetyField[i] = ""
 
   }
 
-  safetyField.APP_SAME = "N";
+  safetyField.APP_SAME = "N"
 
-  menuTitle.value?.disableBtn("btnDelete", false); //삭제버튼활성화
+  menuTitle.value?.disableBtn("btnDelete", false) //삭제버튼활성화
 
-  menuTitle.value?.disableBtn("btnUpdate", false); //저장버튼활성화
+  menuTitle.value?.disableBtn("btnUpdate", false) //저장버튼활성화
 
-  imageUpload.value?.clearGrid?.();
+  imageUpload.value?.clearGrid?.()
 
-  imageUpload2.value?.clearGrid?.();
+  imageUpload2.value?.clearGrid?.()
 
-  safetyFileUpload.value?.clearGrid?.();
+  safetyFileUpload.value?.clearGrid?.()
 
-  safetyActionFileUpload.value?.clearGrid?.();
+  safetyActionFileUpload.value?.clearGrid?.()
 
-  emit("closed");
+  emit("closed")
 
-  dialog.value = false;
+  dialog.value = false
 
-};
+}
 
 //안전수칙위반 삭제관련 로직 시작
 
@@ -1126,25 +1125,25 @@ const beforeDelete = () => {
 
   ) {
 
-    return true;
+    return true
 
   } else if (userStore.userId != safetyField.INSERT_USER_ID) {
 
-    Message.warn(t("수칙위반 삭제는 등록자 본인만 가능합니다."));
+    Message.warn(t("수칙위반 삭제는 등록자 본인만 가능합니다."))
 
-    return false;
+    return false
 
   }
 
-  return true;
+  return true
 
-};
+}
 
 // 데이터 삭제
 
 const deleteData = () => {
 
-  let deleteParam = [];
+  let deleteParam = []
 
   let deleteData = {
 
@@ -1156,9 +1155,9 @@ const deleteData = () => {
 
     USER_ID: userStore.userId,
 
-  };
+  }
 
-  deleteParam.push(deleteData);
+  deleteParam.push(deleteData)
 
   return commonPgExecuteApi({
 
@@ -1166,15 +1165,15 @@ const deleteData = () => {
 
     list: deleteParam,
 
-  });
+  })
 
-};
+}
 
 const afterDelete = () => {
 
-  closePopup();
+  closePopup()
 
-};
+}
 
 //안전수칙위반 삭제관련 로직 끝
 
@@ -1186,49 +1185,49 @@ const beforeSafetySave = () => {
 
   if (!safetyField.VIO_DT1 || !safetyField.VIO_TIME2) {
 
-    Message.warn(t("위반일시,시각은 필수값입니다."));
+    Message.warn(t("위반일시,시각은 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
   else if (!safetyField.VIOLATOR) {
 
-    Message.warn(t("위반자성명은 필수값입니다."));
+    Message.warn(t("위반자성명은 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
   else if (!safetyField.ASGN_NM) {
 
-    Message.warn(t("위반조직은 필수값입니다."));
+    Message.warn(t("위반조직은 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
   else if (!safetyField.VIO_GDIV || !safetyField.VIO_GDIV_NM) {
 
-    Message.warn(t("위반종류는 필수값입니다."));
+    Message.warn(t("위반종류는 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
   else if (!safetyField.VIO_MDIV || !safetyField.VIO_MDIV_NM) {
 
-    Message.warn(t("위반종류 상세는 필수값입니다."));
+    Message.warn(t("위반종류 상세는 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
   else if (!safetyField.VIO_SPLC_NM) {
 
-    Message.warn(t("장소는 필수값입니다."));
+    Message.warn(t("장소는 필수값입니다."))
 
-    return false;
+    return false
 
   }
 
@@ -1238,9 +1237,9 @@ const beforeSafetySave = () => {
 
     if (!safetyField.DANSOK_EMP_NM) {
 
-      Message.warn(t("단속자는 필수값입니다."));
+      Message.warn(t("단속자는 필수값입니다."))
 
-      return false;
+      return false
 
     }
 
@@ -1250,9 +1249,9 @@ const beforeSafetySave = () => {
 
       if (!safetyField.VEHICLE_CAR_NO) {
 
-        Message.warn(t("차량번호 입력은 필수값입니다."));
+        Message.warn(t("차량번호 입력은 필수값입니다."))
 
-        return false;
+        return false
 
       }
 
@@ -1260,15 +1259,15 @@ const beforeSafetySave = () => {
 
   }
 
-  return true;
+  return true
 
-};
+}
 
 //안전수칙위반 저장
 
 const saveSafetyData = () => {
 
-  let saveParam = [];
+  let saveParam = []
 
   let saveData = {
 
@@ -1314,7 +1313,7 @@ const saveSafetyData = () => {
 
     COMPANY: safetyField.COMPANY,
 
-  };
+  }
 
   //위반 종류가 교통수칙일때
 
@@ -1330,7 +1329,7 @@ const saveSafetyData = () => {
 
       VEHICLE_SPEED: safetyField.VEHICLE_SPEED,
 
-    });
+    })
 
   } else {
 
@@ -1374,15 +1373,15 @@ const saveSafetyData = () => {
 
       APP_DEPT: safetyField.APP_DEPT,
 
-    });
+    })
 
   }
 
-  console.log("data");
+  console.log("data")
 
-  console.log(saveData);
+  console.log(saveData)
 
-  saveParam.push(saveData);
+  saveParam.push(saveData)
 
   return commonPgExecuteApi({
 
@@ -1390,21 +1389,21 @@ const saveSafetyData = () => {
 
     list: saveParam,
 
-  });
+  })
 
-};
+}
 
 const afterSave = () => {
 
-  closePopup();
+  closePopup()
 
-};
+}
 
 //안전수칙위반 저장 관련 로직 끝
 
 //성명(위반자) 클릭 이벤트
 
-const openSafetyEmpPopup = async (gbn) => {
+const openSafetyEmpPopup = async gbn => {
 
   if (gbn === "인원조회") {
 
@@ -1418,53 +1417,53 @@ const openSafetyEmpPopup = async (gbn) => {
 
       readonly: true,
 
-    });
+    })
 
   }
 
-};
+}
 
 //성명(위반자) 선택 이벤트
 
-const selectedSafetyEmp = (val) => {
+const selectedSafetyEmp = val => {
 
-  safetyField.VIOLATOR = val.EMP_NM;        //성명에 이름
+  safetyField.VIOLATOR = val.EMP_NM        //성명에 이름
 
-  safetyField.VIO_EMP_NO = val.EMP_NO;      //사번에 사번
+  safetyField.VIO_EMP_NO = val.EMP_NO      //사번에 사번
 
-  safetyField.JOB_TIT_NM = val.JOB_TIT_NM;  //직위에 직위
+  safetyField.JOB_TIT_NM = val.JOB_TIT_NM  //직위에 직위
 
-  safetyField.VIO_EMP_ASGN = val.ASGN_NM;   //소속조직에 조직
+  safetyField.VIO_EMP_ASGN = val.ASGN_NM   //소속조직에 조직
 
   //단기공사일대 위반조직 매핑 null 처리(직접선택하게 반영)
 
   if (val.USER_DIV === "D") {
 
-    safetyField.ASGN_NM = null;             //위반조직
+    safetyField.ASGN_NM = null             //위반조직
 
   } else {
 
-    safetyField.ASGN_NM = val.ASGN_NM;      //위반조직
+    safetyField.ASGN_NM = val.ASGN_NM      //위반조직
 
   }
 
-  safetyField.IO_DIV = val.USER_DIV;        //대상구분(직영,협력사)
+  safetyField.IO_DIV = val.USER_DIV        //대상구분(직영,협력사)
 
-  safetyField.DEPT_CD = val.DEPT_CD;        //위반자 부서
+  safetyField.DEPT_CD = val.DEPT_CD        //위반자 부서
 
-  safetyField.BSNS_CD = val.BSNS_CD;        //위반자 사업부
+  safetyField.BSNS_CD = val.BSNS_CD        //위반자 사업부
 
-  safetyField.ASGN_CD = val.ASGN_CD;        //위반자 조직
+  safetyField.ASGN_CD = val.ASGN_CD        //위반자 조직
 
-  safetyField.COMPANY = val.CMPNY_DIV;      //위반자 회사
+  safetyField.COMPANY = val.CMPNY_DIV      //위반자 회사
 
-  safetyField.VIO_GDIV = "";
+  safetyField.VIO_GDIV = ""
 
-  safetyField.VIO_GDIV_NM = "";
+  safetyField.VIO_GDIV_NM = ""
 
-  safetyField.VIO_MDIV = "";
+  safetyField.VIO_MDIV = ""
 
-  safetyField.VIO_MDIV_NM = "";
+  safetyField.VIO_MDIV_NM = ""
 
   /* Promise.all([
 
@@ -1476,11 +1475,11 @@ const selectedSafetyEmp = (val) => {
 
   }) */
 
-};
+}
 
 //팝업 종료 후 장소 선택된거 가져오기
 
-const selectedSafetyLocation = (val) => {
+const selectedSafetyLocation = val => {
 
   // console.log("장소!!");
 
@@ -1488,19 +1487,19 @@ const selectedSafetyLocation = (val) => {
 
   //console.log("대 : ", val.LOC_LARGE);
 
-  safetyField.VIO_LPLC = val.LOC_LARGE; //장소구분(대)
+  safetyField.VIO_LPLC = val.LOC_LARGE //장소구분(대)
 
-  safetyField.VIO_MPLC = val.LOC_MEDIUM; //장소구분(중)
+  safetyField.VIO_MPLC = val.LOC_MEDIUM //장소구분(중)
 
-  safetyField.VIO_SPLC = val.LOC_SMALL; //장소구분(소)
+  safetyField.VIO_SPLC = val.LOC_SMALL //장소구분(소)
 
-  safetyField.VIO_SPLC_NM = val.WORK_LOCATION;
+  safetyField.VIO_SPLC_NM = val.WORK_LOCATION
 
-};
+}
 
 //조치자 인원팝업 오픈 이벤트
 
-const openActEmpPopup = async (gbn) => {
+const openActEmpPopup = async gbn => {
 
   if (gbn === "조치자인원조회") {
 
@@ -1514,35 +1513,35 @@ const openActEmpPopup = async (gbn) => {
 
       readonly: true,
 
-    });
+    })
 
   }
 
-};
+}
 
 //조치자 인원팝업 선택 이벤트
 
-const selectedActEmp = (val) => {
+const selectedActEmp = val => {
 
-  safetyField.ACTOR = val.EMP_NM;               //조치자 성명
+  safetyField.ACTOR = val.EMP_NM               //조치자 성명
 
-  safetyField.ACT_EMP_NO = val.EMP_NO;          //조치자 사번
+  safetyField.ACT_EMP_NO = val.EMP_NO          //조치자 사번
 
   safetyField.ACT_JOB_TIT_NM = val.JOB_TIT_NM   //조치자 직위
 
-  safetyField.ACT_ASGN_NM = val.ASGN_NM;        //조치자 조직명
+  safetyField.ACT_ASGN_NM = val.ASGN_NM        //조치자 조직명
 
-  safetyField.ACT_ASGN_CD = val.ASGN_CD;        //조치자 조직 코드
+  safetyField.ACT_ASGN_CD = val.ASGN_CD        //조치자 조직 코드
 
-  safetyField.ACT_DEPT_CD = val.ASGN_NM;        //조치자 부서
+  safetyField.ACT_DEPT_CD = val.ASGN_NM        //조치자 부서
 
-  safetyField.ACT_PHONE = val.HND_PHN;          //조치자 전화번호
+  safetyField.ACT_PHONE = val.HND_PHN          //조치자 전화번호
 
-};
+}
 
 //단속자 인원팝업 오픈 이벤트
 
-const openDansokEmpPopup = async (gbn) => {
+const openDansokEmpPopup = async gbn => {
 
   if (gbn === "단속자인원조회") {
 
@@ -1556,37 +1555,37 @@ const openDansokEmpPopup = async (gbn) => {
 
       readonly: true,
 
-    });
+    })
 
   }
 
-};
+}
 
 //단속자 인원팝업 선택 이벤트
 
-const selectedDansokEmp = (val) => {
+const selectedDansokEmp = val => {
 
-  console.log("단속자 인원 팝업");
+  console.log("단속자 인원 팝업")
 
-  console.log(val);
+  console.log(val)
 
-  safetyField.DANSOK_EMP_NM = val.EMP_NM;         //단속자 성명
+  safetyField.DANSOK_EMP_NM = val.EMP_NM         //단속자 성명
 
-  safetyField.DANSOK_EMP_NO = val.EMP_NO;         //단속자 사번
+  safetyField.DANSOK_EMP_NO = val.EMP_NO         //단속자 사번
 
-  safetyField.DANSOK_JOB_TIT_NM = val.JOB_TIT_NM; //단속자 직위
+  safetyField.DANSOK_JOB_TIT_NM = val.JOB_TIT_NM //단속자 직위
 
-  safetyField.DANSOK_ASGN_NM = val.ASGN_NM;       //단속자 소속
+  safetyField.DANSOK_ASGN_NM = val.ASGN_NM       //단속자 소속
 
-  safetyField.DANSOK_ASGN_CD = val.ASGN_CD;       //단속자 조직 코드
+  safetyField.DANSOK_ASGN_CD = val.ASGN_CD       //단속자 조직 코드
 
-  safetyField.DANSOK_DEPT_CD = val.DEPT_CD;       //단속자 부서
+  safetyField.DANSOK_DEPT_CD = val.DEPT_CD       //단속자 부서
 
-};
+}
 
 //승인자 인원팝업 오픈 이벤트
 
-const openAppEmpPopup = async (gbn) => {
+const openAppEmpPopup = async gbn => {
 
   if (gbn === "승인자인원조회") {
 
@@ -1600,63 +1599,63 @@ const openAppEmpPopup = async (gbn) => {
 
       readonly: true,
 
-    });
+    })
 
   }
 
-};
+}
 
 // 승인자 인원팝업 선택 이벤트
 
-const selectedAppEmp = (val) => {
+const selectedAppEmp = val => {
 
-  console.log("승인자 인원 팝업");
+  console.log("승인자 인원 팝업")
 
-  console.log(val);
+  console.log(val)
 
-  safetyField.APP_EMP_NM = val.EMP_NM;         //승인자 성명
+  safetyField.APP_EMP_NM = val.EMP_NM         //승인자 성명
 
-  safetyField.APP_EMP_NO = val.EMP_NO;         //승인자 사번
+  safetyField.APP_EMP_NO = val.EMP_NO         //승인자 사번
 
-  safetyField.APP_JOB_TIT_NM = val.JOB_TIT_NM; //승인자 직위
+  safetyField.APP_JOB_TIT_NM = val.JOB_TIT_NM //승인자 직위
 
-};
+}
 
 //파일첨부 관련 로직 시작
 
 // 1. 위반내용 사진 업로드: IMG_ID1
 
-const uploadPicture = (val) => {
+const uploadPicture = val => {
 
   if (val?.FILE_ID) {
 
-    safetyField.IMG_ID1 = val.FILE_ID;
+    safetyField.IMG_ID1 = val.FILE_ID
 
   }
 
-};
+}
 
 // 2. 조치내용 사진 업로드: IMG_ID2
 
-const uploadPicture2 = (val) => {
+const uploadPicture2 = val => {
 
   if (val?.FILE_ID) {
 
-    safetyField.IMG_ID2 = val.FILE_ID;
+    safetyField.IMG_ID2 = val.FILE_ID
 
   }
 
-};
+}
 
 // 1. 위반내용 파일 첨부: FILE_ID1
 
-const uploadViolationFile = (val) => {
+const uploadViolationFile = val => {
 
-  const fileId = val?.FILE_ID ?? val?.fileId ?? "";
+  const fileId = val?.FILE_ID ?? val?.fileId ?? ""
 
-  if (!fileId) return;
+  if (!fileId) return
 
-  safetyField.FILE_ID1 = fileId;
+  safetyField.FILE_ID1 = fileId
 
   // 이미 저장된 위반 건은 파일 업로드 후 파일 ID도 즉시 master에 반영한다.
 
@@ -1678,21 +1677,21 @@ const uploadViolationFile = (val) => {
 
       }],
 
-    });
+    })
 
   }
 
-};
+}
 
 // 2. 조치내용 파일 첨부: FILE_ID2
 
-const uploadActionFile = (val) => {
+const uploadActionFile = val => {
 
-  const fileId = val?.FILE_ID ?? val?.fileId ?? "";
+  const fileId = val?.FILE_ID ?? val?.fileId ?? ""
 
-  if (!fileId) return;
+  if (!fileId) return
 
-  safetyField.FILE_ID2 = fileId;
+  safetyField.FILE_ID2 = fileId
 
   // 이미 저장된 위반 건은 조치 파일 ID도 업로드 직후 master에 반영한다.
 
@@ -1718,11 +1717,11 @@ const uploadActionFile = (val) => {
 
       }],
 
-    });
+    })
 
   }
 
-};
+}
 
 //파일첨부 관련 로직 끝
 
@@ -1736,23 +1735,23 @@ const openSafetyVioDeptPopup = () => {
 
     CMP_DISABLE: false,
 
-  });
+  })
 
-};
+}
 
 //위반조직 선택 이벤트
 
-const selectedVioDept = (val) => {
+const selectedVioDept = val => {
 
-  safetyField.ASGN_NM = val.ASGN_FULL_NM;
+  safetyField.ASGN_NM = val.ASGN_FULL_NM
 
-  safetyField.ASGN_CD = val.ASGN_CD;
+  safetyField.ASGN_CD = val.ASGN_CD
 
-  safetyField.DEPT_CD = val.DEPT_CD;
+  safetyField.DEPT_CD = val.DEPT_CD
 
-  safetyField.BSNS_CD = val.BSNS_CD;
+  safetyField.BSNS_CD = val.BSNS_CD
 
-  console.log("위반조직 선택 이벤트", val);
+  console.log("위반조직 선택 이벤트", val)
 
   /* Promise.all([
 
@@ -1764,43 +1763,43 @@ const selectedVioDept = (val) => {
 
   }) */
 
-  safetyField.VIO_GDIV = "";
+  safetyField.VIO_GDIV = ""
 
-  safetyField.VIO_GDIV_NM = "";
+  safetyField.VIO_GDIV_NM = ""
 
-  safetyField.VIO_MDIV = "";
+  safetyField.VIO_MDIV = ""
 
-  safetyField.VIO_MDIV_NM = "";
+  safetyField.VIO_MDIV_NM = ""
 
-};
+}
 
 //점검 대상물 오픈 이벤트
 
 const openCheckTargetPopup = () => {
 
-  checkTargetPopup.value.openPopup("점검대상물");
+  checkTargetPopup.value.openPopup("점검대상물")
 
-};
+}
 
 //점검 대상물 선택 이벤트
 
-const selectedTarget = (val) => {
+const selectedTarget = val => {
 
-  safetyField.CHECK_TARGET_OBJ1 = val[0].COD;
+  safetyField.CHECK_TARGET_OBJ1 = val[0].COD
 
-  safetyField.CHECK_TARGET_OBJ1_NM = val[0].TXT;
+  safetyField.CHECK_TARGET_OBJ1_NM = val[0].TXT
 
-  safetyField.CHECK_TARGET_OBJ2 = val[1].COD;
+  safetyField.CHECK_TARGET_OBJ2 = val[1].COD
 
-  safetyField.CHECK_TARGET_OBJ2_NM = val[1].TXT;
+  safetyField.CHECK_TARGET_OBJ2_NM = val[1].TXT
 
-  safetyField.CHECK_TARGET_OBJ3 = val[2].COD;
+  safetyField.CHECK_TARGET_OBJ3 = val[2].COD
 
-  safetyField.CHECK_TARGET_OBJ3_NM = val[2].TXT;
+  safetyField.CHECK_TARGET_OBJ3_NM = val[2].TXT
 
-  console.log("점검대상물 선택", val);
+  console.log("점검대상물 선택", val)
 
-};
+}
 
 //위반종류 오픈 이벤트
 
@@ -1808,59 +1807,59 @@ const openVioDivPopup = () => {
 
   if (!safetyField.ASGN_NM) {
 
-    Message.warn(t("위반자 및 위반조직 먼저 선택 바랍니다."));
+    Message.warn(t("위반자 및 위반조직 먼저 선택 바랍니다."))
 
-    return false;
+    return false
 
   }
 
-  vioDivPopup.value.openPopup(safetyField.BSNS_CD);
+  vioDivPopup.value.openPopup(safetyField.BSNS_CD)
 
-};
+}
 
 //위반종류 선택 이벤트
 
-const selectedVioDivPopup = (val) => {
+const selectedVioDivPopup = val => {
 
-  console.log("위반종류 선택", val);
+  console.log("위반종류 선택", val)
 
-  safetyField.VIO_GDIV = val.VIO_GDIV; //위반종류(대) 코드
+  safetyField.VIO_GDIV = val.VIO_GDIV //위반종류(대) 코드
 
-  safetyField.VIO_GDIV_NM = val.VIO_GDIV_NM; //위반종류(대) 이름
+  safetyField.VIO_GDIV_NM = val.VIO_GDIV_NM //위반종류(대) 이름
 
-  safetyField.VIO_MDIV = val.VIO_MDIV; //위반종류(중)코드
+  safetyField.VIO_MDIV = val.VIO_MDIV //위반종류(중)코드
 
-  safetyField.VIO_MDIV_NM = val.VIO_MDIV_NM; //위반종류(중) 이름
+  safetyField.VIO_MDIV_NM = val.VIO_MDIV_NM //위반종류(중) 이름
 
-};
+}
 
 //잠재사고유형 오픈 이벤트
 
 const openSagoDivPopup = () => {
 
-  sagoDivPopup.value.openPopup("잠재사고");
+  sagoDivPopup.value.openPopup("잠재사고")
 
-};
+}
 
 //잠재사고유형 선택 이벤트
 
-const selectedSagoDivPopup = (val) => {
+const selectedSagoDivPopup = val => {
 
-  safetyField.SAGO_DIV_L = val[0].COD; //잠재사고유형(대) 코드
+  safetyField.SAGO_DIV_L = val[0].COD //잠재사고유형(대) 코드
 
-  safetyField.SAGO_DIV_L_NM = val[0].TXT; //잠재사고유형(대) 이름
+  safetyField.SAGO_DIV_L_NM = val[0].TXT //잠재사고유형(대) 이름
 
-  safetyField.SAGO_DIV_M = val[1].COD; //잠재사고유형(중)코드
+  safetyField.SAGO_DIV_M = val[1].COD //잠재사고유형(중)코드
 
-  safetyField.SAGO_DIV_M_NM = val[1].TXT; //잠재사고유형(중) 이름
+  safetyField.SAGO_DIV_M_NM = val[1].TXT //잠재사고유형(중) 이름
 
-  safetyField.SAGO_DIV_S = val[2].COD; //잠재사고유형(소) 코드
+  safetyField.SAGO_DIV_S = val[2].COD //잠재사고유형(소) 코드
 
-  safetyField.SAGO_DIV_S_NM = val[2].TXT; //잠재사고유형(소) 이름
+  safetyField.SAGO_DIV_S_NM = val[2].TXT //잠재사고유형(소) 이름
 
-  console.log("잠재사고 선택", val);
+  console.log("잠재사고 선택", val)
 
-};
+}
 
 //승인신청 관련 로직 시작
 
@@ -1876,13 +1875,13 @@ const approval = () => {
 
     .setConfirmMessage("승인신청 하시겠습니까?")
 
-    .run();
+    .run()
 
-};
+}
 
 const saveApprovalData = () => {
 
-  let approvalParam = [];
+  let approvalParam = []
 
   let approvalData = {
 
@@ -1894,11 +1893,11 @@ const saveApprovalData = () => {
 
     USER_ID: userStore.userId,          //로그인유저 아이디
 
-  };
+  }
 
-  approvalParam.push(approvalData);
+  approvalParam.push(approvalData)
 
-  mailSet();
+  mailSet()
 
   return commonPgExecuteApi({
 
@@ -1906,13 +1905,13 @@ const saveApprovalData = () => {
 
     list: approvalParam,
 
-  });
+  })
 
-};
+}
 
 const mailSet = async () => {
 
-  dialog.value = false;
+  dialog.value = false
 
   /* ******************** 메일 SET ******************* */
 
@@ -1924,7 +1923,7 @@ const mailSet = async () => {
 
     CONTENT: "",
 
-  });
+  })
 
   mailParams.CONTENT =
 
@@ -1956,23 +1955,23 @@ const mailSet = async () => {
 
         </body>
 
-      </html>`;
+      </html>`
 
-  mailParams.EMAIL = [appEmail.value];
+  mailParams.EMAIL = [appEmail.value]
 
-  commonSendApi(mailParams).then((res) => {
+  commonSendApi(mailParams).then(res => {
 
-    Message.success(t("메일이 전송되었습니다."));
+    Message.success(t("메일이 전송되었습니다."))
 
-  });
+  })
 
-};
+}
 
 const afterApproval = () => {
 
-  closePopup();
+  closePopup()
 
-};
+}
 
 //승인신청 관련 로직 끝
 
@@ -1990,17 +1989,17 @@ const cancelApproval = () => {
 
       `승인 신청을 취소합니다.
 
-  수정후 재 신청할 수 있습니다!!`
+  수정후 재 신청할 수 있습니다!!`,
 
     )
 
-    .run();
+    .run()
 
-};
+}
 
 const cancelApprovalSaveData = () => {
 
-  let cencelApprovalParam = [];
+  let cencelApprovalParam = []
 
   let cencelApprovalData = {
 
@@ -2010,9 +2009,9 @@ const cancelApprovalSaveData = () => {
 
     USER_ID: userStore.userId,
 
-  };
+  }
 
-  cencelApprovalParam.push(cencelApprovalData);
+  cencelApprovalParam.push(cencelApprovalData)
 
   return commonPgExecuteApi({
 
@@ -2020,17 +2019,17 @@ const cancelApprovalSaveData = () => {
 
     list: cencelApprovalParam,
 
-  });
+  })
 
-};
+}
 
 const afterCancelApproval = () => {
 
-  closePopup();
+  closePopup()
 
-};
+}
 
-const changeback = () => { };
+const changeback = () => { }
 
 //승인신청 취소 관련 로직 끝
 
@@ -2042,11 +2041,11 @@ const setButtonStatus = () => {
 
   if (!safetyField.VIO_NO) {
 
-    menuTitle.value.disableBtn("btnDelete", true);
+    menuTitle.value.disableBtn("btnDelete", true)
 
   }
 
-};
+}
 
 //수칙위반 관련 로직 끝
 
@@ -2120,21 +2119,21 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
       if (onload.value === true) {
 
         safetyField.APP_EMP_NO = ''
 
-        codeList.APP_EMP_NO = res.ORESULT_CUR;
+        codeList.APP_EMP_NO = res.ORESULT_CUR
 
       }
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 // 단속자 변경시
 
@@ -2148,17 +2147,17 @@ watch(
 
       if (appEmp.APP_EMP_NO == newValue) {
 
-        appEmail.value = appEmp.EMAIL;
+        appEmail.value = appEmp.EMAIL
 
-        break;
+        break
 
       }
 
     }
 
-  }
+  },
 
-);
+)
 
 const clearViolationTypeDependentFields = () => {
 
@@ -2238,11 +2237,11 @@ const clearViolationTypeDependentFields = () => {
 
     SIGN_ID: "",
 
-  });
+  })
 
-  appEmail.value = "";
+  appEmail.value = ""
 
-  approvalReadOnly.value = true;
+  approvalReadOnly.value = true
 
 }
 
@@ -2256,25 +2255,25 @@ watch(
 
     if (!isBindingRow.value && newValue !== oldValue && oldValue !== undefined) {
 
-      clearViolationTypeDependentFields();
+      clearViolationTypeDependentFields()
 
     }
 
     if (newValue === "C") {
 
-      trafficReg.value = true;
+      trafficReg.value = true
 
     } else {
 
-      trafficReg.value = false;
+      trafficReg.value = false
 
     }
 
   },
 
-  { flush: "sync" }
+  { flush: "sync" },
 
-);
+)
 
 //승인자 동일 체크박스 변경 시
 
@@ -2284,13 +2283,13 @@ watch(
 
   (newValue, oldValue) => {
 
-    safetyField.APP_SAME = String(newValue).trim().toUpperCase() === "Y" ? "Y" : "N";
+    safetyField.APP_SAME = String(newValue).trim().toUpperCase() === "Y" ? "Y" : "N"
 
-    setApprovalStatus();
+    setApprovalStatus()
 
-  }
+  },
 
-);
+)
 
 defineExpose({
 
@@ -2300,93 +2299,133 @@ defineExpose({
 
   initcodeList,
 
-});
-
+})
 </script>
 
 <template>
-
   <!-- 헤더 좁아지면 height 주면 된다 -->
 
-  <v-dialog v-model="dialog" persistent width="1600" height="800" eager class="draggable-dialog"
+  <v-dialog
+    v-model="dialog"
+    persistent
+    width="1600"
+    height="800"
+    eager
+    class="draggable-dialog"
 
-    @mousemove="handleDragging" @mouseup="stopDragging">
+    @mousemove="handleDragging"
+    @mouseup="stopDragging"
+  >
+    <v-sheet
+      color="primarySub"
+      height="50"
+      class="px-4 d-flex align-center rounded-t-5 cursor-move"
 
-    <v-sheet color="primarySub" height="50" class="px-4 d-flex align-center rounded-t-5 cursor-move"
-
-      @mousedown="startDragging">
-
+      @mousedown="startDragging"
+    >
       안전수칙위반등록
-
     </v-sheet>
 
     <v-card class="pa-0 fill-height rounded-b-5">
-
       <v-card-title class="pa-3 pb-0">
+        <IGridTitle
+          ref="menuTitle"
+          :button-list="['btnUpdate', 'btnActionComplete', 'btnDelete', 'btnClose']"
 
-        <IGridTitle ref="menuTitle" :button-list="['btnUpdate', 'btnActionComplete', 'btnDelete', 'btnClose']"
-
-          @click-button="onButtonsClick" />
-
+          @click-button="onButtonsClick"
+        />
       </v-card-title>
 
       <v-card-text class="pa-3 pt-0">
-
         <div class="d-flex flex-column fill-height">
-
           <v-sheet class="searchArea">
-
             <div class="d-flex mt-2">
-
-              <v-avatar color="primary" size="24" class="text-white">
-
+              <v-avatar
+                color="primary"
+                size="24"
+                class="text-white"
+              >
                 1
-
               </v-avatar>
 
               &nbsp;<b>일시 및 장소</b>
-
             </div>
 
             <div class="d-flex mt-2">
+              <i-input
+                v-model="safetyField.VIO_DT1"
+                :label="$t('위반일시')"
+                width="150px"
+                top-label
+                type="date"
+                required
+              />
 
-              <i-input v-model="safetyField.VIO_DT1" :label="$t('위반일시')" width="150px" top-label type="date" required>
+              <i-input
+                v-model="safetyField.VIO_TIME2"
+                width="130px"
+                class="mt-5"
+                type="time"
 
-              </i-input>
+                append-inner-icon="mdi-clock-time-outline"
+                required
+              />
 
-              <i-input v-model="safetyField.VIO_TIME2" width="130px" class="mt-5" type="time"
+              <i-input
+                v-model="safetyField.VIO_SPLC_NM"
+                :label="$t('장소')"
+                width="400px"
+                top-label
 
-                append-inner-icon="mdi-clock-time-outline" required></i-input>
+                append-inner-icon="mdi-magnify"
+                readonly
+                required
+                @click:append-inner="openLocationPopup"
+              />
 
-              <i-input v-model="safetyField.VIO_SPLC_NM" :label="$t('장소')" width="400px" top-label
+              <i-input
+                v-model="safetyField.VIO_PLC_DESC"
+                :label="$t('장소상세')"
+                width="400px"
+                top-label
+              />
 
-                append-inner-icon="mdi-magnify" readonly @click:appendInner="openLocationPopup" required></i-input>
+              <i-select
+                v-model="safetyField.SHIP_NO"
+                :label="$t('호선/프로젝트No.')"
+                top-label
+                label-width="200px"
 
-              <i-input v-model="safetyField.VIO_PLC_DESC" :label="$t('장소상세')" width="400px" top-label></i-input>
-
-              <i-select v-model="safetyField.SHIP_NO" :label="$t('호선/프로젝트No.')" top-label label-width="200px"
-
-                width="200px" :items="codeList.SHIP_NO" item-value="WORK_NO" item-title="WORK_NO" />
-
+                width="200px"
+                :items="codeList.SHIP_NO"
+                item-value="WORK_NO"
+                item-title="WORK_NO"
+              />
             </div>
 
             <div class="d-flex mt-2">
-
-              <v-avatar color="primary" size="24" class="text-white">
-
+              <v-avatar
+                color="primary"
+                size="24"
+                class="text-white"
+              >
                 2
-
               </v-avatar>
 
               &nbsp;<b>위반 정보</b>
-
             </div>
 
             <div class="d-flex mt-2">
+              <i-input
+                v-model="safetyField.VIOLATOR"
+                :label="$t('위반자 성명')"
+                width="200px"
+                top-label
+                required
 
-              <i-input v-model="safetyField.<)/span>VIOLATOR" :label="$t('위반자 성명')" width="200px" top-label required
-
-                append-inner-icon="mdi-magnify" @click:appendInner="openSafetyEmpPopup('인원조회')" @keydown.enter="
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="openSafetyEmpPopup('인원조회')"
+                @keydown.enter="
 
                   (e) => {
 
@@ -2394,53 +2433,103 @@ defineExpose({
 
                   }
 
-                " />
+                "
+              />
 
-              <i-input v-model="safetyField.VIO_EMP_NO" :label="$t('사번')" width="200px" top-label readonly />
+              <i-input
+                v-model="safetyField.VIO_EMP_NO"
+                :label="$t('사번')"
+                width="200px"
+                top-label
+                readonly
+              />
 
-              <i-input v-model="safetyField.JOB_TIT_NM" :label="$t('직위')" width="150px" top-label readonly />
+              <i-input
+                v-model="safetyField.JOB_TIT_NM"
+                :label="$t('직위')"
+                width="150px"
+                top-label
+                readonly
+              />
 
-              <i-input v-model="safetyField.VIO_EMP_ASGN" :label="$t('소속조직')" width="250px" top-label readonly />
-
+              <i-input
+                v-model="safetyField.VIO_EMP_ASGN"
+                :label="$t('소속조직')"
+                width="250px"
+                top-label
+                readonly
+              />
             </div>
 
             <div class="d-flex mt-2">
+              <i-input
+                v-model="safetyField.ASGN_NM"
+                :label="$t('위반조직')"
+                width="350px"
+                top-label
+                required
+                readonly
 
-              <i-input v-model="safetyField.ASGN_NM" :label="$t('위반조직')" width="350px" top-label required readonly
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="openSafetyVioDeptPopup"
+              />
 
-                append-inner-icon="mdi-magnify" @click:appendInner="openSafetyVioDeptPopup" />
+              <i-select
+                v-model="safetyField.IO_DIV"
+                :label="$t('대상구분')"
+                width="200px"
+                top-label
+                readonly
 
-              <i-select v-model="safetyField.IO_DIV" :label="$t('대상구분')" width="200px" top-label readonly
+                :items="codeList.GUBUN"
+                item-title="TXT"
+                item-value="COD"
+                required
+              />
 
-                :items="codeList.GUBUN" item-title="TXT" item-value="COD" required />
-
-              <i-input v-model="safetyField.VEND_NAME" class="mt-5" width="250px" />
+              <i-input
+                v-model="safetyField.VEND_NAME"
+                class="mt-5"
+                width="250px"
+              />
 
               <span class="mt-6">위반조직으로 검색되지 않는 경우에 수기입력하세요.</span>
-
             </div>
 
             <div class="d-flex mt-2">
-
-              <v-avatar color="primary" size="24" class="text-white">
-
+              <v-avatar
+                color="primary"
+                size="24"
+                class="text-white"
+              >
                 3
-
               </v-avatar>
 
               &nbsp;<b>위반 내용</b>
-
             </div>
 
             <div class="d-flex mt-2">
+              <i-input
+                v-model="safetyField.VIO_GDIV_NM"
+                :label="$t('위반 종류')"
+                top-label
+                width="350px"
+                required
+                readonly
 
-              <i-input :label="$t('위반 종류')" top-label width="350px" required readonly append-inner-icon="mdi-magnify"
+                append-inner-icon="mdi-magnify"
+                @click:append-inner="openVioDivPopup"
+              />
 
-                @click:appendInner="openVioDivPopup" v-model="safetyField.VIO_GDIV_NM" />
+              <i-input
+                v-model="safetyField.VIO_MDIV_NM"
+                width="470px"
+                readonly
+                class="mt-5"
+              />
 
-              <i-input width="470px" readonly class="mt-5" v-model="safetyField.VIO_MDIV_NM" />
-
-              <!-- <span
+              <!--
+                <span
 
                 class="sheetTitle"
 
@@ -2448,30 +2537,33 @@ defineExpose({
 
                 v-if="!isEmpty(safetyField.VIO_NO)"
 
-              >
+                >
 
                 위반정보 {{ safetyField.VIO_NO }}
 
-              </span> -->
-
+                </span> 
+              -->
             </div>
 
             <div>
-
-              <i-textarea v-model="safetyField.VIO_DESC" :label="$t('내용')" width="100%" class="mt-2" />
-
+              <i-textarea
+                v-model="safetyField.VIO_DESC"
+                :label="$t('내용')"
+                width="100%"
+                class="mt-2"
+              />
             </div>
 
             <div v-if="!trafficReg">
-
               <div class="mb-6">
-
                 <!-- 위반내용 - 사진첨부 start -->
 
                 <div class="mt-2">
-
-                  <IUploadImageMulitCom title="사진첨부" ref="imageUpload" @uploaded="uploadPicture"></IUploadImageMulitCom>
-
+                  <IUploadImageMulit
+                    ref="imageUpload"
+                    title="사진첨부"
+                    @uploaded="uploadPicture"
+                  />
                 </div>
 
                 <!-- 위반내용 - 사진첨부 end -->
@@ -2479,92 +2571,120 @@ defineExpose({
                 <!-- 위반내용 - 파일첨부 start -->
 
                 <div style="height: 430px">
-
-                  <IUploadCom gridTitle="파일첨부" ref="safetyFileUpload" @uploaded="uploadViolationFile"></IUploadCom>
-
+                  <IUpload
+                    ref="safetyFileUpload"
+                    grid-title="파일첨부"
+                    @uploaded="uploadViolationFile"
+                  />
                 </div>
 
                 <!-- 위반내용 - 파일첨부 end -->
-
               </div>
-
             </div>
 
             <!-- 교통수칙 start -->
 
             <div v-else>
-
-              <div class="sheetTitle mt-2">차량정보</div>
+              <div class="sheetTitle mt-2">
+                차량정보
+              </div>
 
               <div class="d-flex">
-
                 <div class="mt-4">
+                  <v-radio-group
+                    v-model="safetyField.VEHICLE_TYPE"
+                    inline
+                    @update:model-value="changeVioDiv"
+                  >
+                    <v-radio
+                      v-for="option in vehicleTypeOptions"
+                      :key="option.value"
+                      :label="option.label"
 
-                  <v-radio-group inline v-model="safetyField.VEHICLE_TYPE" @update:model-value="changeVioDiv">
-
-                    <v-radio v-for="option in vehicleTypeOptions" :key="option.value" :label="option.label"
-
-                      :value="option.value" />
-
-                  </v-radio-gro?up>
-
+                      :value="option.value"
+                    />
+                  </v-radio-group>
                 </div>
 
-                <div class="d-flex ml-4" style="position: relative; bottom: 6px">
+                <div
+                  class="d-flex ml-4"
+                  style="position: relative; bottom: 6px"
+                >
+                  <i-input
+                    v-model="safetyField.VEHICLE_CAR_NO"
+                    :label="$t('차량번호')"
+                    width="200px"
+                    top-label
+                    required
 
-                  <i-input :label="$t('차량번호')" width="200px" top-label required v-model="safetyField.VEHICLE_CAR_NO"
+                    :append-inner-icon="readOnlyValue.CAR_NO_ICON"
+                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled"
 
-                    :append-inner-icon="readOnlyValue.CAR_NO_ICON" @click:append-inner="openCarPopup"
+                    @click:append-inner="openCarPopup"
+                  />
 
-                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled" />
+                  <i-input
+                    v-model="safetyField.VEHICLE_REG_NO"
+                    :label="$t('등록번호')"
+                    width="200px"
+                    top-label
 
-                  <i-input :label="$t('등록번호')" width="200px" top-label v-model="safetyField.VEHICLE_REG_NO"
-
-                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled">
-
-                    <template v-slot:append-inner v-if="readOnlyValue.ICON === true">
-
-                      <v-icon :icon="readOnlyValue.RESIST_NO_ICON" @click="checkResistCarNo" />
-
+                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled"
+                  >
+                    <template
+                      v-if="readOnlyValue.ICON === true"
+                      #append-inner
+                    >
+                      <v-icon
+                        :icon="readOnlyValue.RESIST_NO_ICON"
+                        @click="checkResistCarNo"
+                      />
                     </template>
-
                   </i-input>
 
                   <template v-if="vehicleInfoEnabled">
+                    <i-input
+                      v-model="safetyField.VEHICLE_SPEED"
+                      :label="$t('주행속도')"
+                      width="100px"
+                      top-label
+                      number
 
-                    <i-input :label="$t('주행속도')" width="100px" top-label number :disabled="vehicleFieldsDisabled"
-
-                      v-model="safetyField.VEHICLE_SPEED" />
+                      :disabled="vehicleFieldsDisabled"
+                    />
 
                     <span style="margin-top: 24px">Km/h</span>
-
                   </template>
-
                 </div>
-
               </div>
-
             </div>
 
             <!-- 교통수칙 end -->
 
             <div v-if="!trafficReg">
-
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">
-
-                  4 </v-avatar>&nbsp;<b>조치 내용</b>
-
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  4
+                </v-avatar>&nbsp;<b>조치 내용</b>
               </div>
 
               <!-- <div class="sheetTitle my-5">조치자 정보</div> -->
 
               <div class="d-flex mt-2">
+                <i-input
+                  v-model="safetyField.ACTOR"
+                  :label="$t('조치자 성명')"
+                  width="200px"
+                  top-label
 
-                <i-input v-model="safetyField.ACTOR" :label="$t('조치자 성명')" width="200px" top-label
-
-                  append-inner-icon="mdi-magnify" @click:appendInner="openActEmpPopup('조치자인원조회')" @keydown.enter="
+                  append-inner-icon="mdi-magnify"
+                  required
+                  @click:append-inner="openActEmpPopup('조치자인원조회')"
+                  @keydown.enter="
 
                     (e) => {
 
@@ -2572,40 +2692,77 @@ defineExpose({
 
                     }
 
-                  " required></i-input>
+                  "
+                />
 
-                <i-input v-model="safetyField.ACT_EMP_NO" :label="$t('사번')" width="200px" top-label readonly></i-input>
+                <i-input
+                  v-model="safetyField.ACT_EMP_NO"
+                  :label="$t('사번')"
+                  width="200px"
+                  top-label
+                  readonly
+                />
 
-                <i-input v-model="safetyField.ACT_JOB_TIT_NM" :label="$t('직위')" width="200px" top-label readonly
+                <i-input
+                  v-model="safetyField.ACT_JOB_TIT_NM"
+                  :label="$t('직위')"
+                  width="200px"
+                  top-label
+                  readonly
 
-                  required></i-input>
+                  required
+                />
 
-                <i-input v-model="safetyField.ACT_ASGN_NM" :label="$t('소속')" width="200px" top-label readonly
+                <i-input
+                  v-model="safetyField.ACT_ASGN_NM"
+                  :label="$t('소속')"
+                  width="200px"
+                  top-label
+                  readonly
 
-                  required></i-input>
+                  required
+                />
 
-                <i-input v-model="safetyField.ACT_PHONE" :label="$t('전화번호')" width="200px" top-label readonly
+                <i-input
+                  v-model="safetyField.ACT_PHONE"
+                  :label="$t('전화번호')"
+                  width="200px"
+                  top-label
+                  readonly
 
-                  required></i-input>
-
+                  required
+                />
               </div>
 
               <div class="d-flex flex-row">
+                <i-textarea
+                  v-model="safetyField.ACT_RSLT"
+                  :label="$t('조치내용')"
+                  class="mt-2 flex-grow-1"
+                />
 
-                <i-textarea v-model="safetyField.ACT_RSLT" :label="$t('조치내용')" class="mt-2 flex-grow-1"></i-textarea>
+                <i-select
+                  v-model="safetyField.ACT_DIV"
+                  :label="$t('조치구분')"
+                  width="200px"
+                  top-label
 
-                <i-select v-model="safetyField.ACT_DIV" :label="$t('조치구분')" width="200px" top-label
-
-                  :items="codeList.ACT_DIV" item-title="TXT" item-value="COD" class="mt-2 " required></i-select>
-
+                  :items="codeList.ACT_DIV"
+                  item-title="TXT"
+                  item-value="COD"
+                  class="mt-2 "
+                  required
+                />
               </div>
 
               <!-- 조치내용 - 사진첨부 start -->
 
               <div class="mt-2">
-
-                <IUploadImageMulitCom title="사진첨부" ref="imageUpload2" @uploadSed="uploadPicture2"></IUploadImageMulitCom>
-
+                <IUploadImageMulit
+                  ref="imageUpload2"
+                  title="사진첨부"
+                  @upload-sed="uploadPicture2"
+                />
               </div>
 
               <!-- 조치내용 - 사진첨부 end -->
@@ -2613,30 +2770,38 @@ defineExpose({
               <!-- 조치내용 - 파일첨부 start -->
 
               <div class="mt-2">
-
                 <div style="height: 430px">
-
-                  <IUploadCom gridTitle="파일첨부" ref="safetyActionFileUpload" @uploaded="uploadActionFile"></IUploadCom>
-
+                  <IUpload
+                    ref="safetyActionFileUpload"
+                    grid-title="파일첨부"
+                    @uploaded="uploadActionFile"
+                  />
                 </div>
-
               </div>
 
               <!-- 조치내용 - 파일첨부 end -->
 
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">
-
-                  5 </v-avatar>&nbsp;<b>단속자 / 승인자 정보</b>
-
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  5
+                </v-avatar>&nbsp;<b>단속자 / 승인자 정보</b>
               </div>
 
               <div class="d-flex mt-2">
+                <i-input
+                  v-model="safetyField.DANSOK_EMP_NM"
+                  :label="$t('단속자 성명')"
+                  width="200px"
+                  top-label
 
-                <i-input v-model="safetyField.DANSOK_EMP_NM" :label="$t('단속자 성명')" width="200px" top-label
-
-                  append-inner-icon="mdi-magnify" @click:appendInner="openDansokEmpPopup('단속자인원조회')" @keydown.enter="
+                  append-inner-icon="mdi-magnify"
+                  required
+                  @click:append-inner="openDansokEmpPopup('단속자인원조회')"
+                  @keydown.enter="
 
                     (e) => {
 
@@ -2644,39 +2809,68 @@ defineExpose({
 
                     }
 
-                  " required></i-input>
+                  "
+                />
 
-                <i-input v-model="safetyField.DANSOK_EMP_NO" :label="$t('사번')" width="200px" top-label
+                <i-input
+                  v-model="safetyField.DANSOK_EMP_NO"
+                  :label="$t('사번')"
+                  width="200px"
+                  top-label
 
-                  readonly></i-input>
+                  readonly
+                />
 
-                <i-input v-model="safetyField.DANSOK_JOB_TIT_NM" :label="$t('직위')" width="200px" top-label readonly
+                <i-input
+                  v-model="safetyField.DANSOK_JOB_TIT_NM"
+                  :label="$t('직위')"
+                  width="200px"
+                  top-label
+                  readonly
 
-                  required></i-input>
+                  required
+                />
 
-                <i-input v-model="safetyField.DANSOK_ASGN_NM" :label="$t('소속')" width="200px" top-label readonly
+                <i-input
+                  v-model="safetyField.DANSOK_ASGN_NM"
+                  :label="$t('소속')"
+                  width="200px"
+                  top-label
+                  readonly
 
-                  required></i-input>
+                  required
+                />
 
                 <!-- 승인자 동일 체크박스 -->
 
                 <div class="d-flex align-center h-14 mt-5 mr-10">
+                  <v-checkbox
+                    v-model="safetyField.APP_SAME"
+                    true-value="Y"
+                    false-value="N"
+                    density="compact"
 
-                  <v-checkbox v-model="safetyField.APP_SAME" true-value="Y" false-value="N" density="compact"
-
-                    hide-details class="ma-0 flex-shrink-0"></v-checkbox>
+                    hide-details
+                    class="ma-0 flex-shrink-0"
+                  />
 
                   <span class="ml-1 flex-shrink-0 text-no-wrap text-body-2">
 
                     승인자 동일
 
                   </span>
-
                 </div>
 
-                <i-input v-model="safetyField.APP_EMP_NM" :label="$t('승인자')" width="200px" top-label
+                <i-input
+                  v-model="safetyField.APP_EMP_NM"
+                  :label="$t('승인자')"
+                  width="200px"
+                  top-label
 
-                  append-inner-icon="mdi-magnify" @click:appendInner="openAppEmpPopup('승인자인원조회')" @keydown.enter="
+                  append-inner-icon="mdi-magnify"
+                  :disabled="approvalReadOnly"
+                  @click:append-inner="openAppEmpPopup('승인자인원조회')"
+                  @keydown.enter="
 
                     (e) => {
 
@@ -2684,58 +2878,86 @@ defineExpose({
 
                     }
 
-                  " :disabled="approvalReadOnly"></i-input>
+                  "
+                />
 
                 <!-- 승인신청 -->
 
-                <v-btn class="mt-5" @click="approval" :disabled="approvalReadOnly">승인신청</v-btn>
+                <v-btn
+                  class="mt-5"
+                  :disabled="approvalReadOnly"
+                  @click="approval"
+                >
+                  승인신청
+                </v-btn>
 
                 <!-- 승인신청취소 -->
 
-                <v-btn class="mt-5" @click="cancelApproval" :disabled="approvalReadOnly">승인신청취소</v-btn>
-
+                <v-btn
+                  class="mt-5"
+                  :disabled="approvalReadOnly"
+                  @click="cancelApproval"
+                >
+                  승인신청취소
+                </v-btn>
               </div>
-
             </div>
-
           </v-sheet>
-
         </div>
-
       </v-card-text>
-
     </v-card>
-
   </v-dialog>
 
-  <!--팝업-->
+  <!-- 팝업 -->
 
-  <EmpPopup ref="safetyEmpPopup" @selected="selectedSafetyEmp"></EmpPopup>
+  <EmpPopup
+    ref="safetyEmpPopup"
+    @selected="selectedSafetyEmp"
+  />
 
-  <EmpPopup ref="safetyActEmpPopup" @selected="selectedActEmp"></EmpPopup>
+  <EmpPopup
+    ref="safetyActEmpPopup"
+    @selected="selectedActEmp"
+  />
 
-  <EmpPopup ref="safetyDansokEmpPopup" @selected="selectedDansokEmp"></EmpPopup>
+  <EmpPopup
+    ref="safetyDansokEmpPopup"
+    @selected="selectedDansokEmp"
+  />
 
-  <EmpPopup ref="safetyAppEmpPopup" @selected="selectedAppEmp"></EmpPopup>
+  <EmpPopup
+    ref="safetyAppEmpPopup"
+    @selected="selectedAppEmp"
+  />
 
-  <SAFDC0010VioDivPopup ref="vioDivPopup" @selected="selectedVioDivPopup">
+  <SAFDC0010VioDivPopup
+    ref="vioDivPopup"
+    @selected="selectedVioDivPopup"
+  />
 
-  </SAFDC0010VioDivPopup>
+  <DeptPopup
+    ref="safetyVioDeptPopup"
+    :auto-disabled="false"
+    @selected="selectedVioDept"
+  />
 
-  <DeptPopup ref="safetyVioDeptPopup" :auto-disabled="false" @selected="selectedVioDept"></DeptPopup>
+  <CommonCodePopUpSAF
+    ref="sagoDivPopup"
+    @selected="selectedSagoDivPopup"
+  />
 
-  <CommonCodePopUpSAF ref="sagoDivPopup" @selected="selectedSagoDivPopup">
+  <CommonCodePopUpSAF
+    ref="checkTargetPopup"
+    @selected="selectedTarget"
+  />
 
-  </CommonCodePopUpSAF>
-
-  <CommonCodePopUpSAF ref="checkTargetPopup" @selected="selectedTarget"></CommonCodePopUpSAF>
-
-  <WorkLocationPopup ref="locationPopup" @selected="selectedSafetyLocation" />
-
+  <LocationPopup
+    ref="locationPopup"
+    @selected="selectedSafetyLocation"
+  />
 </template>
 
 <style scoped lang="scss">
-
 .content-area {
 
   position: relative;
@@ -2767,5 +2989,4 @@ defineExpose({
   font-weight: bold;
 
 }
-
 </style>

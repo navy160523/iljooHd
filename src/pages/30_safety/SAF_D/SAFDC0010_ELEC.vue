@@ -20,9 +20,11 @@ const t = useI18n().t //다국어
 const menuTitle = ref(null)
 const userStore = useUserStore()
 const { sliSAFDC0010 } = history.state
+
 const value = ref(
-  sliSAFDC0010 === undefined ? 'A' : sliSAFDC0010.GUBUN
+  sliSAFDC0010 === undefined ? 'A' : sliSAFDC0010.GUBUN,
 )
+
 // const codeList = reactive({
 //   VIO_GDIV: [
 //     { TXT: '안전수칙위반', COD: 'A' },
@@ -43,15 +45,27 @@ const value = ref(
     <v-card-text class="pa-3 pt-0 content-area">      
       <div class="d-flex flex-column fill-height">
         <v-sheet class="searchArea d-flex mt-1">
-          <v-radio-group v-model="value" inline>
-            <v-radio label="안전수칙위반" value="A"></v-radio>
-            <v-radio label="시정통보" value="B"></v-radio>
-            <v-radio label="작업중지" value="C"></v-radio>
+          <v-radio-group
+            v-model="value"
+            inline
+          >
+            <v-radio
+              label="안전수칙위반"
+              value="A"
+            />
+            <v-radio
+              label="시정통보"
+              value="B"
+            />
+            <v-radio
+              label="작업중지"
+              value="C"
+            />
           </v-radio-group>
         </v-sheet>
-        <SAFDC0010_01 v-if="value === 'A'"></SAFDC0010_01>
-        <SAFDC0010_02 v-else-if="value === 'B'"></SAFDC0010_02>
-        <SAFDC0010_03 v-else-if="value === 'C'"></SAFDC0010_03>
+        <SAFDC0010_01 v-if="value === 'A'" />
+        <SAFDC0010_02 v-else-if="value === 'B'" />
+        <SAFDC0010_03 v-else-if="value === 'C'" />
       </div>
     </v-card-text>
   </v-card>

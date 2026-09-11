@@ -25,7 +25,9 @@ import { lowerCase } from 'lodash-es'
 import SAFDC0010_02Tab01Popup from './SAFDC0010_02Tab01Popup_ELEC.vue'
 import IUploadImage from '@/components/IUploadImage.vue'
 import IGridTitle from '@/components/IGridTitle.vue'
+
 const imageUpload = ref(null)
+
 defineOptions({
   name: '30_safety-SAF_D-SAFDC0010',
 })
@@ -61,6 +63,8 @@ const searchParam = reactive({
   SAGO_DIV_M: '', //사고유형
   STATUS: '', //진행상태
 })
+
+
 //협력사 설정
 const setAsgnCombo = () =>{
   codeList.ASGN = [{ ASGN_CD : '', ASGN_NM : '전체' }]
@@ -78,11 +82,13 @@ const initCodeList = () => {
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: userStore.cmpnyDiv },
     }),
+
     //부서조회
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.BSNS_CD, USE_DIV: 'Y' },
     }),   
+
     //사고유형조회
     commonSearchApi({
       queryId: 'SAFDC0010_SEARCH_05',
@@ -90,18 +96,20 @@ const initCodeList = () => {
         CMPNY_DIV: userStore.cmpnyDiv,
       },
     }),
+
     //진행상태조회
     getCodeList('HHIF190'),
+
     //분야조회
     getCodeList('HHIF120'),
 
     //팀 협력사 조회
     commonSearchApi({ 
       queryId : 'searchTeam', 
-      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.SEND_BSNS_CD, DEPT_CD: searchParam.SEND_DEPT_CD},
+      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.SEND_BSNS_CD, DEPT_CD: searchParam.SEND_DEPT_CD },
     }),
 
-  ]).then((res) => {
+  ]).then(res => {
     //codeList.BSNS_CD = res[0].ORESULT_CUR
     codeList.SEND_BSNS_CD = res[0].ORESULT_CUR //발신 사업부 추가
     codeList.REC_BSNS_CD = res[0].ORESULT_CUR  //수신 사업부 추가
@@ -409,7 +417,7 @@ const grdMainProps = reactive({
 
 grdMainProps.columns = grdMainProps.fields
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnSearch') {
     new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
   } else if (btn.id === 'btnMuniNotice') {
@@ -442,10 +450,11 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   // console.log('main search res', res)
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //조회관련 로직 끝
 
 //삭제관련 로직 시작
@@ -453,8 +462,10 @@ const beforeDelete = () => {
   let chekedRow = grdMain.value.getGridView().getCheckedRows()
   if (chekedRow.length === 0) {
     Message.warn(t('삭제할 데이터를 선택해주세요.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -471,6 +482,7 @@ const deleteData = () => {
     }
     deleteParam.push(deleteData)
   }
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_DELETE01',
     list: deleteParam,
@@ -480,6 +492,7 @@ const deleteData = () => {
 const afterDelete = () => {
   onButtonsClick({ id: 'btnSearch' })
 }
+
 //삭제관련 로직 끝
 
 //디폴트 날짜 설정 -7일~오늘
@@ -534,6 +547,7 @@ const onCellDblClicked = (grid, clickData) => {
   let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
   sAFDC0010_02_Tab01_Popup.value.openPopup2(data)
 }
+
 //셀 더블클릭 이벤트 관련 로직 끝
 
 //팝업닫히면 재조회
@@ -551,7 +565,7 @@ watch(
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       if (oldValue !== undefined) {
         searchParam.SEND_DEPT_CD = ''
         codeList.SEND_DEPT_CD = res.ORESULT_CUR
@@ -564,7 +578,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 //발신 부서 변경
@@ -575,7 +589,7 @@ watch(
     commonSearchApi({
       queryId: 'searchTeam',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.SEND_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       if (oldValue !== undefined) {
         searchParam.SEND_ASGN_CD = ''
         codeList.SEND_ASGN_CD = res.ORESULT_CUR
@@ -588,7 +602,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 
@@ -601,7 +615,7 @@ watch(
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       if (oldValue !== undefined) {
         searchParam.REC_DEPT_CD = ''
         codeList.REC_DEPT_CD = res.ORESULT_CUR
@@ -614,7 +628,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 //수신 부서 변경
@@ -625,7 +639,7 @@ watch(
     commonSearchApi({
       queryId: 'searchTeam',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: searchParam.REC_BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       if (oldValue !== undefined) {
         searchParam.REC_ASGN_CD = ''
         codeList.REC_ASGN_CD = res.ORESULT_CUR
@@ -638,7 +652,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 // //발신 사업부 변경
@@ -681,55 +695,60 @@ watch(
         <v-sheet class="searchArea">
           <div class="d-flex mb-2">
             <v-checkbox
+              v-model="searchParam.NOTI_CHK"
               label="점검일자"
               class="mr-5"
               true-value="Y"
               false-value="N"
-              v-model="searchParam.NOTI_CHK"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.NOTI_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.NOTI_FROM"
-            ></i-input>
+            />
             <span class="mx-1 mt-2">~</span>
             <i-input
+              v-model="searchParam.NOTI_TO"
               width="150px"
               type="date"
-              v-model="searchParam.NOTI_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.SEND_BSNS_CD"
               label-width="70px"
               :label="$t('발신 사업부')"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :items="codeList.SEND_BSNS_CD"
-              v-model="searchParam.SEND_BSNS_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.SEND_DEPT_CD"
               :label="$t('부서')"
               width="200px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :items="codeList.SEND_DEPT_CD"
-              v-model="searchParam.SEND_DEPT_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.SEND_ASGN_CD"
               :label="$t('팀/협력사')"
               width="200px"
               item-title="ASGN_NM"
               item-value="ASGN_CD"
               :items="codeList.SEND_ASGN_CD"
-              v-model="searchParam.SEND_ASGN_CD"
-            ></i-select>
-            <v-divider style="margin: 0 5px;" vertical />
+            />
+            <v-divider
+              style="margin: 0 5px;"
+              vertical
+            />
             
-            <!--사고유형(대,중,소) 구분변경으로 인해 조회불가 조회조건에서 제거
+            <!--
+              사고유형(대,중,소) 구분변경으로 인해 조회불가 조회조건에서 제거
               엄정준책임 요청
             -->
-            <!-- <i-select
+            <!--
+              <i-select
               label-width="50px"
               :label="$t('사고유형')"
               width="200px"
@@ -737,72 +756,75 @@ watch(
               item-value="COD"
               :items="codeList.SAGO_DIV"
               v-model="searchParam.SAGO_DIV_M"
-            ></i-select> -->
+              ></i-select> 
+            -->
             <i-select
+              v-model="searchParam.STATUS"
               :label="$t('진행상태')"
               width="200px"
-              labelWidth="50px"
+              label-width="50px"
               item-title="TXT"
               item-value="COD"
               :items="codeList.STATUS"
-              v-model="searchParam.STATUS"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.SUBJECT_CD"
               :label="$t('분야')"
               width="170px"
               item-title="TXT"
               item-value="COD"
               :items="codeList.SUBJECT"
-              v-model="searchParam.SUBJECT_CD"
-            ></i-select>
+            />
           </div>
           <div class="d-flex">
             <v-checkbox
+              v-model="searchParam.REQ_REPLY_CHK"
               label="회신요구일"
               class="mr-2"
               true-value="Y"
               false-value="N"
-              v-model="searchParam.REQ_REPLY_CHK"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.REQ_REPLY_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.REQ_REPLY_FROM"
-            ></i-input>
+            />
             <span class="mx-1 mt-2">~</span>
             <i-input
+              v-model="searchParam.REQ_REPLY_TO"
               width="150px"
               type="date"
-              v-model="searchParam.REQ_REPLY_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.REC_BSNS_CD"
               label-width="70px"
               :label="$t('수신 사업부')"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :items="codeList.REC_BSNS_CD"
-              v-model="searchParam.REC_BSNS_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.REC_DEPT_CD"
               :label="$t('부서')"
               width="200px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :items="codeList.REC_DEPT_CD"
-              v-model="searchParam.REC_DEPT_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.REC_ASGN_CD"
               :label="$t('팀/협력사')"
               width="200px"
               item-title="ASGN_NM"
               item-value="ASGN_CD"
               :items="codeList.REC_ASGN_CD"
-              v-model="searchParam.REC_ASGN_CD"
-            ></i-select>
-            <v-divider style="margin: 0 5px;" vertical />
-            
+            />
+            <v-divider
+              style="margin: 0 5px;"
+              vertical
+            />
           </div>
         </v-sheet>
         <v-sheet style="height: -webkit-fill-available">
@@ -811,7 +833,7 @@ watch(
             :grid-view-option="grdMainProps.gridViewOption"
             :fields="grdMainProps.fields"
             :columns="grdMainProps.columns"
-            @onCellDblClicked="onCellDblClicked"
+            @on-cell-dbl-clicked="onCellDblClicked"
           />
         </v-sheet>
       </div>
@@ -820,8 +842,9 @@ watch(
   <SAFDC0010_02Tab01Popup
     ref="sAFDC0010_02_Tab01_Popup"
     @closed="closedPoup"
-  ></SAFDC0010_02Tab01Popup>
+  />
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

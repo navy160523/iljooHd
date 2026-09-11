@@ -1,10 +1,9 @@
 <script setup>
+import { ref, reactive, onMounted, getCurrentInstance, watch } from "vue"
 
-import { ref, reactive, onMounted, getCurrentInstance, watch } from "vue";
+import { useUserStore } from "@hiway/stores/user"
 
-import { useUserStore } from "@hiway/stores/user";
-
-import { useI18n } from "vue-i18n";
+import { useI18n } from "vue-i18n"
 
 import {
 
@@ -14,41 +13,41 @@ import {
 
   getPgCodeList,
 
-} from "@hiway/api/commonApi";
+} from "@hiway/api/commonApi"
 
-import RealGrid from "@/components/RealGrid.vue";
+import RealGrid from "@/components/RealGrid.vue"
 
-import IGridTitle from "@/components/IGridTitle.vue";
+import IGridTitle from "@/components/IGridTitle.vue"
 
-import EmpPopup from "@/pages/COM/components/EmpPopup.vue"; //점검자 팝업
+import EmpPopup from "@/components/popup/EmpPopup.vue" //점검자 팝업
 
-import deleteFlowHelper from "@/utils/deleteFlowHelper";
+import deleteFlowHelper from "@/utils/deleteFlowHelper"
 
-import queryFlowHelper from "@/utils/searchFlowHelper";
+import queryFlowHelper from "@/utils/searchFlowHelper"
 
-import dayjs from "dayjs";
+import dayjs from "dayjs"
 
-import Message from "@hiway/utils/notify";
+import Message from "@hiway/utils/notify"
 
-import SAFDC0020_01Popup01 from "./SAFDC0020_01Popup01.vue";
+import SAFDC0020_01Popup01 from "./SAFDC0020_01Popup01.vue"
 
 defineOptions({
 
   name: "30_safety-SAF_D-SAFDC0020_01",
 
-});
+})
 
-const vm = getCurrentInstance().proxy;
+const vm = getCurrentInstance().proxy
 
-const t = useI18n().t;
+const t = useI18n().t
 
-const grdMain = ref(null);
+const grdMain = ref(null)
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
-const sAFDC0020_01_Popup01 = ref(null);
+const sAFDC0020_01_Popup01 = ref(null)
 
-const empPopup = ref(null); // 점검자 팝업
+const empPopup = ref(null) // 점검자 팝업
 
 const searchParam = reactive({
 
@@ -98,7 +97,7 @@ const searchParam = reactive({
 
   CHK_EMP_NO: "",
 
-});
+})
 
 const codeList = reactive({
 
@@ -116,23 +115,23 @@ const codeList = reactive({
 
   STATUS: [],
 
-});
+})
 
 const rowStyleCallback = (grid, item) => {
 
-  const rowIndex = item.index;
+  const rowIndex = item.index
 
-  const status = String(grid.getValue(rowIndex, "STATUS") ?? "").trim();
+  const status = String(grid.getValue(rowIndex, "STATUS") ?? "").trim()
 
   const actionDivision = String(
 
-    grid.getValue(rowIndex, "ACT_DIV") ?? ""
+    grid.getValue(rowIndex, "ACT_DIV") ?? "",
 
-  ).trim();
+  ).trim()
 
-  const isApproved = status === "30" || status === "승인";
+  const isApproved = status === "30" || status === "승인"
 
-  const needsAction = actionDivision === "10" || actionDivision === "조치필요";
+  const needsAction = actionDivision === "10" || actionDivision === "조치필요"
 
   //승인이면서 조치필요일때
 
@@ -146,13 +145,13 @@ const rowStyleCallback = (grid, item) => {
 
       },
 
-    };
+    }
 
   }
 
-  return {};
+  return {}
 
-};
+}
 
 const initCodeList = () => {
 
@@ -172,19 +171,19 @@ const initCodeList = () => {
 
     getPgCodeList("HHIG190"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
-    codeList.SEND_BSNS_CD = res[0].ORESULT_CUR;
+    codeList.SEND_BSNS_CD = res[0].ORESULT_CUR
 
-    codeList.REC_BSNS_CD = res[0].ORESULT_CUR;
+    codeList.REC_BSNS_CD = res[0].ORESULT_CUR
 
-    codeList.STATUS = res[1].ORESULT_CUR;
+    codeList.STATUS = res[1].ORESULT_CUR
 
     // 중복 방지 체크 후 "전체" 추가 (SEND_BSNS_CD)
 
     if (codeList.SEND_BSNS_CD.length === 0 || codeList.SEND_BSNS_CD[0].BSNS_CD !== "") {
 
-      codeList.SEND_BSNS_CD.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.SEND_BSNS_CD.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
     }
 
@@ -192,7 +191,7 @@ const initCodeList = () => {
 
     if (codeList.REC_BSNS_CD.length === 0 || codeList.REC_BSNS_CD[0].BSNS_CD !== "") {
 
-      codeList.REC_BSNS_CD.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.REC_BSNS_CD.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
     }
 
@@ -200,13 +199,13 @@ const initCodeList = () => {
 
     if (codeList.STATUS.length === 0 || codeList.STATUS[0].COD !== "") {
 
-      codeList.STATUS.unshift({ TXT: "전체", COD: "" });
+      codeList.STATUS.unshift({ TXT: "전체", COD: "" })
 
     }
 
-  });
+  })
 
-};
+}
 
 const grdMainProps = reactive({
 
@@ -376,7 +375,7 @@ const grdMainProps = reactive({
 
 })
 
-grdMainProps.columns = grdMainProps.fields;
+grdMainProps.columns = grdMainProps.fields
 
 // const onGridLoaded = () => {
 
@@ -392,37 +391,37 @@ const onButtonsClick = ({ id }) => {
 
   switch (id) {
 
-    case "btnSearch":
+  case "btnSearch":
 
-      onSearch();
+    onSearch()
 
-      break;
+    break
 
-    case "btnRegist":
+  case "btnRegist":
 
-      onRegister();
+    onRegister()
 
-      break;
+    break
 
-    case "btnApprove":
+  case "btnApprove":
 
-      onApproval();
+    onApproval()
 
-      break;
+    break
 
-    case "btnApproveCancel":
+  case "btnApproveCancel":
 
-      onCancelApproval();
+    onCancelApproval()
 
-      break;
+    break
 
-    default:
+  default:
 
-      break;
+    break
 
   }
 
-};
+}
 
 const onSearch = () => {
 
@@ -432,41 +431,41 @@ const onSearch = () => {
 
     .setAfter(afterSearch)
 
-    .run();
+    .run()
 
-};
+}
 
 const onRegister = () => {
 
-  sAFDC0020_01_Popup01.value.openPopup();
+  sAFDC0020_01_Popup01.value.openPopup()
 
-};
+}
 
 const onApproval = () => {
 
-  let checkedData = grdMain.value.getGridView().getCheckedRows(true);
+  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (checkedData.length === 0) {
 
-    Message.warn(t("승인 신청할 데이터를 선택해주세요."));
+    Message.warn(t("승인 신청할 데이터를 선택해주세요."))
 
-    return;
+    return
 
   }
 
-  let list = [];
+  let list = []
 
-  let day = dayjs();
+  let day = dayjs()
 
   for (let i in checkedData) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
 
     if (!data.APP_EMP_NO) {
 
-      Message.warn(t(`관리번호 ${data.MNG_NO} 건은 승인자가 지정되지 않았습니다.`));
+      Message.warn(t(`관리번호 ${data.MNG_NO} 건은 승인자가 지정되지 않았습니다.`))
 
-      return;
+      return
 
     }
 
@@ -494,7 +493,7 @@ const onApproval = () => {
 
       MNG_NO: data.MNG_NO,
 
-    });
+    })
 
   }
 
@@ -506,31 +505,31 @@ const onApproval = () => {
 
   }).then(() => {
 
-    Message.success(t("승인신청 되었습니다."));
+    Message.success(t("승인신청 되었습니다."))
 
-    onSearch();
+    onSearch()
 
-  });
+  })
 
-};
+}
 
 const onCancelApproval = () => {
 
-  let checkedData = grdMain.value.getGridView().getCheckedRows(true);
+  let checkedData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (checkedData.length === 0) {
 
-    Message.warn(t("승인 취소할 데이터를 선택해주세요."));
+    Message.warn(t("승인 취소할 데이터를 선택해주세요."))
 
-    return;
+    return
 
   }
 
-  let list = [];
+  let list = []
 
   for (let i in checkedData) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
 
     list.push({
 
@@ -542,7 +541,7 @@ const onCancelApproval = () => {
 
       USER_ID: userStore.userId,
 
-    });
+    })
 
   }
 
@@ -554,13 +553,13 @@ const onCancelApproval = () => {
 
   }).then(() => {
 
-    Message.success(t("결재 신청이 취소되었습니다."));
+    Message.success(t("결재 신청이 취소되었습니다."))
 
-    onSearch();
+    onSearch()
 
-  });
+  })
 
-};
+}
 
 const searchData = () => commonPgSearchApi({
 
@@ -568,43 +567,43 @@ const searchData = () => commonPgSearchApi({
 
   param: searchParam,
 
-});
+})
 
-const afterSearch = (res) => {
+const afterSearch = res => {
 
-  let list = res.ORESULT_CUR || [];
+  let list = res.ORESULT_CUR || []
 
-  console.log("list: ", list);
+  console.log("list: ", list)
 
-  list.forEach((row) => {
+  list.forEach(row => {
 
-    row.ACT_DT_2 = row.ACT_DT;
+    row.ACT_DT_2 = row.ACT_DT
 
-    row.NOTI_IMG_YN = row.IMG_ID1 ? "Y" : "N";
+    row.NOTI_IMG_YN = row.IMG_ID1 ? "Y" : "N"
 
-    row.NOTI_FILE_YN = row.FILE_ID1 ? "Y" : "N";
+    row.NOTI_FILE_YN = row.FILE_ID1 ? "Y" : "N"
 
-    row.ACT_IMG_YN = row.IMG_ID2 ? "Y" : "N";
+    row.ACT_IMG_YN = row.IMG_ID2 ? "Y" : "N"
 
-    row.ACT_FILE_YN = row.FILE_ID2 ? "Y" : "N";
+    row.ACT_FILE_YN = row.FILE_ID2 ? "Y" : "N"
 
-  });
+  })
 
-  grdMain.value.getDataProvider().setRows(list);
+  grdMain.value.getDataProvider().setRows(list)
 
   //grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback);
 
-};
+}
 
 const defaultDate = () => {
 
-  let date = dayjs();
+  let date = dayjs()
 
-  let dateFrom = dayjs().subtract(7, "day");
+  let dateFrom = dayjs().subtract(7, "day")
 
-  searchParam.NOTI_FROM = dateFrom.format("YYYY-MM-DD");
+  searchParam.NOTI_FROM = dateFrom.format("YYYY-MM-DD")
 
-  searchParam.NOTI_TO = date.format("YYYY-MM-DD");
+  searchParam.NOTI_TO = date.format("YYYY-MM-DD")
 
   //회신요구일 제외
 
@@ -612,31 +611,31 @@ const defaultDate = () => {
 
   // searchParam.REQ_REPLY_TO = date.format("YYYY-MM-DD");
 
-};
+}
 
 onMounted(() => {
 
-  defaultDate();
+  defaultDate()
 
-  initCodeList();
+  initCodeList()
 
-  onSearch();
+  onSearch()
 
-});
+})
 
 const onCellDblClicked = (grid, clickData) => {
 
-  let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow);
+  let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
 
-  sAFDC0020_01_Popup01.value.openPopup2(data);
+  sAFDC0020_01_Popup01.value.openPopup2(data)
 
-};
+}
 
 const closedPopup = () => {
 
-  onSearch();
+  onSearch()
 
-};
+}
 
 // 단속자 인원팝업 오픈
 
@@ -650,33 +649,33 @@ const openCheckEmpPopup = () => {
 
     readonly: true,
 
-  });
+  })
 
-};
+}
 
-const selectedChkEmp = (val) => {
+const selectedChkEmp = val => {
 
-  searchParam.CHK_EMP_NM = val.EMP_NM;
+  searchParam.CHK_EMP_NM = val.EMP_NM
 
-  searchParam.CHK_EMP_NO = val.EMP_NO;
+  searchParam.CHK_EMP_NO = val.EMP_NO
 
-};
+}
 
 // 점검자 내부 X아이콘 클릭시 점검자 사번,성명 초기화
 
 const clearInsert = () => {
 
-  searchParam.CHK_EMP_NM = "";
+  searchParam.CHK_EMP_NM = ""
 
-  searchParam.CHK_EMP_NO = "";
+  searchParam.CHK_EMP_NO = ""
 
-};
+}
 
 watch(
 
   () => searchParam.REC_BSNS_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -684,27 +683,27 @@ watch(
 
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: "Y" },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.REC_DEPT_CD = "";
+      searchParam.REC_DEPT_CD = ""
 
-      codeList.REC_DEPT_CD = res.ORESULT_CUR;
+      codeList.REC_DEPT_CD = res.ORESULT_CUR
 
-      codeList.REC_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+      codeList.REC_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
+)
 
 watch(
 
   () => searchParam.REC_DEPT_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -722,27 +721,27 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.REC_ASGN_CD = "";
+      searchParam.REC_ASGN_CD = ""
 
-      codeList.REC_ASGN_CD = res.ORESULT_CUR;
+      codeList.REC_ASGN_CD = res.ORESULT_CUR
 
-      codeList.REC_ASGN_CD.unshift({ ASGN_NM: "전체", ASGN_CD: "" });
+      codeList.REC_ASGN_CD.unshift({ ASGN_NM: "전체", ASGN_CD: "" })
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
+)
 
 watch(
 
   () => searchParam.SEND_BSNS_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -750,33 +749,33 @@ watch(
 
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: "Y" },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.CHK_DEPT_CD = "";
+      searchParam.CHK_DEPT_CD = ""
 
-      codeList.CHK_DEPT_CD = res.ORESULT_CUR || [];
+      codeList.CHK_DEPT_CD = res.ORESULT_CUR || []
 
       // 중복 방지 체크 후 "전체" 추가 (REC_DEPT_CD)
 
       if (codeList.REC_DEPT_CD.length === 0 || codeList.REC_DEPT_CD[0].DEPT_CD !== "") {
 
-        codeList.REC_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.REC_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       }
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
+)
 
 watch(
 
   () => searchParam.CHK_DEPT_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -794,130 +793,187 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.SEND_ASGN_CD = "";
+      searchParam.SEND_ASGN_CD = ""
 
-      codeList.SEND_ASGN_CD = res.ORESULT_CUR || [];
+      codeList.SEND_ASGN_CD = res.ORESULT_CUR || []
 
       //[수정] 중복 방지 체크 후 "전체" 추가 (CHK_DEPT_CD)
 
       if (codeList.CHK_DEPT_CD.length === 0 || codeList.CHK_DEPT_CD[0].DEPT_CD !== "") {
 
-        codeList.CHK_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.CHK_DEPT_CD.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       }
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
-
+)
 </script>
 
 <template>
-
   <v-card class="pa-0 fill-height">
-
     <v-card-title class="pa-3 pb-0">
+      <IGridTitle
+        class="mt-0"
+        :button-list="['btnSearch', 'btnRegist', 'btnApprove', 'btnApproveCancel']"
 
-      <IGridTitle class="mt-0" :button-list="['btnSearch', 'btnRegist', 'btnApprove', 'btnApproveCancel']"
-
-        @click-button="onButtonsClick" />
-
+        @click-button="onButtonsClick"
+      />
     </v-card-title>
 
-    <v-card-text class="pa-3 pt-0 content-area"">
-
+    <v-card-text
+      class="pa-3 pt-0 content-area"
+    >
       <div class=" d-flex flex-column fill-height">
+        <v-sheet class="searchArea d-flex mb-0">
+          <i-input
+            v-model="searchParam.NOTI_FROM"
+            label-width="25px"
+            :label="$t('일자')"
+            width="170px"
+            class="mr-1"
 
-      <v-sheet class="searchArea d-flex mb-0">
+            type="date"
+          />
 
-        <i-input v-model="searchParam.NOTI_FROM" label-width="25px" :label="$t('일자')" width="170px" class="mr-1"
+          <span class="mt-2">~</span>
 
-          type="date"></i-input>
+          <i-input
+            v-model="searchParam.NOTI_TO"
+            class="ml-1"
+            type="date"
+            width="150px"
+          />
 
-        <span class="mt-2">~</span>
+          <i-select
+            v-model="searchParam.REC_BSNS_CD"
+            :label="$t('수신조직')"
+            label-width="60px"
+            width="250px"
 
-        <i-input v-model="searchParam.NOTI_TO" class="ml-1" type="date" width="150px"></i-input>
+            :items="codeList.REC_BSNS_CD"
+            item-title="BSNS_NM"
+            item-value="BSNS_CD"
+          />
 
-        <i-select v-model="searchParam.REC_BSNS_CD" :label="$t('수신조직')" label-width="60px" width="250px"
+          <i-select
+            v-model="searchParam.REC_DEPT_CD"
+            width="200px"
+            :items="codeList.REC_DEPT_CD"
+            item-title="DEPT_NM"
 
-          :items="codeList.REC_BSNS_CD" item-title="BSNS_NM" item-value="BSNS_CD"></i-select>
+            item-value="DEPT_CD"
+          />
 
-        <i-select v-model="searchParam.REC_DEPT_CD" width="200px" :items="codeList.REC_DEPT_CD" item-title="DEPT_NM"
+          <i-select
+            v-model="searchParam.REC_ASGN_CD"
+            width="250px"
+            :items="codeList.REC_ASGN_CD"
+            item-title="ASGN_NM"
 
-          item-value="DEPT_CD"></i-select>
+            item-value="ASGN_CD"
+          />
+        </v-sheet>
 
-        <i-select v-model="searchParam.REC_ASGN_CD" width="250px" :items="codeList.REC_ASGN_CD" item-title="ASGN_NM"
+        <v-sheet class="searchArea d-flex">
+          <i-select
+            v-model="searchParam.SEND_BSNS_CD"
+            :label="$t('발신조직')"
+            label-width="60px"
+            width="250px"
 
-          item-value="ASGN_CD"></i-select>
+            :items="codeList.SEND_BSNS_CD"
+            item-title="BSNS_NM"
+            item-value="BSNS_CD"
+          />
 
-      </v-sheet>
+          <i-select
+            v-model="searchParam.CHK_DEPT_CD"
+            width="200px"
+            :items="codeList.CHK_DEPT_CD"
+            item-title="DEPT_NM"
 
-      <v-sheet class="searchArea d-flex">
+            item-value="DEPT_CD"
+          />
 
-        <i-select v-model="searchParam.SEND_BSNS_CD" :label="$t('발신조직')" label-width="60px" width="250px"
+          <i-select
+            v-model="searchParam.SEND_ASGN_CD"
+            width="250px"
+            :items="codeList.SEND_ASGN_CD"
+            item-title="ASGN_NM"
 
-          :items="codeList.SEND_BSNS_CD" item-title="BSNS_NM" item-value="BSNS_CD">
+            item-value="ASGN_CD"
+          />
 
-        </i-select>
+          <i-select
+            v-model="searchParam.STATUS"
+            :label="$t('진행상태')"
+            label-width="60px"
+            width="220px"
 
-        <i-select v-model="searchParam.CHK_DEPT_CD" width="200px" :items="codeList.CHK_DEPT_CD" item-title="DEPT_NM"
+            :items="codeList.STATUS"
+            item-title="TXT"
+            item-value="COD"
+          />
 
-          item-value="DEPT_CD">
+          <i-input
+            v-model="searchParam.CHK_EMP_NM"
+            :label="$t('점검자')"
+            label-width="50px"
+            width="250px"
+            readonly
+          >
+            <template #append-inner>
+              <v-icon
+                icon="mdi-magnify"
+                @click="openCheckEmpPopup"
+              />
 
-        </i-select>
+              <v-icon
+                color="error"
+                icon="mdi-window-close"
+                @click="clearInsert"
+              />
+            </template>
+          </i-input>
+        </v-sheet>
 
-        <i-select v-model="searchParam.SEND_ASGN_CD" width="250px" :items="codeList.SEND_ASGN_CD" item-title="ASGN_NM"
+        <v-sheet style="height: -webkit-fill-available">
+          <RealGrid
+            ref="grdMain"
+            :grid-view-option="grdMainProps.gridViewOption"
+            :keys="grdMainProps.keys"
 
-          item-value="ASGN_CD"></i-select>
+            :fields="grdMainProps.fields"
+            :columns="grdMainProps.columns"
+            :column-layout="grdMainProps.columnLayout"
 
-        <i-select v-model="searchParam.STATUS" :label="$t('진행상태')" label-width="60px" width="220px"
-
-          :items="codeList.STATUS" item-title="TXT" item-value="COD"></i-select>
-
-        <i-input :label="$t('점검자')" label-width="50px" width="250px" v-model="searchParam.CHK_EMP_NM" readonly>
-
-          <template v-slot:append-inner>
-
-            <v-icon @click="openCheckEmpPopup" icon="mdi-magnify" />
-
-            <v-icon color="error" @click="clearInsert" icon="mdi-window-close" />
-
-          </template>
-
-        </i-input>
-
-      </v-sheet>
-
-      <v-sheet style="height: -webkit-fill-available">
-
-        <RealGrid ref="grdMain" :grid-view-option="grdMainProps.gridViewOption" :keys="grdMainProps.keys"
-
-          :fields="grdMainProps.fields" :columns="grdMainProps.columns" :column-layout="grdMainProps.columnLayout"
-
-          :row-style-callback="rowStyleCallback" @onCellDblClicked="onCellDblClicked" />
-
-      </v-sheet>
-
+            :row-style-callback="rowStyleCallback"
+            @on-cell-dbl-clicked="onCellDblClicked"
+          />
+        </v-sheet>
       </div>
-
     </v-card-text>
 
-    <SAFDC0020_01Popup01 ref="sAFDC0020_01_Popup01" @closed="closedPopup" />
+    <SAFDC0020_01Popup01
+      ref="sAFDC0020_01_Popup01"
+      @closed="closedPopup"
+    />
 
-    <EmpPopup ref="empPopup" @selected="selectedChkEmp"></EmpPopup>
-
+    <EmpPopup
+      ref="empPopup"
+      @selected="selectedChkEmp"
+    />
   </v-card>
-
 </template>
 
 <style scoped lang="scss">
-
 .tableBackGround {
 
   background-color: #f2fe8a;
@@ -963,5 +1019,4 @@ td {
   }
 
 }
-
 </style>

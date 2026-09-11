@@ -1,6 +1,4 @@
-<!-- 
-차량번호 검색 팝업
--->
+<!-- 차량번호 검색 팝업 -->
 
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from "vue"
@@ -11,12 +9,14 @@ import RealGrid from "@/components/RealGrid.vue"
 import IMenuTitle from "@/components/IMenuTitle.vue"
 import { useI18n } from "vue-i18n"
 import { startDragging, handleDragging, stopDragging } from "@/utils/useDrag"
+
+const emit = defineEmits(["selected"])
 const vm = getCurrentInstance().proxy
 const userStore = useUserStore()
 const dialog = ref(false)
 const grdMain = ref(null)
 const t = useI18n().t
-const emit = defineEmits(["selected"])
+
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
   CAR_NO: "",
@@ -82,7 +82,7 @@ const grdMainProps = reactive({
 
 grdMainProps.columns = grdMainProps.fields
 
-const openPopup = (param) => {
+const openPopup = param => {
   dialog.value = true
   if (!param) {
     onButtonsClick({ id: "btnSearch" })
@@ -100,7 +100,7 @@ const closePopup = () => {
 
 onMounted(() => {})
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === "btnSearch") {
     new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
   } else if (btn.id === "btnSelect") {
@@ -117,9 +117,10 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //조회관련 로직 끝
 
 //선택관련 로직 시작
@@ -135,6 +136,7 @@ const selected = () => {
   let focusedRow = grdMain.value.getFocusedRowData()
   console.log("포커스로우", focusedRow)
 }
+
 //선택관련 로직 끝
 
 defineExpose({
@@ -174,11 +176,10 @@ defineExpose({
           <v-sheet class="searchArea flex-column">
             <div class="d-flex">
               <i-input
+                v-model="searchParam.CAR_NO"
                 width="200px"
                 :label="$t('차량번호')"
-                v-model="searchParam.CAR_NO"
-              >
-              </i-input>
+              />
             </div>
           </v-sheet>
           <v-sheet class="h-auto mt-2">
@@ -187,7 +188,7 @@ defineExpose({
               :grid-view-option="grdMainProps.gridViewOption"
               :fields="grdMainProps.fields"
               :columns="grdMainProps.columns"
-              @onCellDblClicked="onCellDblClicked"
+              @on-cell-dbl-clicked="onCellDblClicked"
             />
           </v-sheet>
         </div>
@@ -195,6 +196,7 @@ defineExpose({
     </v-card>
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

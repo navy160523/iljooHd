@@ -7,12 +7,15 @@ import Message from '@hiway/utils/notify'
 import IMenuTitle from '@/components/IMenuTitle.vue'
 import { startDragging, handleDragging, stopDragging } from '@/utils/useDrag'
 import { commonSearchApi } from '@hiway/api/commonApi'
+
+const emit = defineEmits(['selected'])
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
 const dialog = ref(false)
 const grdMain = ref(null)
-const emit = defineEmits(['selected'])
 const userStore = useUserStore()
+
+
 //그리드 속성셋팅
 const grdMainProps = reactive({
   gridViewOption: { checkBar: true },
@@ -45,6 +48,8 @@ const grdMainProps = reactive({
 })
 
 grdMainProps.columns = grdMainProps.fields
+
+
 //위반항목 그리드 체크박스 선택 이벤트 -> 3개이상 체크안되도록
 const onItemChecked = (grid, itemIndex, checked) => {
   //그리드 체크가 되면 위반항목에 추가
@@ -53,10 +58,13 @@ const onItemChecked = (grid, itemIndex, checked) => {
     if (checkNum.length > 3) {
       Message.warn(t('최대 3개항목만 선택 가능합니다!'))
       grdMain.value.getGridView().checkRow(itemIndex, false)
+      
       return false
     }
   }
 }
+
+
 //교통위반항목 조회 관련 로직 시작
 const searchTraffic = () => {
   return commonSearchApi({
@@ -65,12 +73,13 @@ const searchTraffic = () => {
   })
 }
 
-const afterTrafficSearch = (res) => {
+const afterTrafficSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //교통위반항목 조회 관련 로직 끝
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnSearch') {
     new queryFlowHelper(vm, t)
       .setQuery(searchTraffic)
@@ -98,6 +107,7 @@ const select = () => {
   let checkNum = grdMain.value.getGridView().getCheckedRows()
   if (checkNum.length > 3) {
     Message.warn(t('최대 3개항목만 선택 가능합니다!'))
+    
     return false
   }
   for (let i = 0; i < checkNum.length; i++) {
@@ -107,6 +117,7 @@ const select = () => {
   emit('selected', checkData)
   closePopup()
 }
+
 //선택관련 로직 끝
 
 defineExpose({
@@ -149,7 +160,7 @@ defineExpose({
             :columns="grdMainProps.columns"
             style="height: 500px"
             :column-layout="grdMainProps.columnLayout"
-            @onItemChecked="onItemChecked"
+            @on-item-checked="onItemChecked"
           />
         </div>
       </v-card-text>

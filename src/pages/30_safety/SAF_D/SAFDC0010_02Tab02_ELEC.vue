@@ -24,7 +24,9 @@ import { lowerCase } from 'lodash-es'
 import SAFDC0010_02Tab02Popup from './SAFDC0010_02Tab02Popup_ELEC.vue'
 import IUploadImage from '@/components/IUploadImage.vue'
 import IGridTitle from '@/components/IGridTitle.vue'
+
 const imageUpload = ref(null)
+
 defineOptions({
   name: '30_safety-SAF_D-SAFDC0010',
 })
@@ -68,16 +70,19 @@ const initCodeList = () => {
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: userStore.cmpnyDiv },
     }),
+
     //부서조회
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: null, USE_DIV: 'Y' },
     }),
+
     //진행상태조회
     getCodeList('HHIF190'),
+
     //회사구분조회
     getCodeList('HHIZ000'),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.SEND_BSNS_CD = []
     codeList.SEND_DEPT_CD = []
     codeList.SEND_BSNS_CD = res[0].ORESULT_CUR
@@ -86,6 +91,7 @@ const initCodeList = () => {
     codeList.REC_DEPT_CD = res[1].ORESULT_CUR
     codeList.STATUS = res[2].ORESULT_CUR
     codeList.COMPANY = res[3].ORESULT_CUR
+
     // codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
     codeList.REC_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
     codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
@@ -182,7 +188,7 @@ const grdMainProps = reactive({
       visible: false,
       header: { text: t('호선번호') },
     },
-      {
+    {
       fieldName: 'ACT_ASGN_CD',
       dataType: 'text',
       visible: false,
@@ -402,7 +408,7 @@ const grdMainProps = reactive({
 
 grdMainProps.columns = grdMainProps.fields
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnSearch') {
     new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
   } else if (btn.id === 'btnMuniNotice') {
@@ -424,9 +430,10 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //조회관련 로직 끝
 
 //삭제관련 로직 시작
@@ -434,8 +441,10 @@ const beforeDelete = () => {
   let chekedRow = grdMain.value.getGridView().getCheckedRows()
   if (chekedRow.length === 0) {
     Message.warn(t('삭제할 데이터를 선택해주세요.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -452,6 +461,7 @@ const deleteData = () => {
     }
     deleteParam.push(deleteData)
   }
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_DELETE01',
     list: deleteParam,
@@ -461,6 +471,7 @@ const deleteData = () => {
 const afterDelete = () => {
   onButtonsClick({ id: 'btnSearch' })
 }
+
 //삭제관련 로직 끝
 
 //팝업 닫혔을때 조회
@@ -514,6 +525,7 @@ const onCellDblClicked = (grid, clickData) => {
   let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
   sAFDC0010_02_Tab02_Popup.value.openPopup(data)
 }
+
 //셀 더블클릭 이벤트 관련 로직 끝
 
 //팝업닫히면 재조회
@@ -529,7 +541,7 @@ watch(
       //사업부조회
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: newValue },
-    }).then((res) => {
+    }).then(res => {
       // searchParam.BSNS_CD = ''
       // searchParam.REC_DEPT_CD = ''
       searchParam.SEND_BSNS_CD = ''
@@ -539,7 +551,7 @@ watch(
       codeList.SEND_DEPT_CD = []
       codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     })
-  }
+  },
 )
 
 //회사 바뀌면 사업부 가져옴 (회사변경 감지)
@@ -550,7 +562,7 @@ watch(
       //사업부조회
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: newValue },
-    }).then((res) => {
+    }).then(res => {
       // searchParam.BSNS_CD = ''
       // searchParam.REC_DEPT_CD = ''
       if (oldValue !== undefined) {
@@ -568,7 +580,7 @@ watch(
         codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
       }
     })
-  }
+  },
 )
 
 watch(
@@ -578,13 +590,15 @@ watch(
       searchParam.SEND_DEPT_CD = ''
       codeList.SEND_DEPT_CD = []
       codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      
       return false
     }
+
     //사업부변경시 부서가져옴
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       searchParam.SEND_DEPT_CD = ''
       codeList.SEND_DEPT_CD = res.ORESULT_CUR
       codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
@@ -592,7 +606,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 watch(
@@ -602,13 +616,15 @@ watch(
       searchParam.REC_DEPT_CD = ''
       codeList.REC_DEPT_CD = []
       codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      
       return false
     }
+
     //사업부변경시 부서가져옴
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       if (oldValue !== undefined) {
         searchParam.REC_DEPT_CD = ''
         codeList.REC_DEPT_CD = res.ORESULT_CUR
@@ -622,20 +638,20 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 )
 
 //과거조직포함 변경시 부서에 과거조직까지 조회
 watch(
   () => OLD_ASGN.value,
-  (newValue) => {
+  newValue => {
     commonSearchApi({
       queryId: 'searchBSNS3',
       param: {
         CMPNY_DIV: userStore.cmpnyDiv,
         USE_DIV: newValue === 'Y' ? '' : 'Y',
       },
-    }).then((res) => {
+    }).then(res => {
       codeList.SEND_BSNS_CD = res.ORESULT_CUR
       codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
       searchParam.SEND_BSNS_CD = userStore.bsnsCd
@@ -644,7 +660,7 @@ watch(
       codeList.REC_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
       searchParam.REC_BSNS_CD = userStore.bsnsCd
     })
-  }
+  },
 )
 </script>
 
@@ -662,111 +678,110 @@ watch(
         <v-sheet class="searchArea">
           <div class="d-flex mb-2">
             <v-checkbox
+              v-model="searchParam.NOTI_CHK"
               label="점검일자"
               class="mr-5"
               true-value="Y"
               false-value="N"
-              v-model="searchParam.NOTI_CHK"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.NOTI_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.NOTI_FROM"
-            >
-            </i-input>
+            />
             <span class="mt-2 mx-2">~</span>
             <i-input
+              v-model="searchParam.NOTI_TO"
               width="150px"
               type="date"
-              v-model="searchParam.NOTI_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.CMPNY_DIV"
               :items="codeList.COMPANY"
               label-width="80px"
               width="280px"
               :label="$t('발신 회사구분')"
-              v-model="searchParam.CMPNY_DIV"
               item-title="TXT"
               item-value="COD"
             />
             <i-select
+              v-model="searchParam.SEND_BSNS_CD"
               :items="codeList.SEND_BSNS_CD"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :label="$t('발신 사업부')"
-              v-model="searchParam.SEND_BSNS_CD"
             />
             <i-select
+              v-model="searchParam.SEND_DEPT_CD"
               :items="codeList.SEND_DEPT_CD"
               width="250px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :label="$t('부서')"
-              v-model="searchParam.SEND_DEPT_CD"
             />
            
             <v-checkbox
+              v-model="OLD_ASGN"
               label="과거조직포함"
               true-value="Y"
               false-value="N"
-              v-model="OLD_ASGN"
-            ></v-checkbox>
+            />
           </div>
           <div class="d-flex">
             <v-checkbox
+              v-model="searchParam.REQ_REPLY_CHK"
               label="회신요구일"
               class="mr-2"
               true-value="Y"
               false-value="N"
-              v-model="searchParam.REQ_REPLY_CHK"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.REQ_REPLY_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.REQ_REPLY_FROM"
-            ></i-input>
+            />
             <span class="mt-2 mx-2">~</span>
-             <i-input
+            <i-input
+              v-model="searchParam.REQ_REPLY_TO"
               width="150px"
               type="date"
-              v-model="searchParam.REQ_REPLY_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.REC_CMPNY_DIV"
               :items="codeList.COMPANY"
               width="280px"
               label-width="80px"
               :label="$t('수신 회사구분')"
-              v-model="searchParam.REC_CMPNY_DIV"
               item-title="TXT"
               item-value="COD"
             />
-             <i-select
+            <i-select
+              v-model="searchParam.REC_BSNS_CD"
               :label="$t('수신 사업부')"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :items="codeList.REC_BSNS_CD"
-              v-model="searchParam.REC_BSNS_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.REC_DEPT_CD"
               :label="$t('부서')"
               width="250px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :items="codeList.REC_DEPT_CD"
-              v-model="searchParam.REC_DEPT_CD"
-            ></i-select>
-             <i-select
+            />
+            <i-select
+              v-model="searchParam.STATUS"
               :items="codeList.STATUS"
               width="230px"
               item-title="TXT"
               item-value="COD"
               :label="$t('진행상태')"
-              v-model="searchParam.STATUS"
-            ></i-select>
+            />
           </div>
         </v-sheet>
         <v-sheet style="height: -webkit-fill-available">
@@ -775,17 +790,18 @@ watch(
             :grid-view-option="grdMainProps.gridViewOption"
             :fields="grdMainProps.fields"
             :columns="grdMainProps.columns"
-            @onCellDblClicked="onCellDblClicked"
+            @on-cell-dbl-clicked="onCellDblClicked"
           />
         </v-sheet>
       </div>
       <SAFDC0010_02Tab02Popup
         ref="sAFDC0010_02_Tab02_Popup"
         @closed="afterPopup"
-      ></SAFDC0010_02Tab02Popup>
+      />
     </v-card-text>
   </v-card>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

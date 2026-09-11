@@ -1,10 +1,9 @@
 <script setup>
+import { ref, reactive, onMounted, getCurrentInstance, watch } from "vue"
 
-import { ref, reactive, onMounted, getCurrentInstance, watch } from "vue";
+import { useUserStore } from "@hiway/stores/user"
 
-import { useUserStore } from "@hiway/stores/user";
-
-import { useI18n } from "vue-i18n";
+import { useI18n } from "vue-i18n"
 
 import {
 
@@ -16,25 +15,25 @@ import {
 
   getPgCodeList,
 
-} from "@hiway/api/commonApi";
+} from "@hiway/api/commonApi"
 
-import RealGrid from "@/components/RealGrid.vue";
+import RealGrid from "@/components/RealGrid.vue"
 
-import queryFlowHelper from "@/utils/searchFlowHelper";
+import queryFlowHelper from "@/utils/searchFlowHelper"
 
-import saveFlowHelper from "@/utils/saveFlowHelper";
+import saveFlowHelper from "@/utils/saveFlowHelper"
 
-import dayjs from "dayjs";
+import dayjs from "dayjs"
 
-import IGridTitle from "@/components/IGridTitle.vue";
+import IGridTitle from "@/components/IGridTitle.vue"
 
-import SAFDC0010_02Popup01 from "./SAFDC0010_02Popup01.vue";
+import SAFDC0010_02Popup01 from "./SAFDC0010_02Popup01.vue"
 
-import SAFDC0010_01Popup02 from "./SAFDC0010_01Popup02.vue";
+import SAFDC0010_01Popup02 from "./SAFDC0010_01Popup02.vue"
 
-import EmpPopup from "@/pages/COM/components/EmpPopup.vue";
+import EmpPopup from "@/components/popup/EmpPopup.vue"
 
-import Message from "@hiway/utils/notify";
+import Message from "@hiway/utils/notify"
 
 const vehicleTypeOptions = [
 
@@ -48,43 +47,43 @@ const vehicleTypeOptions = [
 
   { value: "Z", label: "기타" },
 
-];
+]
 
-const normalizeVehicleType = (value) => {
+const normalizeVehicleType = value => {
 
   const option = vehicleTypeOptions.find(
 
-    ({ value: code, label }) => code === value || label === value
+    ({ value: code, label }) => code === value || label === value,
 
-  );
+  )
 
-  return option?.value ?? String(value ?? "").trim().toUpperCase();
+  return option?.value ?? String(value ?? "").trim().toUpperCase()
 
-};
+}
 
 defineOptions({
 
   name: "30_safety-SAF_D-SAFDC0010_02",
 
-});
+})
 
-const vm = getCurrentInstance().proxy;
+const vm = getCurrentInstance().proxy
 
-const t = useI18n().t;
+const t = useI18n().t
 
-const gridTitle = ref(null);
+const gridTitle = ref(null)
 
-const grdMain = ref(null);
+const grdMain = ref(null)
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
-const sAFDC0010Popup01 = ref(null);
+const sAFDC0010Popup01 = ref(null)
 
-const sAFDC0010Popup02 = ref(null);
+const sAFDC0010Popup02 = ref(null)
 
-const empPopup = ref(null);
+const empPopup = ref(null)
 
-const { sliSAFDC0010_02Tab01 } = history.state;
+const { sliSAFDC0010_02Tab01 } = history.state
 
 const codeList = reactive({
 
@@ -108,21 +107,21 @@ const codeList = reactive({
 
   actDiv: [],
 
-});
+})
 
 const rowStyleCallback = (grid, item) => {
 
-  const status = String(grid.getValue(item.index, "STATUS") ?? "").trim();
+  const status = String(grid.getValue(item.index, "STATUS") ?? "").trim()
 
   const actionDivision = String(
 
-    grid.getValue(item.index, "ACT_DIV") ?? ""
+    grid.getValue(item.index, "ACT_DIV") ?? "",
 
-  ).trim();
+  ).trim()
 
-  const isApproved = status === "30" || status === "승인";
+  const isApproved = status === "30" || status === "승인"
 
-  const needsAction = actionDivision === "10" || actionDivision === "조치필요";
+  const needsAction = actionDivision === "10" || actionDivision === "조치필요"
 
   if (isApproved && needsAction) {
 
@@ -134,13 +133,13 @@ const rowStyleCallback = (grid, item) => {
 
       },
 
-    };
+    }
 
   }
 
-  return {};
+  return {}
 
-};
+}
 
 const searchField = reactive({
 
@@ -148,7 +147,7 @@ const searchField = reactive({
 
   CHK_DAY: "Y",
 
-});
+})
 
 const searchParam = reactive({
 
@@ -188,7 +187,7 @@ const searchParam = reactive({
 
   STATUS: sliSAFDC0010_02Tab01 === undefined ? "" : "30",
 
-});
+})
 
 const initCodeList = async () => {
 
@@ -242,93 +241,93 @@ const initCodeList = async () => {
 
     getPgCodeList("HHIG170"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
-    codeList.company = res[0].ORESULT_CUR.slice();
+    codeList.company = res[0].ORESULT_CUR.slice()
 
-    codeList.dansokCompany = res[0].ORESULT_CUR;
+    codeList.dansokCompany = res[0].ORESULT_CUR
 
-    codeList.bsnsCd = res[1].ORESULT_CUR.slice();
+    codeList.bsnsCd = res[1].ORESULT_CUR.slice()
 
-    codeList.dansokBsnsCd = res[5].ORESULT_CUR;
+    codeList.dansokBsnsCd = res[5].ORESULT_CUR
 
-    codeList.gubun = res[3].ORESULT_CUR.filter((x) => !x.COD.includes("S"));
+    codeList.gubun = res[3].ORESULT_CUR.filter(x => !x.COD.includes("S"))
 
-    codeList.status = res[4].ORESULT_CUR;
+    codeList.status = res[4].ORESULT_CUR
 
-    codeList.searchStatus = res[4].ORESULT_CUR;
+    codeList.searchStatus = res[4].ORESULT_CUR
 
-    codeList.actDiv = res[6].ORESULT_CUR;
+    codeList.actDiv = res[6].ORESULT_CUR
 
-    codeList.company.unshift({ TXT: "전체", COD: "" });
+    codeList.company.unshift({ TXT: "전체", COD: "" })
 
-    codeList.dansokCompany.unshift({ TXT: "전체", COD: "" });
+    codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
 
-    codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+    codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+    codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    codeList.gubun.unshift({ TXT: "전체", COD: "" });
+    codeList.gubun.unshift({ TXT: "전체", COD: "" })
 
-    codeList.searchStatus.unshift({ TXT: "전체", COD: "" });
+    codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
 
-    grdMain.value.setBindingColumn("STATUS", codeList.status, "COD", "TXT");
+    grdMain.value.setBindingColumn("STATUS", codeList.status, "COD", "TXT")
 
-    grdMain.value.setBindingColumn("ACT_DIV", codeList.actDiv, "COD", "TXT");
+    grdMain.value.setBindingColumn("ACT_DIV", codeList.actDiv, "COD", "TXT")
 
-  });
+  })
 
-};
+}
 
-const formatGridDate = (value) => {
+const formatGridDate = value => {
 
-  if (value === null || value === undefined || value === "") return "";
+  if (value === null || value === undefined || value === "") return ""
 
-  const raw = String(value).trim();
+  const raw = String(value).trim()
 
-  if (!raw) return "";
+  if (!raw) return ""
 
   if (/^\d{12}$/.test(raw)) {
 
-    const year = raw.substring(0, 4);
+    const year = raw.substring(0, 4)
 
-    const month = raw.substring(4, 6);
+    const month = raw.substring(4, 6)
 
-    const day = raw.substring(6, 8);
+    const day = raw.substring(6, 8)
 
-    const hour = raw.substring(8, 10);
+    const hour = raw.substring(8, 10)
 
-    const minute = raw.substring(10, 12);
+    const minute = raw.substring(10, 12)
 
-    return `${year}-${month}-${day} ${hour}:${minute}`;
+    return `${year}-${month}-${day} ${hour}:${minute}`
 
   }
 
   if (/^\d{8}$/.test(raw)) {
 
-    const year = raw.substring(0, 4);
+    const year = raw.substring(0, 4)
 
-    const month = raw.substring(4, 6);
+    const month = raw.substring(4, 6)
 
-    const day = raw.substring(6, 8);
+    const day = raw.substring(6, 8)
 
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`
 
   }
 
   if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(:\d{2})?$/.test(raw)) {
 
-    return raw.replace("T", " ").slice(0, 16);
+    return raw.replace("T", " ").slice(0, 16)
 
   }
 
-  return raw;
+  return raw
 
-};
+}
 
 const normalizeGridRow = (row = {}) => {
 
-  const normalized = { ...row };
+  const normalized = { ...row }
 
   const assignFromAliases = (target, aliases) => {
 
@@ -342,19 +341,19 @@ const normalizeGridRow = (row = {}) => {
 
     ) {
 
-      return;
+      return
 
     }
 
     for (const alias of aliases) {
 
-      const value = normalized[alias];
+      const value = normalized[alias]
 
       if (value !== undefined && value !== null && value !== "") {
 
-        normalized[target] = value;
+        normalized[target] = value
 
-        break;
+        break
 
       }
 
@@ -362,19 +361,19 @@ const normalizeGridRow = (row = {}) => {
 
     if (normalized[target] === undefined || normalized[target] === null || normalized[target] === "") {
 
-      const normalizedTarget = target.replaceAll("_", "").toUpperCase();
+      const normalizedTarget = target.replaceAll("_", "").toUpperCase()
 
       const matchingKey = Object.keys(normalized).find(
 
-        (key) => key.replaceAll("_", "").toUpperCase() === normalizedTarget
+        key => key.replaceAll("_", "").toUpperCase() === normalizedTarget,
 
-      );
+      )
 
-      if (matchingKey) normalized[target] = normalized[matchingKey];
+      if (matchingKey) normalized[target] = normalized[matchingKey]
 
     }
 
-  };
+  }
 
   const majorAliases = {
 
@@ -482,37 +481,37 @@ const normalizeGridRow = (row = {}) => {
 
     SHIP_NO: ["SHIP_NO", "ship_no"],
 
-  };
+  }
 
   Object.entries(majorAliases).forEach(([target, aliases]) => {
 
-    assignFromAliases(target, aliases);
+    assignFromAliases(target, aliases)
 
-  });
+  })
 
-  normalized.VEHICLE_TYPE = normalizeVehicleType(normalized.VEHICLE_TYPE);
+  normalized.VEHICLE_TYPE = normalizeVehicleType(normalized.VEHICLE_TYPE)
 
   normalized.VEHICLE_TYPE_NM =
 
     vehicleTypeOptions.find(({ value }) => value === normalized.VEHICLE_TYPE)?.label ??
 
-    normalized.VEHICLE_TYPE;
+    normalized.VEHICLE_TYPE
 
   normalized.VEHICLE_SPEED_NM = normalized.VEHICLE_SPEED
 
     ? `${normalized.VEHICLE_SPEED}`
 
-    : "";
+    : ""
 
   const vioTimeText =
 
-    normalized.VIO_TIME_DS ?? normalized.vio_time_ds ?? normalized.VIO_TIME ?? normalized.vio_time;
+    normalized.VIO_TIME_DS ?? normalized.vio_time_ds ?? normalized.VIO_TIME ?? normalized.vio_time
 
   if (vioTimeText !== undefined && vioTimeText !== null && vioTimeText !== "") {
 
     normalized.VIO_TIME_DS =
 
-      normalized.VIO_TIME_DS || normalized.vio_time_ds || formatGridDate(vioTimeText);
+      normalized.VIO_TIME_DS || normalized.vio_time_ds || formatGridDate(vioTimeText)
 
   }
 
@@ -526,19 +525,19 @@ const normalizeGridRow = (row = {}) => {
 
     normalized.ACT_TIME ??
 
-    normalized.act_time;
+    normalized.act_time
 
   if (actTimeText !== undefined && actTimeText !== null && actTimeText !== "") {
 
     normalized.ACT_TIME_DS =
 
-      normalized.ACT_TIME_DS || normalized.act_time_ds || formatGridDate(actTimeText);
+      normalized.ACT_TIME_DS || normalized.act_time_ds || formatGridDate(actTimeText)
 
   }
 
-  return normalized;
+  return normalized
 
-};
+}
 
 const grdMainProps = reactive({
 
@@ -776,9 +775,9 @@ const grdMainProps = reactive({
 
   ],
 
-});
+})
 
-grdMainProps.columns = grdMainProps.fields;
+grdMainProps.columns = grdMainProps.fields
 
 const searchData = () => {
 
@@ -788,41 +787,41 @@ const searchData = () => {
 
     param: searchParam,
 
-  });
+  })
 
-};
+}
 
-const afterSearch = (res) => {
+const afterSearch = res => {
 
   if (!res || !res.ORESULT_CUR) {
 
-    return;
+    return
 
   }
 
-  const rows = (res.ORESULT_CUR || []).map((row) => normalizeGridRow(row));
+  const rows = (res.ORESULT_CUR || []).map(row => normalizeGridRow(row))
 
-  grdMain.value.getDataProvider().setRows(rows);
+  grdMain.value.getDataProvider().setRows(rows)
 
-  grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback);
+  grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback)
 
-};
+}
 
 const defaultDate = () => {
 
   if (sliSAFDC0010_02Tab01 !== undefined) {
 
-    searchParam.VIO_DATE_FR = sliSAFDC0010_02Tab01.FROM_DT;
+    searchParam.VIO_DATE_FR = sliSAFDC0010_02Tab01.FROM_DT
 
-    searchParam.VIO_DATE_TO = sliSAFDC0010_02Tab01.TO_DT;
+    searchParam.VIO_DATE_TO = sliSAFDC0010_02Tab01.TO_DT
 
-    return;
+    return
 
   }
 
-  const date = dayjs();
+  const date = dayjs()
 
-  const dateFrom = dayjs().subtract(3, "month");
+  const dateFrom = dayjs().subtract(3, "month")
 
   searchParam.VIO_DATE_FR =
 
@@ -834,7 +833,7 @@ const defaultDate = () => {
 
     "-" +
 
-    dateFrom.$D.toString().padStart(2, "0");
+    dateFrom.$D.toString().padStart(2, "0")
 
   searchParam.VIO_DATE_TO =
 
@@ -846,11 +845,11 @@ const defaultDate = () => {
 
     "-" +
 
-    date.get("date").toString().padStart(2, "0");
+    date.get("date").toString().padStart(2, "0")
 
-};
+}
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
 
   if (btn.id === "btnSearch") {
 
@@ -862,57 +861,57 @@ const onButtonsClick = (btn) => {
 
       .setAfter(afterSearch)
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnReject") {
 
     // 반려 상태: 11
 
-    changeSelectedStatus("11", "반려하시겠습니까?");
+    changeSelectedStatus("11", "반려하시겠습니까?")
 
   } else if (btn.id === "btnApprove") {
 
     // 승인 상태: 30
 
-    changeSelectedStatus("30", "승인하시겠습니까?");
+    changeSelectedStatus("30", "승인하시겠습니까?")
 
   } else if (btn.id === "btnApproveCancel") {
 
     // 승인취소 상태: 20
 
-    changeSelectedStatus("20", "승인을 취소하시겠습니까?");
+    changeSelectedStatus("20", "승인을 취소하시겠습니까?")
 
   }
 
-};
+}
 
 // 체크된 그리드 행을 원본 데이터 배열로 변환
 
 const getSelectedRows = () => {
 
-  const checkedRows = grdMain.value.getGridView().getCheckedRows(true);
+  const checkedRows = grdMain.value.getGridView().getCheckedRows(true)
 
   if (checkedRows.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return [];
+    return []
 
   }
 
-  return checkedRows.map((rowIndex) =>
+  return checkedRows.map(rowIndex =>
 
-    grdMain.value.getDataProvider().getJsonRow(rowIndex)
+    grdMain.value.getDataProvider().getJsonRow(rowIndex),
 
-  );
+  )
 
-};
+}
 
 // 체크된 행을 상태 변경 API의 list 배열로 변환
 
-const getSelectedStatusData = (status) => {
+const getSelectedStatusData = status => {
 
-  return getSelectedRows().map((row) => {
+  return getSelectedRows().map(row => {
 
     return {
 
@@ -924,19 +923,19 @@ const getSelectedStatusData = (status) => {
 
       STATUS: status,
 
-    };
+    }
 
-  });
+  })
 
-};
+}
 
 // 팝업과 동일한 승인 요청 메일을 목록 승인 후 발송
 
-const sendApprovalMail = async (rows) => {
+const sendApprovalMail = async rows => {
 
   await Promise.all(
 
-    rows.map(async (row) => {
+    rows.map(async row => {
 
       const approverResult = await commonPgSearchApi({
 
@@ -950,17 +949,17 @@ const sendApprovalMail = async (rows) => {
 
         },
 
-      });
+      })
 
       const approver = (approverResult.ORESULT_CUR || []).find(
 
-        (item) => String(item.APP_EMP_NO) === String(row.APP_EMP_NO)
+        item => String(item.APP_EMP_NO) === String(row.APP_EMP_NO),
 
-      );
+      )
 
-      const email = String(approver?.EMAIL || "").trim();
+      const email = String(approver?.EMAIL || "").trim()
 
-      if (!email) return;
+      if (!email) return
 
       await commonSendApi({
 
@@ -992,21 +991,21 @@ const sendApprovalMail = async (rows) => {
 
           </html>`,
 
-      });
+      })
 
-    })
+    }),
 
-  );
+  )
 
-};
+}
 
 // 선택 행들의 STATUS를 일괄 변경
 
 const changeSelectedStatus = (status, confirmMessage) => {
 
-  const selectedRows = getSelectedRows();
+  const selectedRows = getSelectedRows()
 
-  if (selectedRows.length === 0) return;
+  if (selectedRows.length === 0) return
 
   new saveFlowHelper(vm, t)
 
@@ -1020,7 +1019,7 @@ const changeSelectedStatus = (status, confirmMessage) => {
 
         list: getSelectedStatusData(status),
 
-      })
+      }),
 
     )
 
@@ -1028,29 +1027,29 @@ const changeSelectedStatus = (status, confirmMessage) => {
 
       if (status === "30") {
 
-        await sendApprovalMail(selectedRows);
+        await sendApprovalMail(selectedRows)
 
       }
 
-      onButtonsClick({ id: "btnSearch" });
+      onButtonsClick({ id: "btnSearch" })
 
     })
 
     .setConfirmMessage(confirmMessage)
 
-    .run();
+    .run()
 
-};
+}
 
 const onCellDblClicked = (grid, clickData) => {
 
   if (!clickData || !grdMain.value) {
 
-    return;
+    return
 
   }
 
-  const itemIndex = clickData.itemIndex ?? clickData.index?.itemIndex;
+  const itemIndex = clickData.itemIndex ?? clickData.index?.itemIndex
 
   const dataRow =
 
@@ -1062,39 +1061,39 @@ const onCellDblClicked = (grid, clickData) => {
 
       ? grid.getDataSource().getDataRow(itemIndex)
 
-      : undefined);
+      : undefined)
 
   if (dataRow === undefined || dataRow === null || dataRow < 0) {
 
-    return;
+    return
 
   }
 
-  const data = grdMain.value.getDataProvider().getJsonRow(dataRow);
+  const data = grdMain.value.getDataProvider().getJsonRow(dataRow)
 
   const rawDateTime = String(
 
-    data.VIO_TIME ?? data.vio_time ?? data.VIO_TIME_DS ?? data.vio_time_ds ?? ""
+    data.VIO_TIME ?? data.vio_time ?? data.VIO_TIME_DS ?? data.vio_time_ds ?? "",
 
-  ).trim();
+  ).trim()
 
   const dateTimeMatch = rawDateTime.match(
 
-    /^(\d{4})[-./](\d{2})[-./](\d{2})(?:[T\s]?(\d{2})?:?(\d{2})?)?/
+    /^(\d{4})[-./](\d{2})[-./](\d{2})(?:[T\s]?(\d{2})?:?(\d{2})?)?/,
 
-  );
+  )
 
   const compactDateTime = /^\d{12}$/.test(rawDateTime)
 
     ? {
 
-        date: `${rawDateTime.substring(0, 4)}-${rawDateTime.substring(4, 6)}-${rawDateTime.substring(6, 8)}`,
+      date: `${rawDateTime.substring(0, 4)}-${rawDateTime.substring(4, 6)}-${rawDateTime.substring(6, 8)}`,
 
-        time: `${rawDateTime.substring(8, 10)}:${rawDateTime.substring(10, 12)}`,
+      time: `${rawDateTime.substring(8, 10)}:${rawDateTime.substring(10, 12)}`,
 
-      }
+    }
 
-    : null;
+    : null
 
   const popupPayload = {
 
@@ -1208,11 +1207,11 @@ const onCellDblClicked = (grid, clickData) => {
 
     INSERT_USER_ID: data.INSERT_USER_ID ?? data.insert_user_id ?? "",
 
-  };
+  }
 
-  sAFDC0010Popup01.value.openPopup2(popupPayload);
+  sAFDC0010Popup01.value.openPopup2(popupPayload)
 
-};
+}
 
 const openDansokEmpPopup = () => {
 
@@ -1222,39 +1221,39 @@ const openDansokEmpPopup = () => {
 
     EMP_NM: searchParam.DANSOK_EMP_NM,
 
-  });
+  })
 
-};
+}
 
-const onDansokEmpSelected = (val) => {
+const onDansokEmpSelected = val => {
 
-  searchParam.DANSOK_EMP_NM = val.EMP_NM;
+  searchParam.DANSOK_EMP_NM = val.EMP_NM
 
-  searchParam.DANSOK_EMP_NO = val.EMP_NO;
+  searchParam.DANSOK_EMP_NO = val.EMP_NO
 
-};
+}
 
 const clearInsert = () => {
 
-  searchParam.DANSOK_EMP_NM = "";
+  searchParam.DANSOK_EMP_NM = ""
 
-  searchParam.DANSOK_EMP_NO = "";
+  searchParam.DANSOK_EMP_NO = ""
 
-};
+}
 
-const deleteInfoDialog = ref(false);
+const deleteInfoDialog = ref(false)
 
 const closedPopup = () => {
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-};
+}
 
 watch(
 
   () => searchParam.COMPANY,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -1262,21 +1261,21 @@ watch(
 
       param: { CMPNY_DIV: newValue },
 
-    }).then((res) => {
+    }).then(res => {
 
-      codeList.bsnsCd = res.ORESULT_CUR;
+      codeList.bsnsCd = res.ORESULT_CUR
 
-      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-      searchParam.BSNS_CD = "";
+      searchParam.BSNS_CD = ""
 
-      searchParam.DEPT_CD = "";
+      searchParam.DEPT_CD = ""
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 watch(
 
@@ -1298,31 +1297,31 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
       if (oldValue !== undefined) {
 
-        searchParam.DEPT_CD = "";
+        searchParam.DEPT_CD = ""
 
       }
 
-      codeList.deptCd = res.ORESULT_CUR;
+      codeList.deptCd = res.ORESULT_CUR
 
-      codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+      codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
-    });
+    })
 
   },
 
-  { immediate: true }
+  { immediate: true },
 
-);
+)
 
 watch(
 
   () => searchField.PAST_ORG,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -1336,25 +1335,25 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      codeList.bsnsCd = res.ORESULT_CUR;
+      codeList.bsnsCd = res.ORESULT_CUR
 
-      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-      searchParam.BSNS_CD = userStore.bsnsCd;
+      searchParam.BSNS_CD = userStore.bsnsCd
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 watch(
 
   () => searchParam.CMPNY_DIV,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -1362,27 +1361,27 @@ watch(
 
       param: { CMPNY_DIV: newValue },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.DANSOK_BSNS_CD = "";
+      searchParam.DANSOK_BSNS_CD = ""
 
-      searchParam.DANSOK_ASGN_CD = "";
+      searchParam.DANSOK_ASGN_CD = ""
 
-      codeList.dansokBsnsCd = res.ORESULT_CUR;
+      codeList.dansokBsnsCd = res.ORESULT_CUR
 
-      codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 watch(
 
   () => searchParam.DANSOK_BSNS_CD,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -1396,11 +1395,11 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.DANSOK_ASGN_CD = "";
+      searchParam.DANSOK_ASGN_CD = ""
 
-      codeList.dansokDeptCd = res.ORESULT_CUR;
+      codeList.dansokDeptCd = res.ORESULT_CUR
 
       codeList.dansokDeptCd.unshift({
 
@@ -1408,32 +1407,28 @@ watch(
 
         DANSOK_ASGN_CD: "",
 
-      });
+      })
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 onMounted(async () => {
 
-  defaultDate();
+  defaultDate()
 
-  await initCodeList();
+  await initCodeList()
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-});
-
+})
 </script>
 
 <template>
-
   <v-card class="pa-0 fill-height">
-
     <v-card-title class="pa-3 pb-0">
-
       <IGridTitle
 
         ref="gridTitle"
@@ -1441,17 +1436,12 @@ onMounted(async () => {
         :button-list="['btnSearch', 'btnReject', 'btnApprove', 'btnApproveCancel']"
 
         @click-button="onButtonsClick"
-
       />
-
     </v-card-title>
 
     <v-card-text class="pa-3 pt-0 content-area">
-
       <div class="d-flex flex-column fill-height">
-
         <v-sheet class="searchArea d-flex mb-0">
-
           <v-checkbox
 
             v-model="searchField.CHK_DAY"
@@ -1461,8 +1451,7 @@ onMounted(async () => {
             true-value="Y"
 
             false-value="N"
-
-          ></v-checkbox>
+          />
 
           <i-input
 
@@ -1477,8 +1466,7 @@ onMounted(async () => {
             class="mr-1"
 
             type="date"
-
-          ></i-input>
+          />
 
           <span class="mt-2">~</span>
 
@@ -1491,8 +1479,7 @@ onMounted(async () => {
             type="date"
 
             width="150px"
-
-          ></i-input>
+          />
 
           <i-select
 
@@ -1509,8 +1496,7 @@ onMounted(async () => {
             item-title="TXT"
 
             item-value="COD"
-
-          ></i-select>
+          />
 
           <i-select
 
@@ -1523,8 +1509,7 @@ onMounted(async () => {
             item-title="BSNS_NM"
 
             item-value="BSNS_CD"
-
-          ></i-select>
+          />
 
           <i-select
 
@@ -1537,8 +1522,7 @@ onMounted(async () => {
             item-title="DEPT_NM"
 
             item-value="DEPT_CD"
-
-          ></i-select>
+          />
 
           <v-checkbox
 
@@ -1547,21 +1531,16 @@ onMounted(async () => {
             true-value="Y"
 
             false-value="N"
-
-          ></v-checkbox>
+          />
 
           <span class="mt-1 mr-5">과거조직포함</span>
 
           <div class="d-flex align-center ml-5">
-
             <h3>※교통수칙 담당 : 안전보건지원부 김영남 기감(2-1601).</h3>
-
           </div>
-
         </v-sheet>
 
         <v-sheet class="searchArea d-flex">
-
           <i-select
 
             v-model="searchParam.CMPNY_DIV"
@@ -1577,8 +1556,7 @@ onMounted(async () => {
             item-title="TXT"
 
             item-value="COD"
-
-          ></i-select>
+          />
 
           <i-select
 
@@ -1591,24 +1569,20 @@ onMounted(async () => {
             item-title="BSNS_NM"
 
             item-value="BSNS_CD"
-
-          ></i-select>
+          />
 
           <i-select
 
-            width="270px"
-
             v-model="searchParam.DANSOK_ASGN_CD"
+
+            width="270px"
 
             :items="codeList.dansokDeptCd"
 
             item-title="DANSOK_ASGN_NM"
 
             item-value="DANSOK_ASGN_CD"
-
-          >
-
-          </i-select>
+          />
 
           <i-select
 
@@ -1623,8 +1597,7 @@ onMounted(async () => {
             item-title="TXT"
 
             item-value="COD"
-
-          ></i-select>
+          />
 
           <i-select
 
@@ -1639,46 +1612,38 @@ onMounted(async () => {
             item-title="TXT"
 
             item-value="COD"
-
-          >
-
-          </i-select>
+          />
 
           <i-input
+
+            v-model="searchParam.DANSOK_EMP_NM"
 
             :label="$t('단속자')"
 
             width="250px"
 
-            v-model="searchParam.DANSOK_EMP_NM"
-
             readonly
-
           >
-
-            <template v-slot:append-inner>
-
-              <v-icon @click="openDansokEmpPopup" icon="mdi-magnify" />
+            <template #append-inner>
+              <v-icon
+                icon="mdi-magnify"
+                @click="openDansokEmpPopup"
+              />
 
               <v-icon
 
                 color="error"
 
-                @click="clearInsert"
-
                 icon="mdi-window-close"
 
+                @click="clearInsert"
               />
-
             </template>
-
           </i-input>
-
         </v-sheet>
 
         <div class="d-flex align-center mb-2">
-
-           <v-btn
+          <v-btn
 
             size="small"
 
@@ -1686,19 +1651,16 @@ onMounted(async () => {
 
             variant="text"
 
+            !
+
             @click="deleteInfoDialog = true"
-
-          !>
-
+          >
             삭제 관련 안내
-
           </v-btn>
-
         </div>
 
         <v-sheet style="height: -webkit-fill-available">
-
-          <!--그리드 표출 위치-->
+          <!-- 그리드 표출 위치 -->
 
           <RealGrid
 
@@ -1716,14 +1678,12 @@ onMounted(async () => {
 
             :row-style-callback="rowStyleCallback"
 
-            @onCellDblClicked="onCellDblClicked"
+            $
 
-    $     />
-
+            @on-cell-dbl-clicked="onCellDblClicked"
+          />
         </v-sheet>
-
       </div>
-
     </v-card-text>
 
     <SAFDC0010_02Popup01
@@ -1731,107 +1691,91 @@ onMounted(async () => {
       ref="sAFDC0010Popup01"
 
       @closed="closedPopup"
+    />
 
-    ></SAFDC0010_02Popup01>
-
-    <v-dialog v-model="deleteInfoDialog" max-width="500">
-
+    <v-dialog
+      v-model="deleteInfoDialog"
+      max-width="500"
+    >
       <v-card>
-
         <v-card-title class="d-flex align-center">
-
-          <v-icon color="primary" class="mr-2">mdi-information-outline</v-icon>
+          <v-icon
+            color="primary"
+            class="mr-2"
+          >
+            mdi-information-outline
+          </v-icon>
 
           삭제 관련 안내
-
         </v-card-title>
 
         <v-divider />
 
         <v-card-text class="pt-4">
-
           <p>
-
-            안전수칙위반 개별 건에 대한 삭제 요청은<br />
+            안전수칙위반 개별 건에 대한 삭제 요청은<br>
 
             아래와 같이 각 사업부에서 조치하는 프로세스로 운영됩니다.
-
           </p>
 
           <p>
-
             아래에 안내된 <strong>권한 보유 인원</strong>에게 요청
 
-            부탁드립니다.<br />
-
+            부탁드립니다.<br>
           </p>
 
-          <p class="mt-4 font-weight-bold">삭제 가능 인원</p>
+          <p class="mt-4 font-weight-bold">
+            삭제 가능 인원
+          </p>
 
           <p class="mt-2">
-
-            <strong>조선사업부*</strong><br />
+            <strong>조선사업부*</strong><br>
 
             정윤구(2-5067), 홍태우(2-6292)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>엔진기계사업부</strong><br />
+            <strong>엔진기계사업부</strong><br>
 
             하성민(3-5846), 김도호(2-7203)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>해양에너지사업본부</strong><br />
+            <strong>해양에너지사업본부</strong><br>
 
             문수익(2-1480), 곽진섭(2-9213)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>중형선</strong><br />
+            <strong>중형선</strong><br>
 
             정도훈(3411), 송채린(2342)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>함정</strong.><br />
+            <strong>함정</strong><br>
 
             이상현(3-6615), 송봉근(2-5217)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>안전경영실</strong><br />
+            <strong>안전경영실</strong><br>
 
             문령훈(3-9992), 강현웅(3-6101), 김성일(3-5826), 장믿음(3-0359),
 
             최동해(2-5674), 윤상원(3-9993)
-
           </p>
 
           <p class="mt-4 text-caption">
-
             ※ 상기 권한 인원을 통해서 삭제가 가능하오니, 담당자에게 문의
 
             부탁드립니다.
-
           </p>
-
         </v-card-text>
 
         <v-divider />
 
         <v-card-actions class="justify-end">
-
           <v-btn
 
             class1="mt-2"
@@ -1841,15 +1785,11 @@ onMounted(async () => {
             color="primary"
 
             @click="deleteInfoDialog = false"
-
-            >확인</v-btn
-
           >
-
+            확인
+          </v-btn>
         </v-card-actions>
-
       </v-card>
-
     </v-dialog>
 
     <SAFDC0010_01Popup02
@@ -1857,17 +1797,16 @@ onMounted(async () => {
       ref="sAFDC0010Popup02"
 
       @closed="closedPopup"
+    />
 
-    ></SAFDC0010_01Popup02>
-
-    <EmpPopup ref="empPopup" @selected="onDansokEmpSelected"></EmpPopup>
-
+    <EmpPopup
+      ref="empPopup"
+      @selected="onDansokEmpSelected"
+    />
   </v-card>
-
 </template>
 
 <style scoped lang="scss">
-
 .tableBackGround {
 
   background-color: #f2fe8a;
@@ -1913,5 +1852,4 @@ td {
   }
 
 }
-
 </style>

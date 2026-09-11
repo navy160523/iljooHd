@@ -1,6 +1,4 @@
-<!--
-오토바이 번호 검색 팝업
--->
+<!-- 오토바이 번호 검색 팝업 -->
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from "vue"
 import { useUserStore } from "@hiway/stores/user"
@@ -11,12 +9,13 @@ import IMenuTitle from "@/components/IMenuTitle.vue"
 import { useI18n } from "vue-i18n"
 import { startDragging, handleDragging, stopDragging } from "@/utils/useDrag"
 
+const emit = defineEmits(["selected"])
 const vm = getCurrentInstance().proxy
 const userStore = useUserStore()
 const dialog = ref(false)
 const grdMain = ref(null)
 const t = useI18n().t
-const emit = defineEmits(["selected"])
+
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
   BIKE_NO: "",
@@ -104,7 +103,7 @@ const grdMainProps = reactive({
 
 grdMainProps.columns = grdMainProps.fields
 
-const openPopup = (param) => {
+const openPopup = param => {
   dialog.value = true
   if (!param) {
     onButtonsClick({ id: "btnSearch" })
@@ -120,7 +119,7 @@ const closePopup = () => {
   grdMain.value.getDataProvider().setRows(null)
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === "btnSearch") {
     new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
   } else if (btn.id === "btnSelect") {
@@ -138,9 +137,10 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //조회관련 로직 끝
 
 //선택관련 로직 시작
@@ -148,13 +148,13 @@ const onCellDblClicked = (grid, clickData) => {
 
   //필터링 처리하기
   // 필터링이 적용된 후의 실제 데이터 인덱스 가져오기
-  let dataRow = clickData.dataRow;
+  let dataRow = clickData.dataRow
 
   // dataRow가 -1이면 헤더나 비어 있는 셀을 클릭한 경우이므로 처리하지 않음
   if (dataRow >= 0) {
-    let data = grdMain.value.getDataProvider().getJsonRow(dataRow);
-    emit("selected", data);
-    closePopup();
+    let data = grdMain.value.getDataProvider().getJsonRow(dataRow)
+    emit("selected", data)
+    closePopup()
   }
 
   // let data = grdMain.value.getDataProvider().getJsonRow(clickData.itemIndex)
@@ -166,6 +166,8 @@ const selected = () => {
   let focusedRow = grdMain.value.getFocusedRowData()
   console.log("포커스로우", focusedRow)
 }
+
+
 //선택관련 로직 끝
 onMounted(() => {
   //
@@ -208,11 +210,10 @@ defineExpose({
           <v-sheet class="searchArea flex-column">
             <div class="d-flex">
               <i-input
+                v-model="searchParam.BIKE_NO"
                 width="200px"
                 :label="$t('차량번호')"
-                v-model="searchParam.BIKE_NO"
-              >
-              </i-input>
+              />
             </div>
           </v-sheet>
           <v-sheet class="h-auto mt-2">
@@ -221,7 +222,7 @@ defineExpose({
               :grid-view-option="grdMainProps.gridViewOption"
               :fields="grdMainProps.fields"
               :columns="grdMainProps.columns"
-              @onCellDblClicked="onCellDblClicked"
+              @on-cell-dbl-clicked="onCellDblClicked"
             />
           </v-sheet>
         </div>
@@ -229,6 +230,7 @@ defineExpose({
     </v-card>
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

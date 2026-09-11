@@ -1,6 +1,4 @@
-<!--
-년누적 위반횟수 검색 팝업
--->
+<!-- 년누적 위반횟수 검색 팝업 -->
 <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from "vue"
 import { useUserStore } from "@hiway/stores/user"
@@ -11,12 +9,14 @@ import IMenuTitle from "@/components/IMenuTitle.vue"
 import { useI18n } from "vue-i18n"
 import { startDragging, handleDragging, stopDragging } from "@/utils/useDrag"
 import Message from "@hiway/utils/notify"
+
+const emit = defineEmits(["selected"])
 const vm = getCurrentInstance().proxy
 const userStore = useUserStore()
 const dialog = ref(false)
 const grdMain = ref(null)
 const t = useI18n().t
-const emit = defineEmits(["selected"])
+
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
   EMP_NO: "",
@@ -56,16 +56,17 @@ const grdMainProps = reactive({
 
 grdMainProps.columns = grdMainProps.fields
 
-const openPopup = (param) => {
+const openPopup = param => {
   console.log("누적위반", param)
   dialog.value = true
   searchParam.EMP_NO = param.EMP_NO
   commonSearchApi({
     queryId: "SAFDC0010_SEARCH_11",
     param: searchParam,
-  }).then((res) => {
+  }).then(res => {
     if (res.ORESULT_CUR.length === 0) {
       Message.warn(t("조회된값이 없습니다."))
+      
       return false
     } else {
       grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
@@ -79,7 +80,7 @@ const closePopup = () => {
   grdMain.value.getDataProvider().setRows(null)
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === "btnClose") {
     closePopup()
   }
@@ -139,6 +140,7 @@ defineExpose({
     </v-card>
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

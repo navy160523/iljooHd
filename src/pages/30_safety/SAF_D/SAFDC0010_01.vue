@@ -1,12 +1,11 @@
 <script setup>
+import { ref, reactive, onMounted, getCurrentInstance } from "vue"
 
-import { ref, reactive, onMounted, getCurrentInstance } from "vue";
+import { useLogsStore } from "@hiway/stores/logs"
 
-import { useLogsStore } from "@hiway/stores/logs";
+import { useUserStore } from "@hiway/stores/user"
 
-import { useUserStore } from "@hiway/stores/user";
-
-import { useI18n } from "vue-i18n";
+import { useI18n } from "vue-i18n"
 
 import {
 
@@ -20,7 +19,7 @@ import {
 
   commonSendApi,
 
-} from "@hiway/api/commonApi";
+} from "@hiway/api/commonApi"
 
 import {
 
@@ -28,33 +27,33 @@ import {
 
   commonBigUploadFilesApi,
 
-} from "@hiway/api/commonFileApi";
+} from "@hiway/api/commonFileApi"
 
-import IMenuTitle from "@/components/IMenuTitle.vue";
+import IMenuTitle from "@/components/IMenuTitle.vue"
 
-import IGridTitle from "@/components/IGridTitle.vue";
+import IGridTitle from "@/components/IGridTitle.vue"
 
-import RealGrid from "@/components/RealGrid.vue";
+import RealGrid from "@/components/RealGrid.vue"
 
-import saveFlowHelper from "@/utils/saveFlowHelper";
+import saveFlowHelper from "@/utils/saveFlowHelper"
 
-import deleteFlowHelper from "@/utils/deleteFlowHelper";
+import deleteFlowHelper from "@/utils/deleteFlowHelper"
 
-import queryFlowHelper from "@/utils/searchFlowHelper";
+import queryFlowHelper from "@/utils/searchFlowHelper"
 
-import dayjs from "dayjs";
+import dayjs from "dayjs"
 
-import Message from "@hiway/utils/notify";
+import Message from "@hiway/utils/notify"
 
-import SAFDC0010_01Popup01 from "./SAFDC0010_01Popup01.vue";
+import SAFDC0010_01Popup01 from "./SAFDC0010_01Popup01.vue"
 
-import SAFDC0010_01Popup02 from "./SAFDC0010_01Popup02.vue";
+import SAFDC0010_01Popup02 from "./SAFDC0010_01Popup02.vue"
 
-import EmpPopup from "@/pages/COM/components/EmpPopup.vue";
+import EmpPopup from "@/components/popup/EmpPopup.vue"
 
-import IUpload from "@/components/IUpload.vue";
+import IUpload from "@/components/IUpload.vue"
 
-import _ from "lodash";
+import _ from "lodash"
 
 const vehicleTypeOptions = [
 
@@ -68,49 +67,49 @@ const vehicleTypeOptions = [
 
   { value: "Z", label: "기타" },
 
-];
+]
 
-const normalizeVehicleType = (value) => {
+const normalizeVehicleType = value => {
 
   const option = vehicleTypeOptions.find(
 
-    ({ value: code, label }) => code === value || label === value
+    ({ value: code, label }) => code === value || label === value,
 
-  );
+  )
 
-  return option?.value ?? String(value ?? "").trim().toUpperCase();
+  return option?.value ?? String(value ?? "").trim().toUpperCase()
 
-};
+}
 
 defineOptions({
 
   name: "SAF_SAFDC0010",
 
-});
+})
 
-const vm = getCurrentInstance().proxy; //다이얼로그관련
+const vm = getCurrentInstance().proxy //다이얼로그관련
 
-const t = useI18n().t; //다국어
+const t = useI18n().t //다국어
 
-const gridTitle = ref(null);
+const gridTitle = ref(null)
 
-const tab = ref("안전수칙위반현황");
+const tab = ref("안전수칙위반현황")
 
-const grdMain = ref(null);
+const grdMain = ref(null)
 
-const userStore = useUserStore();
+const userStore = useUserStore()
 
-const sAFDC0010Popup01 = ref(null); //등록 팝업
+const sAFDC0010Popup01 = ref(null) //등록 팝업
 
 // const sAFDC0010Popup02 = ref(null); //교통수칙위반 등록 팝업
 
-const empPopup = ref(null);
+const empPopup = ref(null)
 
-const fileUpload = ref(null);
+const fileUpload = ref(null)
 
-const chkImage = reactive(["jpg", "gif", "bmp", "png", "jpeg"]);
+const chkImage = reactive(["jpg", "gif", "bmp", "png", "jpeg"])
 
-const { sliSAFDC0010_01 } = history.state;
+const { sliSAFDC0010_01 } = history.state
 
 const detailField = reactive({
 
@@ -130,7 +129,7 @@ const detailField = reactive({
 
   images: [],
 
-});
+})
 
 const codeList = reactive({
 
@@ -154,23 +153,23 @@ const codeList = reactive({
 
   actDiv: [], //조치상태
 
-});
+})
 
 const rowStyleCallback = (grid, item) => {
 
-  const rowIndex = item.index;
+  const rowIndex = item.index
 
-  const status = String(grid.getValue(rowIndex, "STATUS") ?? "").trim();
+  const status = String(grid.getValue(rowIndex, "STATUS") ?? "").trim()
 
   const actionDivision = String(
 
-    grid.getValue(rowIndex, "ACT_DIV") ?? ""
+    grid.getValue(rowIndex, "ACT_DIV") ?? "",
 
-  ).trim();
+  ).trim()
 
-  const isApproved = status === "30" || status === "승인";
+  const isApproved = status === "30" || status === "승인"
 
-  const needsAction = actionDivision === "10" || actionDivision === "조치필요";
+  const needsAction = actionDivision === "10" || actionDivision === "조치필요"
 
   //승인이면서 조치필요일때
 
@@ -184,13 +183,13 @@ const rowStyleCallback = (grid, item) => {
 
       },
 
-    };
+    }
 
   }
 
-  return {};
+  return {}
 
-};
+}
 
 const initCodeList = async () => {
 
@@ -260,57 +259,57 @@ const initCodeList = async () => {
 
     getPgCodeList("HHIG170"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
-    codeList.company = res[0].ORESULT_CUR.slice();
+    codeList.company = res[0].ORESULT_CUR.slice()
 
-    codeList.dansokCompany = res[0].ORESULT_CUR;
+    codeList.dansokCompany = res[0].ORESULT_CUR
 
-    codeList.bsnsCd = res[1].ORESULT_CUR.slice();
+    codeList.bsnsCd = res[1].ORESULT_CUR.slice()
 
-    codeList.dansokBsnsCd = res[5].ORESULT_CUR;
+    codeList.dansokBsnsCd = res[5].ORESULT_CUR
 
     codeList.dansokDeptCd = res[2].ORESULT_CUR
 
-    codeList.gubun = res[3].ORESULT_CUR.filter((x) => !x.COD.includes("S"));
+    codeList.gubun = res[3].ORESULT_CUR.filter(x => !x.COD.includes("S"))
 
-    codeList.status = res[4].ORESULT_CUR;
+    codeList.status = res[4].ORESULT_CUR
 
-    codeList.searchStatus = res[4].ORESULT_CUR;
+    codeList.searchStatus = res[4].ORESULT_CUR
 
-    codeList.company.unshift({ TXT: "전체", COD: "" });
+    codeList.company.unshift({ TXT: "전체", COD: "" })
 
-    codeList.dansokCompany.unshift({ TXT: "전체", COD: "" });
+    codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
 
-    codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+    codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+    codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    codeList.gubun.unshift({ TXT: "전체", COD: "" });
+    codeList.gubun.unshift({ TXT: "전체", COD: "" })
 
-    codeList.searchStatus.unshift({ TXT: "전체", COD: "" });
+    codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
 
-    grdMain.value.setBindingColumn("STATUS", codeList.status, "COD", "TXT");
+    grdMain.value.setBindingColumn("STATUS", codeList.status, "COD", "TXT")
 
     //console.log("진행상태 ");
 
     //console.log(codeList.status);
 
-    setButton(searchParam.VIO_GDIV);
+    setButton(searchParam.VIO_GDIV)
 
     //console.log("--");
 
     // 조치구분
 
-    codeList.actDiv = res[6].ORESULT_CUR;
+    codeList.actDiv = res[6].ORESULT_CUR
 
     // console.log("조치관리 : ", codeList.actDiv);
 
-    grdMain.value.setBindingColumn("ACT_DIV", codeList.actDiv, "COD", "TXT");
+    grdMain.value.setBindingColumn("ACT_DIV", codeList.actDiv, "COD", "TXT")
 
-  });
+  })
 
-};
+}
 
 //조회조건이랑 같이 있지만 실제로 조회할때 필요하지 않는 값들
 
@@ -320,7 +319,7 @@ const searchField = reactive({
 
   CHK_DAY: "Y", //일자 체크박스
 
-});
+})
 
 //조회조건
 
@@ -362,7 +361,7 @@ const searchParam = reactive({
 
   STATUS: sliSAFDC0010_01 === undefined ? "" : "30", //결재진행상태
 
-});
+})
 
 //그리드 속성셋팅
 
@@ -1582,17 +1581,17 @@ const grdMainProps = reactive({
 
   ],
 
-});
+})
 
-grdMainProps.columns = grdMainProps.fields;
+grdMainProps.columns = grdMainProps.fields
 
 //메뉴버튼
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
 
   if (btn.id === "btnSearch") {       //안전수칙위반 조회 클릭
 
-    setButton(searchParam.VIO_GDIV);
+    setButton(searchParam.VIO_GDIV)
 
     new queryFlowHelper(vm, t)
 
@@ -1602,11 +1601,11 @@ const onButtonsClick = (btn) => {
 
       .setAfter(afterSearch)
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnRegistViolation") {
 
-    sAFDC0010Popup01.value.openPopup();
+    sAFDC0010Popup01.value.openPopup()
 
   }
 
@@ -1630,7 +1629,7 @@ const onButtonsClick = (btn) => {
 
       .setConfirmMessage("반려하시겠습니까?")
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnApproveAndSend") {
 
@@ -1646,7 +1645,7 @@ const onButtonsClick = (btn) => {
 
       .setConfirmMessage("승인하시겠습니까?")
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnReqApprove") {
 
@@ -1662,7 +1661,7 @@ const onButtonsClick = (btn) => {
 
       .setConfirmMessage("승인요청하시겠습니까?")
 
-      .run();
+      .run()
 
   } else if (btn.id === "btnReqApproveCancel") {
 
@@ -1678,7 +1677,7 @@ const onButtonsClick = (btn) => {
 
       .setConfirmMessage("승인요청취소하시겠습니까?")
 
-      .run();
+      .run()
 
   } else {
 
@@ -1698,7 +1697,7 @@ const onButtonsClick = (btn) => {
 
   }
 
-};
+}
 
 //반려 관련 로직 시작
 
@@ -1706,13 +1705,13 @@ const beforeReturnApprove = () => {
 
   //체크된 데이터 확인
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (chkData.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return false;
+    return false
 
   }
 
@@ -1720,13 +1719,13 @@ const beforeReturnApprove = () => {
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     if (data.VIO_GDIV_NM === "교통위반") {
 
-      Message.warn(t("교통위반건은 반려 할 수 없습니다."));
+      Message.warn(t("교통위반건은 반려 할 수 없습니다."))
 
-      return false;
+      return false
 
     }
 
@@ -1736,37 +1735,37 @@ const beforeReturnApprove = () => {
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     if (data.STATUS === "30") {
 
-      Message.warn(t("승인 완료된 정보가 있습니다."));
+      Message.warn(t("승인 완료된 정보가 있습니다."))
 
-      return false;
+      return false
 
     } else if (data.STATUS === "11") {
 
-      Message.warn(t("반려상태인 데이터가 있습니다."));
+      Message.warn(t("반려상태인 데이터가 있습니다."))
 
-      return false;
+      return false
 
     }
 
   }
 
-  return true;
+  return true
 
-};
+}
 
 const returnApprove = () => {
 
-  let saveParam = [];
+  let saveParam = []
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     let saveData = {
 
@@ -1776,9 +1775,9 @@ const returnApprove = () => {
 
       USER_ID: userStore.userId,
 
-    };
+    }
 
-    saveParam.push(saveData);
+    saveParam.push(saveData)
 
   }
 
@@ -1788,15 +1787,15 @@ const returnApprove = () => {
 
     list: saveParam,
 
-  });
+  })
 
-};
+}
 
 const afterReturnApprove = () => {
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-};
+}
 
 //반려 관련 로직 끝
 
@@ -1808,19 +1807,19 @@ const beforeCancleApprove = () => {
 
   //선택된 데이터 체크
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (chkData.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return false;
+    return false
 
   }
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     //교통위반일때는 STATUS가 문자열 '승인'을 비교
 
@@ -1828,9 +1827,9 @@ const beforeCancleApprove = () => {
 
       if (data.STATUS !== "승인") {
 
-        Message.warn(t("승인취소는 승인 상태에서만 가능합니다."));
+        Message.warn(t("승인취소는 승인 상태에서만 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -1844,15 +1843,15 @@ const beforeCancleApprove = () => {
 
         if (checkRow(chkData)) {
 
-          return true;
+          return true
 
         }
 
       } else {
 
-        Message.warn(t("승인취소는 승인 상태에서만 가능합니다."));
+        Message.warn(t("승인취소는 승인 상태에서만 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -1866,21 +1865,21 @@ const beforeCancleApprove = () => {
 
   // }
 
-};
+}
 
 const cancleApprove = () => {
 
-  let saveParam = [];
+  let saveParam = []
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
-  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]); //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
+  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]) //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
 
   if (data.VIO_GDIV_NM === "교통위반") {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       let saveData = {
 
@@ -1894,9 +1893,9 @@ const cancleApprove = () => {
 
         SAVE_YN: "Y",
 
-      };
+      }
 
-      saveParam.push(saveData);
+      saveParam.push(saveData)
 
     }
 
@@ -1906,7 +1905,7 @@ const cancleApprove = () => {
 
       list: saveParam,
 
-    });
+    })
 
   } else if (
 
@@ -1922,7 +1921,7 @@ const cancleApprove = () => {
 
       for (let i = 0; i < chkData.length; i++) {
 
-        let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+        let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
         let saveData = {
 
@@ -1936,9 +1935,9 @@ const cancleApprove = () => {
 
           SAVE_YN: "Y",
 
-        };
+        }
 
-        saveParam.push(saveData);
+        saveParam.push(saveData)
 
         return commonExecuteApi({
 
@@ -1946,7 +1945,7 @@ const cancleApprove = () => {
 
           list: saveParam,
 
-        });
+        })
 
       }
 
@@ -1954,7 +1953,7 @@ const cancleApprove = () => {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       let saveData = {
 
@@ -1964,9 +1963,9 @@ const cancleApprove = () => {
 
         USER_ID: userStore.userId,
 
-      };
+      }
 
-      saveParam.push(saveData);
+      saveParam.push(saveData)
 
     }
 
@@ -1976,17 +1975,17 @@ const cancleApprove = () => {
 
       list: saveParam,
 
-    });
+    })
 
   }
 
-};
+}
 
 const afterCancleApprove = () => {
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-};
+}
 
 //승인취소 관련 로직 끝
 
@@ -1994,27 +1993,27 @@ const afterCancleApprove = () => {
 
 const beforeReqApprove = () => {
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (chkData.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return false;
+    return false
 
   }
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     if (data.VIO_GDIV_NM === "교통위반") {
 
       if (data.STATUS !== "작성중") {
 
-        Message.warn(t("작성중 상태인 데이터만 승인요청 가능합니다."));
+        Message.warn(t("작성중 상태인 데이터만 승인요청 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2024,9 +2023,9 @@ const beforeReqApprove = () => {
 
       if (data.STATUS !== "10") {
 
-        Message.warn(t("작성중 상태인 데이터만 승인요청 가능합니다."));
+        Message.warn(t("작성중 상태인 데이터만 승인요청 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2036,37 +2035,37 @@ const beforeReqApprove = () => {
 
   if (checkRow(chkData)) {
 
-    return true;
+    return true
 
   }
 
-};
+}
 
 // 승인요청취소 관련 로직 시작
 
 const beforeReqApproveCancel = () => {
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (chkData.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return false;
+    return false
 
   }
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     if (data.VIO_GDIV_NM === "교통위반") {
 
       if (data.STATUS !== "승인대기") {
 
-        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."));
+        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2076,9 +2075,9 @@ const beforeReqApproveCancel = () => {
 
       if (data.STATUS !== "20") {
 
-        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."));
+        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2088,37 +2087,37 @@ const beforeReqApproveCancel = () => {
 
   if (checkRow(chkData)) {
 
-    return true;
+    return true
 
   }
 
-};
+}
 
 // 승인발송 관련 로직 시작
 
 const beforeApprove = () => {
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
   if (chkData.length === 0) {
 
-    Message.warn(t("선택된 데이터가 없습니다."));
+    Message.warn(t("선택된 데이터가 없습니다."))
 
-    return false;
+    return false
 
   }
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
     if (data.VIO_GDIV_NM === "교통위반") {
 
       if (data.STATUS !== "승인대기") {
 
-        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."));
+        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2128,9 +2127,9 @@ const beforeApprove = () => {
 
       if (data.STATUS !== "20") {
 
-        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."));
+        Message.warn(t("승인대기 상태인 데이터만 승인 가능합니다."))
 
-        return false;
+        return false
 
       }
 
@@ -2140,23 +2139,23 @@ const beforeApprove = () => {
 
   if (checkRow(chkData)) {
 
-    return true;
+    return true
 
   }
 
-};
+}
 
 // 승인요청
 
 const saveReqApprove = async () => {
 
-  let saveParam = [];
+  let saveParam = []
 
-  let scmsParam = [];
+  let scmsParam = []
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
-  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]); //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
+  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]) //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
 
   //일반수칙,절대수칙일때
 
@@ -2172,7 +2171,7 @@ const saveReqApprove = async () => {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       let saveData = {
 
@@ -2184,13 +2183,13 @@ const saveReqApprove = async () => {
 
         STATUS: "20",
 
-      };
+      }
 
-      saveParam.push(saveData);
+      saveParam.push(saveData)
 
     }
 
-    sendMail(chkData); //메일전송
+    sendMail(chkData) //메일전송
 
     //안전수칙위반 승인
 
@@ -2200,23 +2199,23 @@ const saveReqApprove = async () => {
 
       list: saveParam,
 
-    });
+    })
 
   }
 
-};
+}
 
 // 승인요청취소
 
 const saveReqApproveCancel = async () => {
 
-  let saveParam = [];
+  let saveParam = []
 
-  let scmsParam = [];
+  let scmsParam = []
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
-  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]); //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
+  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]) //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
 
   //일반수칙,절대수칙일때
 
@@ -2232,7 +2231,7 @@ const saveReqApproveCancel = async () => {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       let saveData = {
 
@@ -2244,13 +2243,13 @@ const saveReqApproveCancel = async () => {
 
         STATUS: "10",
 
-      };
+      }
 
-      saveParam.push(saveData);
+      saveParam.push(saveData)
 
     }
 
-    sendMail(chkData); //메일전송
+    sendMail(chkData) //메일전송
 
     //안전수칙위반 승인
 
@@ -2260,21 +2259,21 @@ const saveReqApproveCancel = async () => {
 
       list: saveParam,
 
-    });
+    })
 
   }
 
-};
+}
 
 const saveApprove = async () => {
 
-  let saveParam = [];
+  let saveParam = []
 
-  let scmsParam = [];
+  let scmsParam = []
 
-  let chkData = grdMain.value.getGridView().getCheckedRows(true);
+  let chkData = grdMain.value.getGridView().getCheckedRows(true)
 
-  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]); //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
+  let data = grdMain.value.getDataProvider().getJsonRow(chkData[0]) //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
 
   //교통위반 승인/발송
 
@@ -2282,7 +2281,7 @@ const saveApprove = async () => {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       //   //교통수칙위반에 대한 데이터가 모두 없기때문에 교통수칙위반번호에 해당하는 데이터를 조회함 -> 수칙위반,교통위반을 합치느라 이렇게해야함
 
@@ -2292,7 +2291,7 @@ const saveApprove = async () => {
 
         VIO_NO: data.VIO_NO,
 
-      };
+      }
 
       await commonPgSearchApi({
 
@@ -2300,7 +2299,7 @@ const saveApprove = async () => {
 
         param: param,
 
-      }).then((res) => {
+      }).then(res => {
 
         let saveData = {
 
@@ -2324,7 +2323,7 @@ const saveApprove = async () => {
 
           SAVE_YN: "Y",
 
-        };
+        }
 
         //SCMS교통위반 확정건 연동
 
@@ -2340,17 +2339,17 @@ const saveApprove = async () => {
 
           SAVEYN: "N",
 
-        };
+        }
 
-        saveParam.push(saveData);
+        saveParam.push(saveData)
 
-        scmsParam.push(scmsData);
+        scmsParam.push(scmsData)
 
-      });
+      })
 
     }
 
-    sendMail(chkData); //메일전송
+    sendMail(chkData) //메일전송
 
     //SCMS교통위반 확정건 연동
 
@@ -2360,7 +2359,7 @@ const saveApprove = async () => {
 
       list: scmsParam,
 
-    });
+    })
 
     return commonExecuteApi({
 
@@ -2368,7 +2367,7 @@ const saveApprove = async () => {
 
       list: saveParam,
 
-    });
+    })
 
   }
 
@@ -2386,7 +2385,7 @@ const saveApprove = async () => {
 
     for (let i = 0; i < chkData.length; i++) {
 
-      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+      let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
       let saveData = {
 
@@ -2396,13 +2395,13 @@ const saveApprove = async () => {
 
         USER_ID: userStore.userId,
 
-      };
+      }
 
-      saveParam.push(saveData);
+      saveParam.push(saveData)
 
     }
 
-    sendMail(chkData); //메일전송
+    sendMail(chkData) //메일전송
 
     //안전수칙위반 승인
 
@@ -2412,25 +2411,25 @@ const saveApprove = async () => {
 
       list: saveParam,
 
-    });
+    })
 
   }
 
-};
+}
 
-const afterApprove = (res) => {
+const afterApprove = res => {
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-};
+}
 
 //승인발송 관련 로직 끝
 
 //메일발송 관련 로직 시작
 
-const sendMail = async (data) => {
+const sendMail = async data => {
 
-  let sendMailData = grdMain.value.getDataProvider().getJsonRow(data[0]); //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
+  let sendMailData = grdMain.value.getDataProvider().getJsonRow(data[0]) //교통위반은 교통위반만 있기때문에 0번째만 체크하고 일반수칙과 절대수칙은 같이 승인이 되기 때문에 둘중 하나만 비교
 
   /*
 
@@ -2680,9 +2679,9 @@ const sendMail = async (data) => {
 
     //안전수칙위반 단건 승인시 메일발송
 
-    let sendMailData = grdMain.value.getDataProvider().getJsonRow(data[0]);
+    let sendMailData = grdMain.value.getDataProvider().getJsonRow(data[0])
 
-    let mailMsg = getMsgBody(sendMailData);
+    let mailMsg = getMsgBody(sendMailData)
 
     //메일발송 대상자 조회
 
@@ -2696,7 +2695,7 @@ const sendMail = async (data) => {
 
       ASGN_CD: sendMailData.ASGN_CD,
 
-    };
+    }
 
     commonPgSearchApi({
 
@@ -2704,7 +2703,7 @@ const sendMail = async (data) => {
 
       param: param,
 
-    }).then((res) => {
+    }).then(res => {
 
       for (let i = 0; i < res.ORESULT_CUR.length; i++) {
 
@@ -2716,17 +2715,17 @@ const sendMail = async (data) => {
 
           CONTENT: mailMsg, //메일내용
 
-        };
+        }
 
-        commonSendApi(mail).then((res) => {
+        commonSendApi(mail).then(res => {
 
-          Message.success(t("메일이 전송되었습니다."));
+          Message.success(t("메일이 전송되었습니다."))
 
-        });
+        })
 
       }
 
-    });
+    })
 
     if (
 
@@ -2750,7 +2749,7 @@ const sendMail = async (data) => {
 
         ASGN_cD: "Y1J0",
 
-      };
+      }
 
       //보전부 메일 발송대상 조회
 
@@ -2760,7 +2759,7 @@ const sendMail = async (data) => {
 
         param: param1,
 
-      }).then((res) => {
+      }).then(res => {
 
         for (let i = 0; i < res.ORESULT_CUR.length; i++) {
 
@@ -2772,13 +2771,13 @@ const sendMail = async (data) => {
 
             CONTENT: mailMsg,
 
-          };
+          }
 
-          sendMail(mail);
+          sendMail(mail)
 
         }
 
-      });
+      })
 
       let param2 = {
 
@@ -2790,7 +2789,7 @@ const sendMail = async (data) => {
 
         ASGN_CD: "YD20",
 
-      };
+      }
 
       //U/T지원부 메일 발송대상 조회
 
@@ -2800,7 +2799,7 @@ const sendMail = async (data) => {
 
         param: param2,
 
-      }).then((res) => {
+      }).then(res => {
 
         for (let i = 0; i < res.ORESULT_CUR.length; i++) {
 
@@ -2812,19 +2811,19 @@ const sendMail = async (data) => {
 
             CONTENT: mailMsg,
 
-          };
+          }
 
-          sendMail(mail);
+          sendMail(mail)
 
         }
 
-      });
+      })
 
     }
 
   } else {
 
-    let sortArr = []; //ASGN_CD별로 정렬하기 위한 배열
+    let sortArr = [] //ASGN_CD별로 정렬하기 위한 배열
 
     //일반수칙위반 다건 승인시 메일 발송
 
@@ -2840,17 +2839,17 @@ const sendMail = async (data) => {
 
     for (let i = 0; i < data.length; i++) {
 
-      let sendData = grdMain.value.getDataProvider().getJsonRow(data[i]);
+      let sendData = grdMain.value.getDataProvider().getJsonRow(data[i])
 
-      sortArr.push(sendData);
+      sortArr.push(sendData)
 
     }
 
-    let sortedArr = sortArr.sort((a, b) => (a.ASGN_CD < b.ASGN_CD ? -1 : 1)); //선택된 데이터의 ASGN_CD를 기준으로 오름차순으로 정렬
+    let sortedArr = sortArr.sort((a, b) => (a.ASGN_CD < b.ASGN_CD ? -1 : 1)) //선택된 데이터의 ASGN_CD를 기준으로 오름차순으로 정렬
 
-    let groupData = _.groupBy(sortedArr, "ASGN_CD"); //ASGN_CD를 기준으로 그룹핑
+    let groupData = _.groupBy(sortedArr, "ASGN_CD") //ASGN_CD를 기준으로 그룹핑
 
-    let extractedData = Object.values(groupData); //그룹핑된 데이터의 value를 추출
+    let extractedData = Object.values(groupData) //그룹핑된 데이터의 value를 추출
 
     for (let i in extractedData) {
 
@@ -2868,7 +2867,7 @@ const sendMail = async (data) => {
 
           ASGN_CD: extractedData[i][0].ASGN_CD,
 
-        };
+        }
 
         commonPgSearchApi({
 
@@ -2876,7 +2875,7 @@ const sendMail = async (data) => {
 
           param: mailParam,
 
-        }).then((res) => {
+        }).then(res => {
 
           for (let j = 0; j < res.ORESULT_CUR.length; j++) {
 
@@ -2888,17 +2887,17 @@ const sendMail = async (data) => {
 
               CONTENT: getMultiMsgBody(extractedData[i]),
 
-            };
+            }
 
-            commonSendApi(mail).then((res) => {
+            commonSendApi(mail).then(res => {
 
-              Message.success(t("메일이 전송되었습니다."));
+              Message.success(t("메일이 전송되었습니다."))
 
-            }); //메일전송
+            }) //메일전송
 
           }
 
-        });
+        })
 
       } else {
 
@@ -2914,7 +2913,7 @@ const sendMail = async (data) => {
 
           ASGN_CD: extractedData[i][0].ASGN_CD,
 
-        };
+        }
 
         //메일발송대상 조회
 
@@ -2924,7 +2923,7 @@ const sendMail = async (data) => {
 
           param: mailParam,
 
-        }).then((res) => {
+        }).then(res => {
 
           for (let j = 0; j < res.ORESULT_CUR.length; j++) {
 
@@ -2936,17 +2935,17 @@ const sendMail = async (data) => {
 
               CONTENT: getMultiMsgBody(extractedData[i]),
 
-            };
+            }
 
-            commonSendApi(mail).then((res) => {
+            commonSendApi(mail).then(res => {
 
-              Message.success(t("메일이 전송되었습니다."));
+              Message.success(t("메일이 전송되었습니다."))
 
-            }); //메일전송
+            }) //메일전송
 
           }
 
-        });
+        })
 
       }
 
@@ -2956,7 +2955,7 @@ const sendMail = async (data) => {
 
   }
 
-};
+}
 
 //메일발송 관련 로직 끝
 
@@ -2968,9 +2967,9 @@ const defaultDate = () => {
 
     //FROM: -1달 ~ TO : 오늘날짜
 
-    let date = dayjs();
+    let date = dayjs()
 
-    let dateFrom = dayjs().subtract(3, "month");
+    let dateFrom = dayjs().subtract(3, "month")
 
     searchParam.VIO_DATE_FR =
 
@@ -2982,7 +2981,7 @@ const defaultDate = () => {
 
       "-" +
 
-      dateFrom.$D.toString().padStart(2, "0");
+      dateFrom.$D.toString().padStart(2, "0")
 
     searchParam.VIO_DATE_TO =
 
@@ -2994,65 +2993,65 @@ const defaultDate = () => {
 
       "-" +
 
-      date.get("date").toString().padStart(2, "0");
+      date.get("date").toString().padStart(2, "0")
 
   } else {
 
-    searchParam.VIO_DATE_FR = sliSAFDC0010_01.FROM_DT;
+    searchParam.VIO_DATE_FR = sliSAFDC0010_01.FROM_DT
 
-    searchParam.VIO_DATE_TO = sliSAFDC0010_01.TO_DT;
+    searchParam.VIO_DATE_TO = sliSAFDC0010_01.TO_DT
 
   }
 
-};
+}
 
-const formatGridDate = (value) => {
+const formatGridDate = value => {
 
-  if (value === null || value === undefined || value === "") return "";
+  if (value === null || value === undefined || value === "") return ""
 
-  const raw = String(value).trim();
+  const raw = String(value).trim()
 
-  if (!raw) return "";
+  if (!raw) return ""
 
   if (/^\d{12}$/.test(raw)) {
 
-    const year = raw.substring(0, 4);
+    const year = raw.substring(0, 4)
 
-    const month = raw.substring(4, 6);
+    const month = raw.substring(4, 6)
 
-    const day = raw.substring(6, 8);
+    const day = raw.substring(6, 8)
 
-    const hour = raw.substring(8, 10);
+    const hour = raw.substring(8, 10)
 
-    const minute = raw.substring(10, 12);
+    const minute = raw.substring(10, 12)
 
-    return `${year}-${month}-${day} ${hour}:${minute}`;
+    return `${year}-${month}-${day} ${hour}:${minute}`
 
   }
 
   if (/^\d{8}$/.test(raw)) {
 
-    const year = raw.substring(0, 4);
+    const year = raw.substring(0, 4)
 
-    const month = raw.substring(4, 6);
+    const month = raw.substring(4, 6)
 
-    const day = raw.substring(6, 8);
+    const day = raw.substring(6, 8)
 
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`
 
   }
 
   if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}(:\d{2})?$/.test(raw)) {
 
-    return raw.replace("T", " ").slice(0, 16);
+    return raw.replace("T", " ").slice(0, 16)
 
   }
 
-  return raw;
+  return raw
 
-};
+}
 
-const splitViolationDateTime = (row) => {
+const splitViolationDateTime = row => {
 
   const rawValue =
 
@@ -3068,9 +3067,9 @@ const splitViolationDateTime = (row) => {
 
     row.vio_dt1 ??
 
-    "";
+    ""
 
-  const raw = String(rawValue).trim();
+  const raw = String(rawValue).trim()
 
   if (/^\d{12}$/.test(raw)) {
 
@@ -3080,15 +3079,15 @@ const splitViolationDateTime = (row) => {
 
       time: `${raw.substring(8, 10)}:${raw.substring(10, 12)}`,
 
-    };
+    }
 
   }
 
   const matched = raw.match(
 
-    /^(\d{4})[-./](\d{2})[-./](\d{2})(?:[T\s]?(\d{2})?:?(\d{2})?)?/
+    /^(\d{4})[-./](\d{2})[-./](\d{2})(?:[T\s]?(\d{2})?:?(\d{2})?)?/,
 
-  );
+  )
 
   return {
 
@@ -3106,19 +3105,19 @@ const splitViolationDateTime = (row) => {
 
       (matched?.[4] && matched?.[5] ? `${matched[4]}:${matched[5]}` : ""),
 
-  };
+  }
 
-};
+}
 
 const normalizeGridRow = (row = {}) => {
 
-  const normalized = { ...row };
+  const normalized = { ...row }
 
   const assignFromAliases = (target, aliases) => {
 
     if (normalized[target] !== undefined && normalized[target] !== null && normalized[target] !== "") {
 
-      return;
+      return
 
     }
 
@@ -3128,27 +3127,27 @@ const normalizeGridRow = (row = {}) => {
 
       ...Object.keys(normalized).filter(
 
-        (key) => key.replaceAll("_", "").toUpperCase() === target.replaceAll("_", "")
+        key => key.replaceAll("_", "").toUpperCase() === target.replaceAll("_", ""),
 
       ),
 
-    ];
+    ]
 
     for (const alias of matchingKeys) {
 
-      const value = normalized[alias];
+      const value = normalized[alias]
 
       if (value !== undefined && value !== null && value !== "") {
 
-        normalized[target] = value;
+        normalized[target] = value
 
-        break;
+        break
 
       }
 
     }
 
-  };
+  }
 
   const majorAliases = {
 
@@ -3250,27 +3249,27 @@ const normalizeGridRow = (row = {}) => {
 
     SHIP_NO: ["SHIP_NO"],
 
-  };
+  }
 
   Object.entries(majorAliases).forEach(([target, aliases]) => {
 
-    assignFromAliases(target, aliases);
+    assignFromAliases(target, aliases)
 
-  });
+  })
 
-  normalized.VEHICLE_TYPE = normalizeVehicleType(normalized.VEHICLE_TYPE);
+  normalized.VEHICLE_TYPE = normalizeVehicleType(normalized.VEHICLE_TYPE)
 
   normalized.VEHICLE_TYPE_NM =
 
     vehicleTypeOptions.find(({ value }) => value === normalized.VEHICLE_TYPE)?.label ??
 
-    normalized.VEHICLE_TYPE;
+    normalized.VEHICLE_TYPE
 
   normalized.VEHICLE_SPEED_NM = normalized.VEHICLE_SPEED
 
     ? `${normalized.VEHICLE_SPEED}`
 
-    : "";
+    : ""
 
   const vioTimeText =
 
@@ -3280,11 +3279,11 @@ const normalizeGridRow = (row = {}) => {
 
     normalized.VIO_TIME ??
 
-    normalized.vio_time;
+    normalized.vio_time
 
   if (vioTimeText !== undefined && vioTimeText !== null && vioTimeText !== "") {
 
-    normalized.VIO_TIME_DS = normalized.VIO_TIME_DS || normalized.vio_time_ds || formatGridDate(vioTimeText);
+    normalized.VIO_TIME_DS = normalized.VIO_TIME_DS || normalized.vio_time_ds || formatGridDate(vioTimeText)
 
   }
 
@@ -3300,17 +3299,17 @@ const normalizeGridRow = (row = {}) => {
 
     normalized.ACT_TIME ??
 
-    normalized.act_time;
+    normalized.act_time
 
   if (actTimeText !== undefined && actTimeText !== null && actTimeText !== "") {
 
-    normalized.ACT_TIME_DS = normalized.ACT_TIME_DS || normalized.act_time_ds || formatGridDate(actTimeText);
+    normalized.ACT_TIME_DS = normalized.ACT_TIME_DS || normalized.act_time_ds || formatGridDate(actTimeText)
 
   }
 
-  return normalized;
+  return normalized
 
-};
+}
 
 // VIO_SPLC_NM은 SAFDC0010_SEARCH_01에서 조회한다.
 
@@ -3324,15 +3323,15 @@ const normalizeGridRow = (row = {}) => {
 
 const searchData = () => {
 
-  console.log("조회 시 넘어 온 값들 ", searchParam);
+  console.log("조회 시 넘어 온 값들 ", searchParam)
 
   console.log("[SAFDC0010_SEARCH_01] searchParam before request:", {
 
     ...searchParam,
 
-  });
+  })
 
-  console.log("[SAFDC0010_SEARCH_01] queryId:", "SAFDC0010_SEARCH_01");
+  console.log("[SAFDC0010_SEARCH_01] queryId:", "SAFDC0010_SEARCH_01")
 
   return commonPgSearchApi({
 
@@ -3340,19 +3339,19 @@ const searchData = () => {
 
     param: searchParam,
 
-  });
+  })
 
-};
+}
 
-const afterSearch = async (res) => {
+const afterSearch = async res => {
 
-  console.log("[SAFDC0010_SEARCH_01] response received:", res);
+  console.log("[SAFDC0010_SEARCH_01] response received:", res)
 
   if (!res || !res.ORESULT_CUR) {
 
-    console.warn("[SAFDC0010_SEARCH_01] ORESULT_CUR is missing.", res);
+    console.warn("[SAFDC0010_SEARCH_01] ORESULT_CUR is missing.", res)
 
-    return;
+    return
 
   }
 
@@ -3360,7 +3359,7 @@ const afterSearch = async (res) => {
 
   // 사용하는 VIO_PHOTO/VIO_FILE/ACT_PHOTO/ACT_FILE로 변환한다.
 
-  const rows = (res.ORESULT_CUR || []).map((row) => normalizeGridRow(row));
+  const rows = (res.ORESULT_CUR || []).map(row => normalizeGridRow(row))
 
   // VIO_SPLC_NM은 백엔드 조회 결과를 그대로 사용한다.
 
@@ -3378,25 +3377,25 @@ const afterSearch = async (res) => {
 
   // );
 
-  console.log("[SAFDC0010_SEARCH_01] rows count:", rows.length);
+  console.log("[SAFDC0010_SEARCH_01] rows count:", rows.length)
 
-  console.log("[SAFDC0010_SEARCH_01] first row normalized:", rows[0]);
+  console.log("[SAFDC0010_SEARCH_01] first row normalized:", rows[0])
 
-  console.log("[SAFDC0010_SEARCH_01] grdMain exists:", !!grdMain.value);
+  console.log("[SAFDC0010_SEARCH_01] grdMain exists:", !!grdMain.value)
 
   console.log(
 
     "[SAFDC0010_SEARCH_01] dataProvider exists:",
 
-    !!grdMain.value?.getDataProvider()
+    !!grdMain.value?.getDataProvider(),
 
-  );
+  )
 
-  grdMain.value.getDataProvider().setRows(rows);
+  grdMain.value.getDataProvider().setRows(rows)
 
-  grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback);
+  grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback)
 
-};
+}
 
 //조회관련 로직 끝
 
@@ -3404,11 +3403,11 @@ const afterSearch = async (res) => {
 
 const onCellDblClicked = (grid, clickData) => {
 
-  console.log("clickData", clickData.dataRow);
+  console.log("clickData", clickData.dataRow)
 
-  let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow);
+  let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
 
-  const violationDateTime = splitViolationDateTime(data);
+  const violationDateTime = splitViolationDateTime(data)
 
   const popupPayload = {
 
@@ -3560,13 +3559,13 @@ const onCellDblClicked = (grid, clickData) => {
 
     INSERT_USER_ID: data.INSERT_USER_ID ?? data.insert_user_id ?? "",
 
-  };
+  }
 
   //if (data.GUBUN === "A") {
 
   // 수칙위반 TFA1010C01
 
-  sAFDC0010Popup01.value.openPopup2(popupPayload);
+  sAFDC0010Popup01.value.openPopup2(popupPayload)
 
   //}
 
@@ -3612,7 +3611,7 @@ const onCellDblClicked = (grid, clickData) => {
 
   */
 
-};
+}
 
 //셀 더블클릭 이벤트 관련 로직 끝
 
@@ -3620,13 +3619,13 @@ const onCellDblClicked = (grid, clickData) => {
 
 const closedPopup = () => {
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-};
+}
 
 //단건 메일 양식 만드는 로직 시작
 
-const getMsgBody = (data) => {
+const getMsgBody = data => {
 
   if (data.VIO_GDIV_NM === "교통위반") {
 
@@ -3636,37 +3635,37 @@ const getMsgBody = (data) => {
 
     //그래서 YYYY.MM.DD HH:MM형식으로 data.VIO_TIME(위반일시)을 변형
 
-    let mailMsg = ""; //메일 본문
+    let mailMsg = "" //메일 본문
 
-    let mailHeader = `<br/>업무에 노고가 많으십니다.`;
+    let mailHeader = `<br/>업무에 노고가 많으십니다.`
 
-    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`;
+    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`
 
-    mailHeader += `"<br/><br/>관련 문의사항은 "+${userStore.hndPhn}"로 연락바랍니다."`;
+    mailHeader += `"<br/><br/>관련 문의사항은 "+${userStore.hndPhn}"로 연락바랍니다."`
 
-    mailHeader += `<br/><br/>감사합니다.`;
+    mailHeader += `<br/><br/>감사합니다.`
 
-    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`;
+    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`
 
-    mailHeader += `<br/><br/>`;
+    mailHeader += `<br/><br/>`
 
-    mailMsg += mailHeader;
+    mailMsg += mailHeader
 
-    let year = data.VIO_TIME.substr(0, 4);
+    let year = data.VIO_TIME.substr(0, 4)
 
-    let month = data.VIO_TIME.substr(5, 2);
+    let month = data.VIO_TIME.substr(5, 2)
 
-    let day = data.VIO_TIME.substr(8, 2);
+    let day = data.VIO_TIME.substr(8, 2)
 
-    let hour = data.VIO_TIME.substr(11, 2);
+    let hour = data.VIO_TIME.substr(11, 2)
 
-    let minute = data.VIO_TIME.substr(14, 2);
+    let minute = data.VIO_TIME.substr(14, 2)
 
-    let date = year + "-" + month + "-" + day;
+    let date = year + "-" + month + "-" + day
 
-    let time = hour + ":" + minute;
+    let time = hour + ":" + minute
 
-    let vioItemNmRe = "";
+    let vioItemNmRe = ""
 
     if (data.VEHICLE_SPEED) {
 
@@ -3674,15 +3673,15 @@ const getMsgBody = (data) => {
 
         if (itemNm[i] !== undefined) {
 
-          vioItemNmRe += itemNm[i] + ",";
+          vioItemNmRe += itemNm[i] + ","
 
         }
 
-        vioItemNmRe = vioItemNmRe.slice(0, -1);
+        vioItemNmRe = vioItemNmRe.slice(0, -1)
 
       }
 
-      vioItemNM += `(주행속도 : ${data.VEHICLE_SPEED} + Km/h)`;
+      vioItemNM += `(주행속도 : ${data.VEHICLE_SPEED} + Km/h)`
 
     } else {
 
@@ -3690,11 +3689,11 @@ const getMsgBody = (data) => {
 
         if (itemNm[i] !== undefined) {
 
-          vioItemNmRe += itemNm[i] + ",";
+          vioItemNmRe += itemNm[i] + ","
 
         }
 
-        vioItemNmRe = vioItemNmRe.slice(0, -1);
+        vioItemNmRe = vioItemNmRe.slice(0, -1)
 
       }
 
@@ -3702,21 +3701,21 @@ const getMsgBody = (data) => {
 
     let mailBody = `-위반일시(${date + time})<br/>- 조직: ${data.ASGN_NM
 
-      }<br/>- 성명 : ${data.VIOLATOR
+    }<br/>- 성명 : ${data.VIOLATOR
 
-      }<br/>- 위반항목 : ${vioItemNmRe}<br/>- 장소 : ${data.VIO_SPLC_NM + data.VIO_PLC_DESC
+    }<br/>- 위반항목 : ${vioItemNmRe}<br/>- 장소 : ${data.VIO_SPLC_NM + data.VIO_PLC_DESC
 
-      }`;
+    }`
 
-    mailMsg += mailBody;
+    mailMsg += mailBody
 
     if (data.VIO_DESC) {
 
-      mailMsg += `<br/>- 위반상세 ${data.VIO_DESC}`;
+      mailMsg += `<br/>- 위반상세 ${data.VIO_DESC}`
 
     }
 
-    return mailMsg;
+    return mailMsg
 
   } else {
 
@@ -3726,57 +3725,57 @@ const getMsgBody = (data) => {
 
     //그래서 YYYY.MM.DD HH:MM형식으로 data.VIO_TIME(위반일시)을 변형
 
-    let year = data.VIO_TIME.substr(0, 4);
+    let year = data.VIO_TIME.substr(0, 4)
 
-    let month = data.VIO_TIME.substr(5, 2);
+    let month = data.VIO_TIME.substr(5, 2)
 
-    let day = data.VIO_TIME.substr(8, 2);
+    let day = data.VIO_TIME.substr(8, 2)
 
-    let hour = data.VIO_TIME.substr(11, 2);
+    let hour = data.VIO_TIME.substr(11, 2)
 
-    let minute = data.VIO_TIME.substr(14, 2);
+    let minute = data.VIO_TIME.substr(14, 2)
 
-    let date = year + "-" + month + "-" + day;
+    let date = year + "-" + month + "-" + day
 
-    let time = hour + ":" + minute;
+    let time = hour + ":" + minute
 
-    let mailHeader = `<br/>업무에 노고가 많으십니다.`;
+    let mailHeader = `<br/>업무에 노고가 많으십니다.`
 
-    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`;
+    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`
 
-    mailHeader += `<br/><br/>관련 문의사항은${userStore.hndPhn}로 연락바랍니다.`;
+    mailHeader += `<br/><br/>관련 문의사항은${userStore.hndPhn}로 연락바랍니다.`
 
-    mailHeader += `<br/><br/>감사합니다.`;
+    mailHeader += `<br/><br/>감사합니다.`
 
-    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`;
+    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`
 
-    mailHeader += `<br/><br/>`;
+    mailHeader += `<br/><br/>`
 
     let mailBody = `-위반일시(${date + time})<br/>- 조직: ${data.ASGN_NM
 
-      }<br/>- 성명 : ${data.VIOLATOR}<br/>- 위반항목 : ${data.VIO_MDIV_NM
+    }<br/>- 성명 : ${data.VIOLATOR}<br/>- 위반항목 : ${data.VIO_MDIV_NM
 
-      }<br/>- 장소 : ${data.VIO_SPLC_NM + data.VIO_PLC_DESC}`;
+    }<br/>- 장소 : ${data.VIO_SPLC_NM + data.VIO_PLC_DESC}`
 
-    let mailMsg = mailHeader + mailBody;
+    let mailMsg = mailHeader + mailBody
 
     if (data.VIO_DESC) {
 
-      mailMsg += `<br/>- 위반상세 ${data.VIO_DESC}`;
+      mailMsg += `<br/>- 위반상세 ${data.VIO_DESC}`
 
     }
 
-    return mailMsg;
+    return mailMsg
 
   }
 
-};
+}
 
 //단건 메일 양식 만드는 로직 끝
 
 //다건 메일 양식 만드는 로직 시작
 
-const getMultiMsgBody = (data) => {
+const getMultiMsgBody = data => {
 
   if (data[0].VIO_GDIV_NM === "교통위반") {
 
@@ -3786,83 +3785,83 @@ const getMultiMsgBody = (data) => {
 
     //그래서 YYYY.MM.DD HH:MM형식으로 data.VIO_TIME(위반일시)을 변형
 
-    let mailMsg = ""; //메일 본문
+    let mailMsg = "" //메일 본문
 
-    let mailHeader = `<br/>업무에 노고가 많으십니다.`;
+    let mailHeader = `<br/>업무에 노고가 많으십니다.`
 
-    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`;
+    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`
 
-    mailHeader += `"<br/><br/>관련 문의사항은 "${userStore.hndPhn}"로 연락바랍니다."`;
+    mailHeader += `"<br/><br/>관련 문의사항은 "${userStore.hndPhn}"로 연락바랍니다."`
 
-    mailHeader += `<br/><br/>감사합니다.`;
+    mailHeader += `<br/><br/>감사합니다.`
 
-    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`;
+    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`
 
-    mailHeader += `<br/><br/>`;
+    mailHeader += `<br/><br/>`
 
-    mailMsg += mailHeader;
+    mailMsg += mailHeader
 
     for (let i = 0; i < data.length; i++) {
 
-      let year = data[i].VIO_TIME.substr(0, 4);
+      let year = data[i].VIO_TIME.substr(0, 4)
 
-      let month = data[i].VIO_TIME.substr(5, 2);
+      let month = data[i].VIO_TIME.substr(5, 2)
 
-      let day = data[i].VIO_TIME.substr(8, 2);
+      let day = data[i].VIO_TIME.substr(8, 2)
 
-      let hour = data[i].VIO_TIME.substr(11, 2);
+      let hour = data[i].VIO_TIME.substr(11, 2)
 
-      let minute = data[i].VIO_TIME.substr(14, 2);
+      let minute = data[i].VIO_TIME.substr(14, 2)
 
-      let date = year + "-" + month + "-" + day;
+      let date = year + "-" + month + "-" + day
 
-      let time = hour + ":" + minute;
+      let time = hour + ":" + minute
 
-      let vioItemNmRe = "";
+      let vioItemNmRe = ""
 
       if (data[i].VEHICLE_SPEED) {
 
-        let itemNm = [];
+        let itemNm = []
 
-        itemNm.push(data[i].VIO_ITEM1_NM);
+        itemNm.push(data[i].VIO_ITEM1_NM)
 
-        itemNm.push(data[i].VIO_ITEM2_NM);
+        itemNm.push(data[i].VIO_ITEM2_NM)
 
-        itemNm.push(data[i].VIO_ITEM3_NM);
+        itemNm.push(data[i].VIO_ITEM3_NM)
 
         for (let i = 0; i < 3; i++) {
 
           if (itemNm[i] !== undefined) {
 
-            vioItemNmRe += itemNm[i] + ",";
+            vioItemNmRe += itemNm[i] + ","
 
           }
 
-          vioItemNmRe = vioItemNmRe.slice(0, -1);
+          vioItemNmRe = vioItemNmRe.slice(0, -1)
 
         }
 
-        vioItemNM += `(주행속도 : ${data[i].VEHICLE_SPEED} + Km/h)`;
+        vioItemNM += `(주행속도 : ${data[i].VEHICLE_SPEED} + Km/h)`
 
       } else {
 
-        let itemNm = [];
+        let itemNm = []
 
-        itemNm.push(data[i].VIO_ITEM1_NM);
+        itemNm.push(data[i].VIO_ITEM1_NM)
 
-        itemNm.push(data[i].VIO_ITEM2_NM);
+        itemNm.push(data[i].VIO_ITEM2_NM)
 
-        itemNm.push(data[i].VIO_ITEM3_NM);
+        itemNm.push(data[i].VIO_ITEM3_NM)
 
         for (let i = 0; i < 3; i++) {
 
           if (itemNm[i] !== undefined) {
 
-            vioItemNmRe += itemNm[i] + ",";
+            vioItemNmRe += itemNm[i] + ","
 
           }
 
-          vioItemNmRe = vioItemNmRe.slice(0, -1);
+          vioItemNmRe = vioItemNmRe.slice(0, -1)
 
         }
 
@@ -3870,23 +3869,23 @@ const getMultiMsgBody = (data) => {
 
       let mailBody = `-위반일시(${date + time})<br/>- 조직: ${data[i].ASGN_NM
 
-        }<br/>- 성명 : ${data[i].VIOLATOR
+      }<br/>- 성명 : ${data[i].VIOLATOR
 
-        }<br/>- 위반항목 : ${vioItemNmRe}<br/>- 장소 : ${data[i].VIO_SPLC_NM + data[i].VIO_PLC_DESC
+      }<br/>- 위반항목 : ${vioItemNmRe}<br/>- 장소 : ${data[i].VIO_SPLC_NM + data[i].VIO_PLC_DESC
 
-        }`;
+      }`
 
-      mailMsg += mailBody;
+      mailMsg += mailBody
 
       if (data[i].VIO_DESC) {
 
-        mailMsg += `<br/>- 위반상세 ${data[i].VIO_DESC}`;
+        mailMsg += `<br/>- 위반상세 ${data[i].VIO_DESC}`
 
       }
 
     }
 
-    return mailMsg;
+    return mailMsg
 
   } else {
 
@@ -3896,77 +3895,77 @@ const getMultiMsgBody = (data) => {
 
     //그래서 YYYY.MM.DD HH:MM형식으로 data.VIO_TIME(위반일시)을 변형
 
-    let mailMsg = "";
+    let mailMsg = ""
 
-    let mailHeader = `<br/>업무에 노고가 많으십니다.`;
+    let mailHeader = `<br/>업무에 노고가 많으십니다.`
 
-    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`;
+    mailHeader += `<br/><br/>아래와 같이 안전수칙 위반관련 내용을 송부드리니 참조하시기 바랍니다.`
 
-    mailHeader += `<br/><br/>관련 문의사항은${userStore.hndPhn}로 연락바랍니다.`;
+    mailHeader += `<br/><br/>관련 문의사항은${userStore.hndPhn}로 연락바랍니다.`
 
-    mailHeader += `<br/><br/>감사합니다.`;
+    mailHeader += `<br/><br/>감사합니다.`
 
-    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`;
+    mailHeader += `<br/><br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;== 아 래 ==`
 
-    mailHeader += `<br/><br/>`;
+    mailHeader += `<br/><br/>`
 
-    mailMsg += mailHeader;
+    mailMsg += mailHeader
 
     for (let i = 0; i < data.length; i++) {
 
-      let year = data[i].VIO_TIME.substr(0, 4);
+      let year = data[i].VIO_TIME.substr(0, 4)
 
-      let month = data[i].VIO_TIME.substr(5, 2);
+      let month = data[i].VIO_TIME.substr(5, 2)
 
-      let day = data[i].VIO_TIME.substr(8, 2);
+      let day = data[i].VIO_TIME.substr(8, 2)
 
-      let hour = data[i].VIO_TIME.substr(11, 2);
+      let hour = data[i].VIO_TIME.substr(11, 2)
 
-      let minute = data[i].VIO_TIME.substr(14, 2);
+      let minute = data[i].VIO_TIME.substr(14, 2)
 
-      let date = year + "-" + month + "-" + day;
+      let date = year + "-" + month + "-" + day
 
-      let time = hour + ":" + minute;
+      let time = hour + ":" + minute
 
       let mailBody = `- 위반일시(${date + time})<br/>- 조직: ${data[i].ASGN_NM
 
-        }<br/>- 성명 : ${data[i].VIOLATOR}<br/>- 위반항목 : ${data.VIO_MDIV_NM
+      }<br/>- 성명 : ${data[i].VIOLATOR}<br/>- 위반항목 : ${data.VIO_MDIV_NM
 
-        }<br/>- 장소 : ${data[i].VIO_SPLC_NM + data[i].VIO_PLC_DESC}`;
+      }<br/>- 장소 : ${data[i].VIO_SPLC_NM + data[i].VIO_PLC_DESC}`
 
-      mailMsg += mailBody;
+      mailMsg += mailBody
 
       if (data[i].VIO_DESC) {
 
-        mailMsg += `<br/>- 위반상세 ${data[i].VIO_DESC}`;
+        mailMsg += `<br/>- 위반상세 ${data[i].VIO_DESC}`
 
       }
 
     }
 
-    return mailMsg;
+    return mailMsg
 
   }
 
-};
+}
 
 //다건 메일양식 만드는 로직 끝
 
 //체크된 로우가 교통위반만 있는지 일반수칙,절대수칙만 있는지 확인하는 함수
 
-const checkRow = (chkData) => {
+const checkRow = chkData => {
 
   //교통위반,일반수칙이랑 같이 승인되지 않도록 체크
 
   //교통위반은 일반수칙,절대수칙과 같이 체크될수없도록해야함
 
-  let chkArr = []; //교통수칙 위반이 포함되어 있는지 체크하는 배열
+  let chkArr = [] //교통수칙 위반이 포함되어 있는지 체크하는 배열
 
   for (let i = 0; i < chkData.length; i++) {
 
-    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i]);
+    let data = grdMain.value.getDataProvider().getJsonRow(chkData[i])
 
-    chkArr.push(data.VIO_GDIV_NM);
+    chkArr.push(data.VIO_GDIV_NM)
 
   }
 
@@ -3980,17 +3979,17 @@ const checkRow = (chkData) => {
 
     Message.warn(
 
-      t("일반수칙과 절대수칙은 교통위반과 함께 결제할 수 없습니다.")
+      t("일반수칙과 절대수칙은 교통위반과 함께 결제할 수 없습니다."),
 
-    );
+    )
 
-    return false;
+    return false
 
   }
 
-  return true;
+  return true
 
-};
+}
 
 // 단속자 인원팝업 오픈
 
@@ -4002,41 +4001,41 @@ const openDansokEmpPopup = () => {
 
     EMP_NM: searchParam.DANSOK_EMP_NM,
 
-  });
+  })
 
-};
+}
 
 // 단속자 선택 이벤트
 
-const onDansokEmpSelected = (val) => {
+const onDansokEmpSelected = val => {
 
-  searchParam.DANSOK_EMP_NM = val.EMP_NM;
+  searchParam.DANSOK_EMP_NM = val.EMP_NM
 
-  searchParam.DANSOK_EMP_NO = val.EMP_NO;
+  searchParam.DANSOK_EMP_NO = val.EMP_NO
 
-};
+}
 
 // 단속자 내부 X아이콘 클릭시 단속자 사번,성명 초기화
 
 const clearInsert = () => {
 
-  searchParam.DANSOK_EMP_NM = "";
+  searchParam.DANSOK_EMP_NM = ""
 
-  searchParam.DANSOK_EMP_NO = "";
+  searchParam.DANSOK_EMP_NO = ""
 
-};
+}
 
 // 삭제 안내 팝업
 
-const deleteInfoDialog = ref(false);
+const deleteInfoDialog = ref(false)
 
 // 교통수칙 위반 버튼 세팅
 
-const setButton = (gbn) => {
+const setButton = gbn => {
 
   // HSE 직책자 그룹 (HSEMGR001)
 
-  let grpYN = userStore.authGrpCd.includes("HSEMGR001");
+  let grpYN = userStore.authGrpCd.includes("HSEMGR001")
 
   // gridTitle.value.visibleBtn('btnReqApprove', false)
 
@@ -4044,7 +4043,7 @@ const setButton = (gbn) => {
 
   // gridTitle.value.visibleBtn('btnTurnBack', false)
 
-  gridTitle.value.visibleBtn("btnApproveAndSend", false);
+  gridTitle.value.visibleBtn("btnApproveAndSend", false)
 
   // 교통수칙 위반인 경우
 
@@ -4070,7 +4069,7 @@ const setButton = (gbn) => {
 
   }
 
-};
+}
 
 //회사변경시 사업부 조회
 
@@ -4078,7 +4077,7 @@ watch(
 
   () => searchParam.COMPANY,
 
-  (newValue) => {
+  newValue => {
 
     // console.log("뉴 값 : ", newValue);
 
@@ -4090,21 +4089,21 @@ watch(
 
       param: { CMPNY_DIV: newValue },
 
-    }).then((res) => {
+    }).then(res => {
 
-      codeList.bsnsCd = res.ORESULT_CUR;
+      codeList.bsnsCd = res.ORESULT_CUR
 
-      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-      searchParam.BSNS_CD = "";
+      searchParam.BSNS_CD = ""
 
-      searchParam.DEPT_CD = "";
+      searchParam.DEPT_CD = ""
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 //사업부 변경시 부서 조회
 
@@ -4128,25 +4127,25 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
       if (oldValue !== undefined) {
 
-        searchParam.DEPT_CD = "";
+        searchParam.DEPT_CD = ""
 
-        codeList.deptCd = res.ORESULT_CUR;
+        codeList.deptCd = res.ORESULT_CUR
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       } else {
 
-        codeList.deptCd = res.ORESULT_CUR;
+        codeList.deptCd = res.ORESULT_CUR
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       }
 
-    });
+    })
 
   },
 
@@ -4154,9 +4153,9 @@ watch(
 
     immediate: true,
 
-  }
+  },
 
-);
+)
 
 //과거조직포함 변경시 부서에 과거조직까지 조회
 
@@ -4164,7 +4163,7 @@ watch(
 
   () => searchField.PAST_ORG,
 
-  (newValue) => {
+  newValue => {
 
     commonPgSearchApi({
 
@@ -4178,19 +4177,19 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
-      codeList.bsnsCd = res.ORESULT_CUR;
+      codeList.bsnsCd = res.ORESULT_CUR
 
-      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-      searchParam.BSNS_CD = userStore.bsnsCd;
+      searchParam.BSNS_CD = userStore.bsnsCd
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 //단속조직 회사 변경시
 
@@ -4206,21 +4205,21 @@ watch(
 
       param: { CMPNY_DIV: newValue },
 
-    }).then((res) => {
+    }).then(res => {
 
-      searchParam.DANSOK_BSNS_CD = "";
+      searchParam.DANSOK_BSNS_CD = ""
 
-      searchParam.DANSOK_ASGN_CD = ""; // ★ 이 부분을 추가하여 부서 선택값도 함께 초기화합니다.
+      searchParam.DANSOK_ASGN_CD = "" // ★ 이 부분을 추가하여 부서 선택값도 함께 초기화합니다.
 
-      codeList.dansokBsnsCd = res.ORESULT_CUR;
+      codeList.dansokBsnsCd = res.ORESULT_CUR
 
-      codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" });
+      codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
 
-    });
+    })
 
-  }
+  },
 
-);
+)
 
 //단속조직 사업부 변경시
 
@@ -4244,33 +4243,33 @@ watch(
 
       },
 
-    }).then((res) => {
+    }).then(res => {
 
       if (oldValue !== undefined) {
 
-        searchParam.DEPT_CD = "";
+        searchParam.DEPT_CD = ""
 
-        codeList.deptCd = res.ORESULT_CUR;
+        codeList.deptCd = res.ORESULT_CUR
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       } else {
 
-        codeList.deptCd = res.ORESULT_CUR;
+        codeList.deptCd = res.ORESULT_CUR
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" });
+        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
 
       }
 
-      searchParam.DANSOK_ASGN_CD = "";
+      searchParam.DANSOK_ASGN_CD = ""
 
-      codeList.dansokDeptCd = res.ORESULT_CUR;
+      codeList.dansokDeptCd = res.ORESULT_CUR
 
       // 맨 앞에 '전체' 추가
 
-      codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" });
+      codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" })
 
-    });
+    })
 
   },
 
@@ -4278,9 +4277,9 @@ watch(
 
     immediate: true, // 초기화 시점에도 동작하도록 위반조직과 동일하게 적용
 
-  }
+  },
 
-);
+)
 
 // 구분 값 변경에 따라 버튼 세팅
 
@@ -4298,260 +4297,321 @@ watch(
 
 onMounted(async () => {
 
-  console.log(sliSAFDC0010_01);
+  console.log(sliSAFDC0010_01)
 
-  defaultDate();
+  defaultDate()
 
-  await initCodeList();
+  await initCodeList()
 
-  onButtonsClick({ id: "btnSearch" });
+  onButtonsClick({ id: "btnSearch" })
 
-});
-
+})
 </script>
 
 <template>
-
   <v-card class="pa-0 fill-height">
-
     <v-card-title class="pa-3 pb-0">
+      <IGridTitle
+        ref="gridTitle"
+        class="mt-0"
+        :button-list="[
 
-      <IGridTitle class="mt-0" ref="gridTitle" :button-list="[
+          'btnSearch',
 
-        'btnSearch',
+          'btnRegistViolation',
 
-        'btnRegistViolation',
-
-      ]" @click-button="onButtonsClick" />
-
+        ]"
+        @click-button="onButtonsClick"
+      />
     </v-card-title>
 
     <v-card-text class="pa-3 pt-0 content-area">
-
       <div class="d-flex flex-column fill-height">
-
         <v-sheet class="searchArea d-flex mb-0">
+          <v-checkbox
+            v-model="searchField.CHK_DAY"
+            class="mt-1"
+            true-value="Y"
+            false-value="N"
+          />
 
-          <v-checkbox v-model="searchField.CHK_DAY" class="mt-1" true-value="Y" false-value="N"></v-checkbox>
+          <i-input
+            v-model="searchParam.VIO_DATE_FR"
+            label-width="25px"
+            :label="$t('일자')"
+            width="170px"
+            class="mr-1"
 
-          <i-input v-model="searchParam.VIO_DATE_FR" label-width="25px" :label="$t('일자')" width="170px" class="mr-1"
-
-            type="date"></i-input>
+            type="date"
+          />
 
           <span class="mt-2">~</span>
 
-          <i-input v-model="searchParam.VIO_DATE_TO" class="ml-1" type="date" width="150px"></i-input>
+          <i-input
+            v-model="searchParam.VIO_DATE_TO"
+            class="ml-1"
+            type="date"
+            width="150px"
+          />
 
-          <i-select v-model="searchParam.COMPANY" :label="$t('위반조직')" label-width="50px" width="250px"
+          <i-select
+            v-model="searchParam.COMPANY"
+            :label="$t('위반조직')"
+            label-width="50px"
+            width="250px"
 
-            :items="codeList.company" item-title="TXT" item-value="COD"></i-select>
+            :items="codeList.company"
+            item-title="TXT"
+            item-value="COD"
+          />
 
-          <i-select v-model="searchParam.BSNS_CD" width="200px" :items="codeList.bsnsCd" item-title="BSNS_NM"
+          <i-select
+            v-model="searchParam.BSNS_CD"
+            width="200px"
+            :items="codeList.bsnsCd"
+            item-title="BSNS_NM"
 
-            item-value="BSNS_CD"></i-select>
+            item-value="BSNS_CD"
+          />
 
-          <i-select v-model="searchParam.DEPT_CD" width="300px" :items="codeList.deptCd" item-title="DEPT_NM"
+          <i-select
+            v-model="searchParam.DEPT_CD"
+            width="300px"
+            :items="codeList.deptCd"
+            item-title="DEPT_NM"
 
-            item-value="DEPT_CD"></i-select>
+            item-value="DEPT_CD"
+          />
 
-          <v-checkbox v-model="searchField.PAST_ORG" true-value="Y" false-value="N"></v-checkbox>
+          <v-checkbox
+            v-model="searchField.PAST_ORG"
+            true-value="Y"
+            false-value="N"
+          />
 
           <span class="mt-1 mr-5">과거조직포함</span>
 
           <div class="d-flex align-center ml-5">
-
             <h3>※교통수칙 담당 : 안전보건지원부 김영남 기감(2-1601).</h3>
-
           </div>
-
         </v-sheet>
 
         <v-sheet class="searchArea d-flex">
+          <i-select
+            v-model="searchParam.CMPNY_DIV"
+            :label="$t('단속조직')"
+            label-width="50px"
+            width="250px"
 
-          <i-select v-model="searchParam.CMPNY_DIV" :label="$t('단속조직')" label-width="50px" width="250px"
+            :items="codeList.dansokCompany"
+            item-title="TXT"
+            item-value="COD"
+          />
 
-            :items="codeList.dansokCompany" item-title="TXT" item-value="COD"></i-select>
+          <i-select
+            v-model="searchParam.DANSOK_BSNS_CD"
+            width="200px"
+            :items="codeList.dansokBsnsCd"
 
-          <i-select v-model="searchParam.DANSOK_BSNS_CD" width="200px" :items="codeList.dansokBsnsCd"
+            item-title="BSNS_NM"
+            item-value="BSNS_CD"
+          />
 
-            item-title="BSNS_NM" item-value="BSNS_CD"></i-select>
+          <i-select
+            v-model="searchParam.DANSOK_ASGN_CD"
+            width="270px"
+            :items="codeList.dansokDeptCd"
 
-          <i-select width="270px" v-model="searchParam.DANSOK_ASGN_CD" :items="codeList.dansokDeptCd"
+            item-title="DANSOK_ASGN_NM"
+            item-value="DANSOK_ASGN_CD"
+          />
 
-            item-title="DANSOK_ASGN_NM" item-value="DANSOK_ASGN_CD">
+          <i-select
+            v-model="searchParam.VIO_GDIV"
+            :label="$t('구분')"
+            width="200px"
+            :items="codeList.gubun"
 
-          </i-select>
+            item-title="TXT"
+            item-value="COD"
+          />
 
-          <i-select v-model="searchParam.VIO_GDIV" :label="$t('구분')" width="200px" :items="codeList.gubun"
+          <i-select
+            v-model="searchParam.STATUS"
+            :label="$t('진행상태')"
+            width="250px"
+            :items="codeList.status"
 
-            item-title="TXT" item-value="COD"></i-select>
+            item-title="TXT"
+            item-value="COD"
+          />
 
-          <i-select v-model="searchParam.STATUS" :label="$t('진행상태')" width="250px" :items="codeList.status"
+          <i-input
+            v-model="searchParam.DANSOK_EMP_NM"
+            :label="$t('단속자')"
+            width="250px"
+            readonly
+          >
+            <template #append-inner>
+              <v-icon
+                icon="mdi-magnify"
+                @click="openDansokEmpPopup"
+              />
 
-            item-title="TXT" item-value="COD">
-
-          </i-select>
-
-          <i-input :label="$t('단속자')" width="250px" v-model="searchParam.DANSOK_EMP_NM" readonly>
-
-            <template v-slot:append-inner>
-
-              <v-icon @click="openDansokEmpPopup" icon="mdi-magnify" />
-
-              <v-icon color="error" @click="clearInsert" icon="mdi-window-close" />
-
+              <v-icon
+                color="error"
+                icon="mdi-window-close"
+                @click="clearInsert"
+              />
             </template>
-
           </i-input>
-
         </v-sheet>
 
         <div class="d-flex align-center mb-2">
-
-          <v-btn size="small" prepend-icon="mdi-information-outline" variant="text" @click="deleteInfoDialog = true">
-
+          <v-btn
+            size="small"
+            prepend-icon="mdi-information-outline"
+            variant="text"
+            @click="deleteInfoDialog = true"
+          >
             삭제 관련 안내
-
           </v-btn>
-
         </div>
 
         <v-sheet style="height: -webkit-fill-available">
+          <!-- 그리드 표출 위치 -->
 
-          <!--그리드 표출 위치-->
+          <RealGrid
+            ref="grdMain"
+            :grid-view-option="grdMainProps.gridViewOption"
+            :keys="grdMainProps.keys"
 
-          <RealGrid ref="grdMain" :grid-view-option="grdMainProps.gridViewOption" :keys="grdMainProps.keys"
+            :fields="grdMainProps.fields"
+            :columns="grdMainProps.columns"
+            :column-layout="grdMainProps.columnLayout"
 
-            :fields="grdMainProps.fields" :columns="grdMainProps.columns" :column-layout="grdMainProps.columnLayout"
-
-            :row-style-callback="rowStyleCallback" @onCellDblClicked="onCellDblClicked" />
-
+            :row-style-callback="rowStyleCallback"
+            @on-cell-dbl-clicked="onCellDblClicked"
+          />
         </v-sheet>
-
       </div>
-
     </v-card-text>
 
-    <SAFDC0010_01Popup01 ref="sAFDC0010Popup01" @closed="closedPopup"></SAFDC0010_01Popup01>
+    <SAFDC0010_01Popup01
+      ref="sAFDC0010Popup01"
+      @closed="closedPopup"
+    />
 
-    <SAFDC0010_01Popup02 ref="sAFDC0010Popup02" @closed="closedPopup"></SAFDC0010_01Popup02>
+    <SAFDC0010_01Popup02
+      ref="sAFDC0010Popup02"
+      @closed="closedPopup"
+    />
 
-    <EmpPopup ref="empPopup" @selected="onDansokEmpSelected"></EmpPopup>
+    <EmpPopup
+      ref="empPopup"
+      @selected="onDansokEmpSelected"
+    />
 
     <!-- 삭제 관련 안내 팝업 -->
 
-    <v-dialog v-model="deleteInfoDialog" max-width="500">
-
+    <v-dialog
+      v-model="deleteInfoDialog"
+      max-width="500"
+    >
       <v-card>
-
         <v-card-title class="d-flex align-center">
-
-          <v-icon color="primary" class="mr-2">mdi-information-outline</v-icon>
+          <v-icon
+            color="primary"
+            class="mr-2"
+          >
+            mdi-information-outline
+          </v-icon>
 
           삭제 관련 안내
-
         </v-card-title>
 
         <v-divider />
 
         <v-card-text class="pt-4">
-
           <p>
-
-            안전수칙위반 개별 건에 대한 삭제 요청은<br />
+            안전수칙위반 개별 건에 대한 삭제 요청은<br>
 
             아래와 같이 각 사업부에서 조치하는 프로세스로 운영됩니다.
-
           </p>
 
           <p>
-
             아래에 안내된 <strong>권한 보유 인원</strong>에게 요청
 
-            부탁드립니다.<br />
-
+            부탁드립니다.<br>
           </p>
 
-          <p class="mt-4 font-weight-bold">✅ 삭제 가능 인원</p>
+          <p class="mt-4 font-weight-bold">
+            ✅ 삭제 가능 인원
+          </p>
 
           <p class="mt-2">
-
-            <strong>조선사업부</strong><br />
+            <strong>조선사업부</strong><br>
 
             정윤구(2-5067), 홍태우(2-6292)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>엔진기계사업부</strong><br />
+            <strong>엔진기계사업부</strong><br>
 
             하성민(3-5846), 김도호(2-7203)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>해양에너지사업본부</strong><br />
+            <strong>해양에너지사업본부</strong><br>
 
             문수익(2-1480), 곽진섭(2-9213)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>중형선</strong><br />
+            <strong>중형선</strong><br>
 
             정도훈(3411), 송채린(2342)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>함정</strong><br />
+            <strong>함정</strong><br>
 
             이상현(3-6615), 송봉근(2-5217)
-
           </p>
 
           <p class="mt-2">
-
-            <strong>안전경영실</strong><br />
+            <strong>안전경영실</strong><br>
 
             문령훈(3-9992), 강현웅(3-6101), 김성일(3-5826), 장믿음(3-0359),
 
             최동해(2-5674), 윤상원(3-9993)
-
           </p>
 
           <p class="mt-4 text-caption">
-
             ※ 상기 권한 인원을 통해서 삭제가 가능하오니, 담당자에게 문의
 
             부탁드립니다.
-
           </p>
-
         </v-card-text>
 
         <v-divider />
 
         <v-card-actions class="justify-end">
-
-          <v-btn class="mt-2" variant="elevated" color="primary" @click="deleteInfoDialog = false">확인</v-btn>
-
+          <v-btn
+            class="mt-2"
+            variant="elevated"
+            color="primary"
+            @click="deleteInfoDialog = false"
+          >
+            확인
+          </v-btn>
         </v-card-actions>
-
       </v-card>
-
     </v-dialog>
-
   </v-card>
-
 </template>
 
 <style scoped lang="scss">
-
 .tableBackGround {
 
   background-color: #f2fe8a;
@@ -4597,5 +4657,4 @@ td {
   }
 
 }
-
 </style>

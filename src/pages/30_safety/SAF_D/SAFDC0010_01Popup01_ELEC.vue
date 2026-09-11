@@ -28,6 +28,8 @@ import SAFDC0010CarNoPopup from './SAFDC0010CarNoPopup.vue'
 import SAFDC0010VioCntPopup from './SAFDC0010VioCntPopup.vue'
 import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF_ELEC.vue'
 
+//승인취소 disabled
+const emit = defineEmits(['closed'])
 const vm = getCurrentInstance().proxy
 const userStore = useUserStore()
 const userLogStore = useLogsStore()
@@ -36,10 +38,7 @@ const grdMain = ref(null)
 const t = useI18n().t
 const menuTitle = ref(null)
 const approvalReadOnly = ref(true) //승인신청 disabled
-const approvalCancleReadOnly = ref(true) //승인취소 disabled
-const emit = defineEmits(['closed'])
-
-//수칙위반 관련 로직 시작
+const approvalCancleReadOnly = ref(true)//수칙위반 관련 로직 시작
 
 const safetyEmpPopup = ref(null) //성명
 const safetyLocation = ref(null) //장소
@@ -135,10 +134,11 @@ const initcodeList = () => {
       queryId: 'SAFDC0010_SEARCH_17',
       param: {},
     }),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.GUBUN = res[0].ORESULT_CUR
     codeList.APP_EMP_NO = res[1].ORESULT_CUR
-//    console.log(codeList.APP_EMP_NO)
+
+    //    console.log(codeList.APP_EMP_NO)
     //codeList.VIO_GDIV = res[2].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
     codeList.SHIP_NO = res[3].ORESULT_CUR
   })
@@ -156,7 +156,7 @@ const openPopup = () => {
 }
 
 //로우 더블클릭시 안전수칙위반 데이터 바인딩
-const openPopup2 = (rowData) => {
+const openPopup2 = rowData => {
   console.log('받은데이터', rowData)
   dialog.value = true
 
@@ -173,6 +173,7 @@ const openPopup2 = (rowData) => {
       }
     }
   }
+
   //대상구분,승인자 조회
   Promise.all([
     getCodeList('HHIZ020'),
@@ -184,11 +185,12 @@ const openPopup2 = (rowData) => {
       },
     }),
     getCodeList('HHIF110'),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.GUBUN = res[0].ORESULT_CUR
     codeList.APP_EMP_NO = res[1].ORESULT_CUR
+
     //safetyField.APP_EMP_NO = rowData.APP_EMP_NO
-    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
+    codeList.VIO_GDIV = res[2].ORESULT_CUR.filter(x => !x.COD.includes('S') && !x.COD.includes('C'))
   })
   console.log('Safety Field:', safetyField)
 
@@ -212,6 +214,7 @@ const setSafetyButtonStatus = () => {
       approvalCancleReadOnly.value = false //승인취소 활성화
       menuTitle.value.disableBtn('btnDelete', true) //삭제버튼 비활성화
     }
+
     //승인상태일때는 승인신청,승인취소,삭제 비활성화
     else if (safetyField.STATUS === '30') {
       console.log('3')
@@ -240,7 +243,7 @@ const setSafetyButtonStatus = () => {
   }
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnUpdate') {
     new saveFlowHelper(vm, t)
       .setBefore(beforeSafetySave)
@@ -255,6 +258,7 @@ const onButtonsClick = (btn) => {
       .run()
   } else {
     closePopup()
+
     //팝업 닫을때 초기화
   }
 }
@@ -273,8 +277,10 @@ const closePopup = () => {
 const beforeDelete = () => {
   if (userStore.userId != safetyField.INSERT_USER_ID) {
     Message.warn(t('수칙위반 삭제는 등록자 본인만 가능합니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -287,6 +293,7 @@ const deleteData = () => {
     USER_ID: userStore.userId,
   }
   deleteParam.push(deleteData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_DELETE02',
     list: deleteParam,
@@ -296,6 +303,7 @@ const deleteData = () => {
 const afterDelete = () => {
   closePopup()
 }
+
 //안전수칙위반 삭제관련 로직 끝
 
 //안전수칙위반 저장 관련 로직 시작
@@ -303,34 +311,44 @@ const beforeSafetySave = () => {
   //필수값 체크
   if (!safetyField.VIO_GDIV) {
     Message.warn(t('위반종류는 필수값입니다.'))
+    
     return false
   } 
   else if (!safetyField.VIO_MDIV){
     Message.warn(t('위반종류 상세는 필수값입니다.'))
+    
     return false
   }
   else if (!safetyField.VIO_DT1 || !safetyField.VIO_TIME2) {
     Message.warn(t('위반일시,시각은 필수값입니다.'))
+    
     return false
   } else if (!safetyField.VIOLATOR) {
     Message.warn(t('위반자성명은 필수값입니다.'))
+    
     return false
   } else if (!safetyField.ASGN_NM) {
     Message.warn(t('위반조직은 필수값입니다.'))
+    
     return false
   } else if (!safetyField.VIO_SPLC_NM) {
     Message.warn(t('장소는 필수값입니다.'))
+    
     return false
   } else if (!safetyField.SAGO_DIV_L) {
     Message.warn(t('잠재사고유형은 필수값입니다.'))
+    
     return false
   } else if (!safetyField.DANSOK_EMP_NM) {
     Message.warn(t('단속자는 필수값입니다.'))
+    
     return false
   } else if (!safetyField.APP_EMP_NO) {
     Message.warn(t('승인자는 필수값입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -381,23 +399,26 @@ const saveSafetyData = () => {
   saveParam.push(saveData)
 
   console.log("saveData", saveData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE01',
     list: saveParam,
   })
 }
 
-const afterSave = (res) => {
+const afterSave = res => {
   //신규저장시에만 지급중단 로직 실행
   if (!safetyField.VIO_NO) {
     setHdPayStop(res) //안전수칙위반 저장후 위반자에 대해 안전페이 지급중단함
   }
+
   // closePopup()
 }
+
 //안전수칙위반 저장 관련 로직 끝
 
 //안전페이 지급중단 로직 시작
-const setHdPayStop = async (res) => {
+const setHdPayStop = async res => {
   //일반수칙 --> VIO_GDIV : B
   //절대수칙 --> VIO_GDIV : A
   //중대성수칙 --> VIO_GDIV : D가 포함되어있는 코드
@@ -428,6 +449,7 @@ const setHdPayStop = async (res) => {
     UPDATE_USER_ID: '', //수정자
     UPDATE_USER_IP: '', //수정자IP
   }
+
   //일반수칙일때
   if (res.list[0].VIO_GDIV === 'B') {
     setHdPayStopParam.PAYMENT_STOP_CD = '30' //수칙위반 코드
@@ -442,6 +464,7 @@ const setHdPayStop = async (res) => {
       list: saveParam,
     })
   }
+
   //절대수칙이나 중점관리항목일때
   else if (res.list[0].VIO_GDIV === 'A' || res.list[0].VIO_GDIV.includes('D')) {
     setHdPayStopParam.PAYMENT_STOP_CD = '30' //수칙위반 코드
@@ -452,6 +475,7 @@ const setHdPayStop = async (res) => {
       console.log('절대수칙')
       setHdPayStopParam.PAYMENT_STOP_DETAIL_CD = '50'
     }
+
     //중점관리항목일때
     else {
       console.log('중점관리')
@@ -466,10 +490,11 @@ const setHdPayStop = async (res) => {
     })
   }
 }
+
 //안전페이 지급중단 로직 끝
 
 //성명(위반자) 클릭 이벤트
-const openSafetyEmpPopup = async (gbn) => {
+const openSafetyEmpPopup = async gbn => {
   if (gbn === '인원조회') {
     safetyEmpPopup.value.openPopup({
       CMPNY_DIV: userStore.cmpnyDiv,
@@ -481,7 +506,7 @@ const openSafetyEmpPopup = async (gbn) => {
 }
 
 //성명(위반자) 선택 이벤트
-const selectedSafetyEmp = (val) => {
+const selectedSafetyEmp = val => {
   safetyField.VIOLATOR = val.EMP_NM //성명에 이름
   safetyField.VIO_EMP_NO = val.EMP_NO //사번에 사번
   safetyField.JOB_TIT_NM = val.JOB_TIT_NM //직위에 직위
@@ -500,8 +525,8 @@ const selectedSafetyEmp = (val) => {
 
   Promise.all([
     getCodeList('HHIF110'),
-  ]).then((res) => {
-    codeList.VIO_GDIV = res[0].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
+  ]).then(res => {
+    codeList.VIO_GDIV = res[0].ORESULT_CUR.filter(x => !x.COD.includes('S') && !x.COD.includes('C'))
   })
 }
 
@@ -509,7 +534,7 @@ const openSafetyLocationPopup = () => {
   safetyLocation.value.openPopup('장소')
 }
 
-const selectedSafetyLocation = (val) => {
+const selectedSafetyLocation = val => {
   safetyField.VIO_LPLC = val[0].COD //장소구분(대)
   safetyField.VIO_MPLC = val[1].COD //장소구분(중)
   safetyField.VIO_SPLC = val[2].COD //장소구분(소)
@@ -517,7 +542,7 @@ const selectedSafetyLocation = (val) => {
 }
 
 //단속자 인원팝업 오픈 이벤트
-const openDansokEmpPopup = async (gbn) => {
+const openDansokEmpPopup = async gbn => {
   if (gbn === '단속자인원조회') {
     safetyDansokEmpPopup.value.openPopup({
       CMPNY_DIV: userStore.cmpnyDiv,
@@ -529,13 +554,14 @@ const openDansokEmpPopup = async (gbn) => {
 }
 
 //단속자 인원팝업 선택 이벤트
-const selectedDansokEmp = (val) => {
+const selectedDansokEmp = val => {
   safetyField.DANSOK_EMP_NM = val.EMP_NM
   safetyField.DANSOK_EMP_NO = val.EMP_NO
   safetyField.DANSOK_ASGN_NM = val.ASGN_NM
   safetyField.DANSOK_ASGN_CD = val.ASGN_CD
   safetyField.DANSOK_DEPT_CD = val.DEPT_CD
 }
+
 //파일첨부 관련 로직 시작
 
 //위반사항 파일첨부 버튼 클릭 이벤트
@@ -548,6 +574,7 @@ const violoationFileUpload = () => {
     safetyFileUpload.value.setGuid()
     safetyField.FILE_ID1 = safetyFileUpload.value.guid
     safetyFileUpload.value.openPopup(safetyField.FILE_ID1)
+
     //처음 등록할때 파일업로드 하지않고 저장했다가 나중에 파일업로드 할때(승인상태에 따라서 수정이 안되는 경우가 있는데 값은 수정못해도 파일은 업로드 할수있게 하기 위해)
     if (safetyField.VIO_NO) {
       let paramData = []
@@ -576,6 +603,7 @@ const violoationActionFileUpload = () => {
     safetyActionFileUpload.value.setGuid()
     safetyField.FILE_ID2 = safetyActionFileUpload.value.guid
     safetyActionFileUpload.value.openPopup(safetyField.FILE_ID2)
+
     //처음 등록할때 파일업로드 하지않고 저장했다가 나중에 파일업로드 할때(승인상태에 따라서 수정이 안되는 경우가 있는데 값은 수정못해도 파일은 업로드 할수있게 하기 위해)
     if (safetyField.VIO_NO) {
       let paramData = []
@@ -585,7 +613,7 @@ const violoationActionFileUpload = () => {
         COMPANY: safetyField.COMPANY,
         FILE_ID2: safetyField.FILE_ID2,
         DIV: safetyField.DIV,
-        USER_ID: userStore.userId 
+        USER_ID: userStore.userId, 
       }
       paramData.push(param)
       commonExecuteApi({
@@ -596,7 +624,7 @@ const violoationActionFileUpload = () => {
   }
 }
 
-const actionUploaded = (fileId) => {
+const actionUploaded = fileId => {
   if (!safetyField.FILE_ID2) {
     safetyField.FILE_ID2 = fileId.fileId //조치사항 파일아이디
   }
@@ -610,7 +638,7 @@ const openSafetyVioDeptPopup = () => {
 }
 
 //위반조직 선택 이벤트
-const selectedVioDept = (val) => {
+const selectedVioDept = val => {
   safetyField.ASGN_NM = val.ASGN_FULL_NM
   safetyField.ASGN_CD = val.ASGN_CD
   safetyField.DEPT_CD = val.DEPT_CD
@@ -619,8 +647,8 @@ const selectedVioDept = (val) => {
 
   Promise.all([
     getCodeList('HHIF110'),
-  ]).then((res) => {
-    codeList.VIO_GDIV = res[0].ORESULT_CUR.filter((x) => !x.COD.includes('S') && !x.COD.includes('C'))
+  ]).then(res => {
+    codeList.VIO_GDIV = res[0].ORESULT_CUR.filter(x => !x.COD.includes('S') && !x.COD.includes('C'))
   })
 }
 
@@ -630,7 +658,7 @@ const openCheckTargetPopup = () => {
 }
 
 //점검 대상물 선택 이벤트
-const selectedTarget = (val) => {
+const selectedTarget = val => {
   safetyField.CHECK_TARGET_OBJ1 = val[0].COD
   safetyField.CHECK_TARGET_OBJ1_NM = val[0].TXT
   safetyField.CHECK_TARGET_OBJ2 = val[1].COD
@@ -646,7 +674,7 @@ const openSagoDivPopup = () => {
 }
 
 //잠재사고유형 선택 이벤트
-const selectedSagoDivPopup = (val) => {
+const selectedSagoDivPopup = val => {
   safetyField.SAGO_DIV_L = val[0].COD //잠재사고유형(대) 코드
   safetyField.SAGO_DIV_L_NM = val[0].TXT //잠재사고유형(대) 이름
   safetyField.SAGO_DIV_M = val[1].COD //잠재사고유형(중)코드
@@ -678,6 +706,7 @@ const saveApprovalData = () => {
   approvalParam.push(approvalData)
 
   mailSet()
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE03',
     list: approvalParam,
@@ -686,6 +715,8 @@ const saveApprovalData = () => {
 
 const mailSet = async () => {
   dialog.value = false
+
+
   /* ******************** 메일 SET ******************* */
   const mailParams = reactive({
     EMAIL: [],
@@ -713,7 +744,7 @@ const mailSet = async () => {
       </html>`
       
   mailParams.EMAIL = [appEmail.value]
-  commonSendApi(mailParams).then((res) => {
+  commonSendApi(mailParams).then(res => {
     Message.success(t('메일이 전송되었습니다.'))
   })
 }
@@ -721,6 +752,7 @@ const mailSet = async () => {
 const afterApproval = () => {
   closePopup()
 }
+
 //승인신청 관련 로직 끝
 
 //승인신청 취소 관련 로직 시작
@@ -730,7 +762,7 @@ const cancelApproval = () => {
     .setAfter(afterCancelApproval)
     .setConfirmMessage(
       `승인 신청을 취소합니다.
-  수정후 재 신청할 수 있습니다!!`
+  수정후 재 신청할 수 있습니다!!`,
     )
     .run()
 }
@@ -743,6 +775,7 @@ const cancelApprovalSaveData = () => {
     USER_ID: userStore.userId,
   }
   cencelApprovalParam.push(cencelApprovalData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_CANCEL01',
     list: cencelApprovalParam,
@@ -766,6 +799,7 @@ const setButtonStatus = () => {
     menuTitle.value.disableBtn('btnDelete', true)
   }
 }
+
 //수칙위반 관련 로직 끝
 
 //위반종류 변경감지
@@ -782,6 +816,7 @@ watch(
     // })
     //safetyField.VIO_MDIV = ''
     codeList.VIO_MDIV = []
+
     const bsnscd = ''
     
     commonSearchApi({
@@ -790,10 +825,10 @@ watch(
         CMPNY_DIV: userStore.cmpnyDiv,
         BSNS_CD: safetyField.BSNS_CD,
       },
-    }).then((res) => {
-      codeList.VIO_MDIV = res.ORESULT_CUR.filter((x) => x.UP_COD.includes(newValue))
+    }).then(res => {
+      codeList.VIO_MDIV = res.ORESULT_CUR.filter(x => x.UP_COD.includes(newValue))
     })
-  }
+  },
 )
 
 // 단속자 변경시
@@ -804,7 +839,7 @@ watch(() => safetyField.DANSOK_EMP_NO, (newValue, oldValue) => {
       CMPNY_DIV: userStore.cmpnyDiv,
       DANSOK_EMP_NO: newValue,
     },
-  }).then((res) => {
+  }).then(res => {
     safetyField.APP_EMP_NO = ''
     codeList.APP_EMP_NO = res.ORESULT_CUR
   })
@@ -820,12 +855,12 @@ watch(() => safetyField.APP_EMP_NO, (newValue, oldValue) => {
   }
 })
 
- watch(dialog, (newValue) => {
-      if (newValue) {
-        console.log('Dialog is opened!');
-        codeList.VIO_GDIV= []
-      }
-    });
+watch(dialog, newValue => {
+  if (newValue) {
+    console.log('Dialog is opened!')
+    codeList.VIO_GDIV= []
+  }
+})
 
 defineExpose({
   openPopup,
@@ -863,7 +898,6 @@ defineExpose({
       <v-card-text class="pa-3 pt-0">
         <div class="d-flex flex-column fill-height">
           <v-sheet class="searchArea">
-            
             <div class="d-flex mt-2">
               <i-input
                 v-model="safetyField.VIO_DT1"
@@ -872,14 +906,13 @@ defineExpose({
                 top-label
                 type="date"
                 required
-              >
-              </i-input>
+              />
               <i-input
                 v-model="safetyField.VIO_TIME2"
                 width="130px"
                 class="mt-5"
                 type="time"
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.VIOLATOR"
                 :label="$t('위반자 성명')"
@@ -887,42 +920,47 @@ defineExpose({
                 top-label
                 required
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSafetyEmpPopup('인원조회')"
+                @click:append-inner="openSafetyEmpPopup('인원조회')"
                 @keydown.enter="
                   (e) => {
                     openSafetyEmpPopup('인원조회')
                   }
                 "
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.VIO_EMP_NO"
                 :label="$t('사번')"
                 width="200px"
                 top-label
                 readonly
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.JOB_TIT_NM"
                 :label="$t('직위')"
                 width="150px"
                 top-label
                 readonly
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.VIO_EMP_ASGN"
                 :label="$t('소속조직')"
                 width="200px"
                 top-label
                 readonly
-              ></i-input>
-              <v-btn class="mt-5" @click="violoationFileUpload"
-                >위반사항 파일첨부</v-btn
+              />
+              <v-btn
+                class="mt-5"
+                @click="violoationFileUpload"
               >
-              <v-btn v-if = "fileBtnVisible"
-                 class="mt-5" 
-                 @click="violoationActionFileUpload"
-                >조치사항 파일첨부</v-btn
+                위반사항 파일첨부
+              </v-btn>
+              <v-btn
+                v-if="fileBtnVisible"
+                class="mt-5" 
+                @click="violoationActionFileUpload"
               >
+                조치사항 파일첨부
+              </v-btn>
             </div>
             <div class="d-flex mt-2">
               <i-input
@@ -933,8 +971,8 @@ defineExpose({
                 required
                 readonly
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSafetyVioDeptPopup"
-              ></i-input>
+                @click:append-inner="openSafetyVioDeptPopup"
+              />
               <i-select
                 v-model="safetyField.IO_DIV"
                 :label="$t('대상구분')"
@@ -945,15 +983,13 @@ defineExpose({
                 item-title="TXT"
                 item-value="COD"
                 required
-              ></i-select>
+              />
               <i-input
                 v-model="safetyField.VEND_NAME"
                 class="mt-5"
                 width="250px"
-              ></i-input>
-              <span class="mt-6"
-                >소속조직으로 검색되지 않는 경우에 수기입력하세요.</span
-              >
+              />
+              <span class="mt-6">소속조직으로 검색되지 않는 경우에 수기입력하세요.</span>
             </div>
 
             <div class="d-flex mt-2">
@@ -967,8 +1003,7 @@ defineExpose({
                 item-title="TXT"
                 item-value="COD"
                 placeholder="위반조직 먼저 선택"
-              >
-              </i-select>
+              />
               <i-select
                 v-model="safetyField.VIO_MDIV"
                 :label="$t('위반 종류 상세')"
@@ -978,11 +1013,11 @@ defineExpose({
                 :items="codeList.VIO_MDIV"
                 item-title="TXT"
                 item-value="COD"
-              ></i-select>
+              />
               <span
+                v-if="!isEmpty(safetyField.VIO_NO)"
                 class="sheetTitle"
                 style="margin-left: 580px; margin-top: 20px"
-                v-if="!isEmpty(safetyField.VIO_NO)"
               >
                 위반정보 {{ safetyField.VIO_NO }}
               </span>
@@ -990,54 +1025,48 @@ defineExpose({
 
             <div class="d-flex mt-2">
               <i-input
+                v-model="safetyField.SAGO_DIV_L_NM"
                 :label="$t('잠재사고유형')"
                 top-label
                 width="200px"
                 required
                 readonly
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSagoDivPopup"
-                v-model="safetyField.SAGO_DIV_L_NM"
-              >
-              </i-input>
+                @click:append-inner="openSagoDivPopup"
+              />
               <i-input
-                width="200px"
-                readonly
-                class="mt-5"
                 v-model="safetyField.SAGO_DIV_M_NM"
-              >
-              </i-input>
-              <i-input
                 width="200px"
                 readonly
                 class="mt-5"
-                v-model="safetyField.SAGO_DIV_S_NM"
-              >
-              </i-input>
+              />
               <i-input
+                v-model="safetyField.SAGO_DIV_S_NM"
+                width="200px"
+                readonly
+                class="mt-5"
+              />
+              <i-input
+                v-model="safetyField.CHECK_TARGET_OBJ1_NM"
                 :label="$t('점검 대상물')"
                 top-label
                 width="200px"
                 readonly
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openCheckTargetPopup"
-                v-model="safetyField.CHECK_TARGET_OBJ1_NM"
-              >
-              </i-input>
+                @click:append-inner="openCheckTargetPopup"
+              />
               <i-input
-                width="200px"
-                readonly
-                class="mt-5"
                 v-model="safetyField.CHECK_TARGET_OBJ2_NM"
-              >
-              </i-input>
-              <i-input
                 width="200px"
                 readonly
                 class="mt-5"
+              />
+              <i-input
                 v-model="safetyField.CHECK_TARGET_OBJ3_NM"
-              >
-              </i-input>
+                width="200px"
+                readonly
+                class="mt-5"
+              />
             </div>
             <div>
               <i-textarea
@@ -1045,7 +1074,7 @@ defineExpose({
                 :label="$t('내용')"
                 width="100%"
                 class="mt-2"
-              ></i-textarea>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-input
@@ -1055,15 +1084,15 @@ defineExpose({
                 top-label
                 append-inner-icon="mdi-magnify"
                 readonly
-                @click:append-inner="openSafetyLocationPopup"
                 required
-              ></i-input>
+                @click:append-inner="openSafetyLocationPopup"
+              />
               <i-input
                 v-model="safetyField.VIO_PLC_DESC"
                 :label="$t('장소상세')"
                 width="400px"
                 top-label
-              ></i-input>
+              />
               <i-select 
                 v-model="safetyField.SHIP_NO"
                 :label="$t('호선No.')"
@@ -1075,7 +1104,9 @@ defineExpose({
                 item-title="WORK_NO"
               />
             </div>
-            <div class="sheetTitle my-5">단속자정보</div>
+            <div class="sheetTitle my-5">
+              단속자정보
+            </div>
             <div class="d-flex">
               <i-input
                 v-model="safetyField.DANSOK_EMP_NM"
@@ -1083,21 +1114,21 @@ defineExpose({
                 width="200px"
                 top-label
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openDansokEmpPopup('단속자인원조회')"
+                required
+                @click:append-inner="openDansokEmpPopup('단속자인원조회')"
                 @keydown.enter="
                   (e) => {
                     openDansokEmpPopup('단속자인원조회')
                   }
                 "
-                required
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.DANSOK_EMP_NO"
                 :label="$t('단속자사번')"
                 width="200px"
                 top-label
                 readonly
-              ></i-input>
+              />
               <i-input
                 v-model="safetyField.DANSOK_ASGN_NM"
                 :label="$t('단속자소속')"
@@ -1105,7 +1136,7 @@ defineExpose({
                 top-label
                 readonly
                 required
-              ></i-input>
+              />
               <i-select
                 v-model="safetyField.APP_EMP_NO"
                 :label="$t('승인자')"
@@ -1115,16 +1146,21 @@ defineExpose({
                 item-title="APP_EMP_NM"
                 item-value="APP_EMP_NO"
                 required
-              ></i-select>
-              <v-btn class="mt-5" @click="approval" :disabled="approvalReadOnly"
-                >승인신청</v-btn
-              >
+              />
               <v-btn
                 class="mt-5"
-                @click="cancelApproval"
-                :disabled="approvalCancleReadOnly"
-                >승인신청취소</v-btn
+                :disabled="approvalReadOnly"
+                @click="approval"
               >
+                승인신청
+              </v-btn>
+              <v-btn
+                class="mt-5"
+                :disabled="approvalCancleReadOnly"
+                @click="cancelApproval"
+              >
+                승인신청취소
+              </v-btn>
             </div>
           </v-sheet>
         </div>
@@ -1132,22 +1168,37 @@ defineExpose({
     </v-card>
   </v-dialog>
 
-  <EmpPopup ref="safetyEmpPopup" @selected="selectedSafetyEmp"></EmpPopup>
-  <EmpPopup ref="safetyDansokEmpPopup" @selected="selectedDansokEmp"></EmpPopup>
-  <IUploadPopup ref="safetyFileUpload" @uploaded="uploaded"></IUploadPopup>
-  <IUploadPopup ref="safetyActionFileUpload"></IUploadPopup>
+  <EmpPopup
+    ref="safetyEmpPopup"
+    @selected="selectedSafetyEmp"
+  />
+  <EmpPopup
+    ref="safetyDansokEmpPopup"
+    @selected="selectedDansokEmp"
+  />
+  <IUploadPopup
+    ref="safetyFileUpload"
+    @uploaded="uploaded"
+  />
+  <IUploadPopup ref="safetyActionFileUpload" />
   <CommonCodePopUpSAF
     ref="safetyLocation"
     @selected="selectedSafetyLocation"
-  ></CommonCodePopUpSAF>
-  <DeptPopup ref="safetyVioDeptPopup" @selected="selectedVioDept"></DeptPopup>
-  <CommonCodePopUpSAF ref="sagoDivPopup" @selected="selectedSagoDivPopup">
-  </CommonCodePopUpSAF>
+  />
+  <DeptPopup
+    ref="safetyVioDeptPopup"
+    @selected="selectedVioDept"
+  />
+  <CommonCodePopUpSAF
+    ref="sagoDivPopup"
+    @selected="selectedSagoDivPopup"
+  />
   <CommonCodePopUpSAF
     ref="checkTargetPopup"
     @selected="selectedTarget"
-  ></CommonCodePopUpSAF>
+  />
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

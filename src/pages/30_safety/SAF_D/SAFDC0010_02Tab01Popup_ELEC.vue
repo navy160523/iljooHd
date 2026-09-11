@@ -22,8 +22,10 @@ import OZReport from '@/components/OZReport.vue'
 import IUploadImageMulit from '@/components/IUploadImageMulit.vue'
 import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF_ELEC.vue'
 
+const emit = defineEmits(['closed'])
 const reportParam = reactive(['IN_CMPNY_DIV=', 'IN_MNG_NO='])
 const reportName = ref('/manage/hse/SAFDC0010.ozr')
+
 // OzReport 팝업 여부
 const showOz = ref(false)
 const imageUpload = ref(null)
@@ -35,9 +37,9 @@ const dialog = ref(false)
 const grdMain = ref(null)
 const locationPopup = ref(null)
 const deptPopup = ref(null)
-const emit = defineEmits(['closed'])
 const menuTitle = ref(null)
 const sagoDivPopup = ref(null) //잠재사고유형 팝업
+
 const municipalField = reactive({
   CMPNY_DIV: '', //사업장구분
   MNG_NO: '', //관리번호
@@ -106,7 +108,7 @@ const initCodList = () => {
       queryId: 'SAFDC0010_SEARCH_17',
       param: {},
     }),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.APP_EMP_NO = res[0].ORESULT_CUR
     codeList.SHIP_NO = res[1].ORESULT_CUR
   })
@@ -120,7 +122,7 @@ const openPopup = () => {
   })
 }
 
-const openPopup2 = (rowData) => {
+const openPopup2 = rowData => {
   console.log('받은데이터', rowData)
   dialog.value = true
   for (const [key, value] of Object.entries(rowData)) {
@@ -128,6 +130,7 @@ const openPopup2 = (rowData) => {
       municipalField[key] = value
     }
   }
+
   //이미지파일 관련 로직
   if (!rowData.NOTI_SCAN) {
     imageUpload.value.setGuid()
@@ -139,6 +142,7 @@ const openPopup2 = (rowData) => {
   }
   setButtonStatus() //버튼상태 수정
   initCodList()
+
   // municipalField.CMPNY_DIV = rowData.CMPNY_DIV
   // municipalField.MNG_NO = rowData.MNG_NO
   // municipalField.SEND_ASGN_NM = rowData.SEND_ASGN_NM
@@ -191,33 +195,39 @@ const setButtonStatus = () => {
       menuTitle.value.disableBtn('btnUpdate', false) //저장 활성화
       menuTitle.value.disableBtn('btnReqApply', false) //결재상신 활성화
     }
+
     //작성자이고 진행상태가 반려일때
     else if (municipalField.STATUS === '11') {
       console.log('작성자이고 진행상태가 반려일때')
       menuTitle.value.disableBtn('btnUpdate', false) //저장 활성화
       menuTitle.value.disableBtn('btnReqApply', false) //결재상신 활성화
     }
+
     //작성자이고 승인대기 상태일때
     else if (municipalField.STATUS === '20') {
       console.log('작성자이고 진행상태가 승인대기 상태일때')
       menuTitle.value.disableBtn('btnUpdate', false) //저장 활성화
       menuTitle.value.disableBtn('btnReqApply', true) //결재상신 비활성화
     }
+
     //작성자이고 조치대기 상태일때
     else if (municipalField.STATUS === '30') {
       console.log('작성자이고 조치대기 상태일때')
       menuTitle.value.disableBtn('btnReqApply', true) //결재상신 비활성화
     }
+
     //작성자이고 재조치요청 상태일때
     else if (municipalField.STATUS === '31') {
       console.log('작성자이고 재조치요청 상태일때')
       menuTitle.value.disableBtn('btnReqApply', true) //결재상신 비활성화
     }
+
     //작성자이고 조치완료 상태일때
     else if (municipalField.STATUS === '40') {
       console.log('작성자이고 조치완료 상태일때')
       menuTitle.value.disableBtn('btnReqApply', true) //결재상신 비활성화
     }
+
     //작성자이고 종결상태일때
     else if (municipalField.STATUS === '50') {
       console.log('작성자이고 종결상태일때')
@@ -225,6 +235,7 @@ const setButtonStatus = () => {
       menuTitle.value.disableBtn('btnReqApply', true) //결재상신 비활성화
     }
   }
+
   //작성자가 아니면 출력버튼 제외 비활성화
   else {
     menuTitle.value.disableBtn('btnUpdate', true) //저장 비활성화
@@ -254,6 +265,7 @@ const defaultDate = () => {
 
 const closePopup = () => {
   dialog.value = false
+
   //팝업닫을때 초기화
   for (let i in municipalField) {
     municipalField[i] = ''
@@ -265,7 +277,7 @@ const closePopup = () => {
   emit('closed')
 }
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnUpdate') {
     new saveFlowHelper(vm, t)
       .setBefore(beforeSave)
@@ -294,14 +306,17 @@ const print = () => {
   reportParam[1] += municipalField.MNG_NO
   showOz.value = true
 }
+
 //출력관련 로직 끝
 
 //결재관련 로직 시작
 const beforeApproval = () => {
   if (!municipalField.MNG_NO) {
     Message.err(t('저장되지 않는 데이터는 결재상신 할 수 없습니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -329,6 +344,7 @@ const approval = () => {
     PATH: '/30_safety/SAF_A/SAFDC0010',
     USER_ID: userStore.userId, //로그인유저 아이디
   }
+  
   return commonExecuteApi({
     queryId: 'OPRAB0010_SAVE_01',
     list: [approvalParam],
@@ -351,20 +367,26 @@ const beforeSave = () => {
   //필수값 수신,제목,문제점
   if (!municipalField.NOTI_TITLE) {
     Message.err(t('제목은 필수값입니다.'))
+    
     return false
   } else if (!municipalField.REC_ASGN_CD) {
     Message.err(t('수신조직은 필수값입니다.'))
+    
     return false
   } else if (!municipalField.SAGO_DIV_L_CODE) {
     Message.err(t('잠재사고유형은 필수값입니다.'))
+    
     return false
   } else if (!municipalField.PROBLEM_DESC) {
     Message.err(t('문제점은 필수값입니다.'))
+    
     return false
   } else if (!municipalField.APP_EMP_NO) {
     Message.err(t('결제자는 필수값입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -413,6 +435,7 @@ const saveData = () => {
   }
   saveParam.push(saveData)
   console.log('세이브파람', saveParam)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE04',
     list: saveParam,
@@ -422,6 +445,7 @@ const saveData = () => {
 const afterSave = () => {
   closePopup()
 }
+
 //저장관련 로직 끝
 
 //장소클릭 이벤트
@@ -430,7 +454,7 @@ const openLocationPopup = () => {
 }
 
 //장소 선택이벤트
-const selectedLocation = (val) => {
+const selectedLocation = val => {
   municipalField.NOTI_LPLC = val[0].COD
   municipalField.NOTI_MPLC = val[1].COD
   municipalField.NOTI_SPLC = val[2].COD
@@ -443,7 +467,7 @@ const openSagoDivPopup = () => {
 }
 
 //잠재사고유형 선택 이벤트
-const selectedSagoDivPopup = (val) => {
+const selectedSagoDivPopup = val => {
   municipalField.SAGO_DIV_L_CODE = val[0].COD
   municipalField.SAGO_DIV_L_NM = val[0].TXT
   municipalField.SAGO_DIV_M_CODE = val[1].COD
@@ -458,32 +482,33 @@ const openDeptPopup = () => {
 }
 
 //수신 선택 이벤트
-const selectedDept = (val) => {
+const selectedDept = val => {
   municipalField.REC_ASGN_NM = val.ASGN_FULL_NM
   municipalField.REC_ASGN_CD = val.ASGN_CD
   municipalField.REC_DEPT_CD = val.DEPT_CD
+
   //municipalField.
 }
 
 //사진 업로드 이벤트
-const uploadPicture = (val) => {
+const uploadPicture = val => {
   municipalField.NOTI_SCAN = val.FILE_ID
 }
 
 watch(() => municipalField.CHK_EMP_NO, (newValue, oldValue) => {
-    Promise.all([
-      commonSearchApi({
-        queryId: 'SAFDC0010_SEARCH_04', 
-        param: {
-          //CMPNY_DIV: 'HHI',
-          CMPNY_DIV: municipalField.CMPNY_DIV,
-          DANSOK_EMP_NO: municipalField.CHK_EMP_NO,
-        },
-      }),
-    ]).then((res) => {
-      codeList.APP_EMP_NO = res[0].ORESULT_CUR
-    })
-  }
+  Promise.all([
+    commonSearchApi({
+      queryId: 'SAFDC0010_SEARCH_04', 
+      param: {
+        //CMPNY_DIV: 'HHI',
+        CMPNY_DIV: municipalField.CMPNY_DIV,
+        DANSOK_EMP_NO: municipalField.CHK_EMP_NO,
+      },
+    }),
+  ]).then(res => {
+    codeList.APP_EMP_NO = res[0].ORESULT_CUR
+  })
+},
 )
 
 defineExpose({
@@ -525,40 +550,41 @@ defineExpose({
           <v-sheet class="searchArea mb-0">
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.SEND_ASGN_NM"
                 :label="$t('발신')"
                 width="400px"
                 top-label
                 readonly
-                v-model="municipalField.SEND_ASGN_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_EMP_NM"
                 :label="$t('점검자')"
                 width="200px"
                 top-label
                 readonly
-                v-model="municipalField.CHK_EMP_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_TEL_NO"
                 :label="$t('전화')"
                 width="200px"
                 top-label
-                v-model="municipalField.CHK_TEL_NO"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.NOTI_DT"
                 :label="$t('점검일자')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.NOTI_DT"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.REQ_REPLY_DT"
                 :label="$t('회신요구일')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.REQ_REPLY_DT"
-              ></i-input>
+              />
               <i-select
+                v-model="municipalField.APP_EMP_NO"
                 :label="$t('결재자')"
                 width="200px"
                 top-label
@@ -566,118 +592,114 @@ defineExpose({
                 item-title="APP_EMP_NM"
                 item-value="APP_EMP_NO"
                 required
-                v-model="municipalField.APP_EMP_NO"
-              >
-              </i-select>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.NOTI_TITLE"
                 :label="$t('제목')"
                 width="600px"
                 top-label
-                v-model="municipalField.NOTI_TITLE"
                 required
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.REC_ASGN_NM"
                 :label="$t('수신')"
                 width="300px"
                 top-label
                 readonly
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openDeptPopup"
                 required
-                v-model="municipalField.REC_ASGN_NM"
-              ></i-input>
+                @click:append-inner="openDeptPopup"
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.LOCATION_NM"
                 :label="$t('장소')"
                 top-label
                 width="200px"
                 readonly
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openLocationPopup"
-                v-model="municipalField.LOCATION_NM"
-              ></i-input>
+                @click:append-inner="openLocationPopup"
+              />
               <i-input
+                v-model="municipalField.NOTI_PLC_DESC"
                 :label="$t('장소상세')"
                 top-label
                 width="300px"
-                v-model="municipalField.NOTI_PLC_DESC"
-              ></i-input>
+              />
               <i-select
+                v-model="municipalField.SHIP_NO"
                 :label="$t('호선No.')"
                 top-label
                 width="200px"
-                v-model="municipalField.SHIP_NO"
                 :items="codeList.SHIP_NO"
                 item-value="WORK_NO"
                 item-title="WORK_NO"
-              ></i-select>
+              />
               <i-input
+                v-model="municipalField.SAGO_DIV_L_NM"
                 :label="$t('잠재사고유형')"
                 width="200px"
                 top-label
-                v-model="municipalField.SAGO_DIV_L_NM"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSagoDivPopup"
                 required
                 readonly
-              >
-              </i-input>
+                @click:append-inner="openSagoDivPopup"
+              />
               <i-input
-                width="200px"
-                class="mt-5"
                 v-model="municipalField.SAGO_DIV_M_NM"
-                readonly
-              ></i-input>
-              <i-input
                 width="200px"
                 class="mt-5"
-                v-model="municipalField.SAGO_DIV_S_NM"
                 readonly
-              ></i-input>
+              />
+              <i-input
+                v-model="municipalField.SAGO_DIV_S_NM"
+                width="200px"
+                class="mt-5"
+                readonly
+              />
             </div>
             <div style="heigth: 300px">
               <IUploadImageMulit
-                title="사진첨부"
                 ref="imageUpload"
+                title="사진첨부"
                 @uploaded="uploadPicture"
-              ></IUploadImageMulit>
+              />
             </div>
             <div class="d-flex mt-2">
               <i-textarea
+                v-model="municipalField.PROBLEM_DESC"
                 :label="$t('문제점')"
                 width="50%"
                 top-label
                 class="mb-2"
-                v-model="municipalField.PROBLEM_DESC"
                 required
-              ></i-textarea>
+              />
               <i-textarea
+                v-model="municipalField.REQUIRE_DESC"
                 :label="$t('시정요구(안)')"
                 width="49.5%"
-                v-model="municipalField.REQUIRE_DESC"
-              ></i-textarea>
+              />
             </div>
           </v-sheet>
           <CommonCodePopUpSAF
             ref="locationPopup"
             @selected="selectedLocation"
-          ></CommonCodePopUpSAF>
+          />
           <CommonCodePopUpSAF
             ref="sagoDivPopup"
             @selected="selectedSagoDivPopup"
-          >
-          </CommonCodePopUpSAF>
+          />
           <DeptPopup
             ref="deptPopup"
-            @selected="selectedDept"
             check-bar="true"
-          ></DeptPopup>
+            @selected="selectedDept"
+          />
           <OZReport
-            :showPop="showOz"
-            :reportName="reportName"
+            :show-pop="showOz"
+            :report-name="reportName"
             :params="reportParam"
             @close="showOz = $event"
           />
@@ -686,6 +708,7 @@ defineExpose({
     </v-card>
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

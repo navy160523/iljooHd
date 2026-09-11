@@ -20,6 +20,7 @@ import IUpload from '@/components/IUpload.vue'
 import EmpPopup from '@/components/popup/EmpPopup.vue'
 import SAFDC0010_02Tab03Popup from './SAFDC0010_02Tab03Popup_ELEC.vue'
 import IGridTitle from '@/components/IGridTitle.vue'
+
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
 const userStore = useUserStore()
@@ -28,6 +29,7 @@ const grdMain = ref(null)
 const OLD_ASGN = ref('N')
 const empPopup = ref(null)
 const sAFDC0010_02Tab03Popup = ref(null)
+
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
   NOTI_CHK: 'Y', //점검일자 옆 체크박스
@@ -59,14 +61,16 @@ const initCodeList = () => {
       queryId: 'searchBSNS',
       param: { CMPNY_DIV: userStore.cmpnyDiv },
     }),
+
     //부서조회
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: null, USE_DIV: 'Y' },
     }),
+
     //진행상태조회
     getCodeList('HHIF190'),
-  ]).then((res) => {
+  ]).then(res => {
     codeList.SEND_BSNS_CD = []
 
     codeList.SEND_BSNS_CD = res[0].ORESULT_CUR
@@ -74,6 +78,7 @@ const initCodeList = () => {
     codeList.SEND_DEPT_CD = res[1].ORESULT_CUR
     codeList.REC_DEPT_CD = res[1].ORESULT_CUR
     codeList.STATUS = res[2].ORESULT_CUR
+
     // codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
     // codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     codeList.REC_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
@@ -437,7 +442,7 @@ const openEmpPopup = () => {
   })
 }
 
-const selectedEmpPopup = (val) => {
+const selectedEmpPopup = val => {
   searchParam.ACT_EMP_NO = val.EMP_NO
   searchParam.ACT_EMP_NM = val.EMP_NM
 }
@@ -448,7 +453,7 @@ onMounted(() => {
   onButtonsClick({ id: 'btnSearch' })
 })
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnSearch') {
     new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
   }
@@ -462,9 +467,10 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
+
 //조회관련 로직 끝
 
 //행 더블클릭 이벤트
@@ -485,18 +491,20 @@ watch(
       searchParam.SEND_DEPT_CD = ''
       codeList.SEND_DEPT_CD = []
       codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      
       return false
     }
+
     //사업부변경시 부서가져옴
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       searchParam.SEND_DEPT_CD = ''
       codeList.SEND_DEPT_CD = res.ORESULT_CUR
       codeList.SEND_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     })
-  }
+  },
 )
 
 watch(
@@ -506,37 +514,40 @@ watch(
       searchParam.REC_DEPT_CD = ''
       codeList.REC_DEPT_CD = []
       codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+      
       return false
     }
+
     //사업부변경시 부서가져옴
     commonSearchApi({
       queryId: 'searchDept3',
       param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: newValue, USE_DIV: 'Y' },
-    }).then((res) => {
+    }).then(res => {
       searchParam.REC_DEPT_CD = ''
       codeList.REC_DEPT_CD = res.ORESULT_CUR
       codeList.REC_DEPT_CD.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
     })
-  }
+  },
 )
+
 //과거조직포함 변경시 부서에 과거조직까지 조회
 watch(
   () => OLD_ASGN.value,
-  (newValue) => {
+  newValue => {
     commonSearchApi({
       queryId: 'searchBSNS3',
       param: {
         CMPNY_DIV: userStore.cmpnyDiv,
         USE_DIV: newValue === 'Y' ? '' : 'Y',
       },
-    }).then((res) => {
+    }).then(res => {
       codeList.SEND_BSNS_CD = []
       codeList.SEND_BSNS_CD = res.ORESULT_CUR
       codeList.SEND_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
       codeList.REC_BSNS_CD = res.ORESULT_CUR
       codeList.REC_BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
     })
-  }
+  },
 )
 </script>
 
@@ -554,39 +565,40 @@ watch(
         <v-sheet class="searchArea">
           <div class="d-flex mb-2">
             <v-checkbox
+              v-model="searchParam.NOTI_CHK"
               label="점검일자"
               class="mr-5"
-              v-model="searchParam.NOTI_CHK"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.NOTI_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.NOTI_FROM"
-            ></i-input>
+            />
             <span class="mt-2 mx-2">~</span>
             <i-input
+              v-model="searchParam.NOTI_TO"
               width="150px"
               type="date"
-              v-model="searchParam.NOTI_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.SEND_BSNS_CD"
               :items="codeList.SEND_BSNS_CD"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :label="$t('발신 사업부')"
-              v-model="searchParam.SEND_BSNS_CD"
             />
             <i-select
+              v-model="searchParam.SEND_DEPT_CD"
               :items="codeList.SEND_DEPT_CD"
               width="250px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :label="$t('부서')"
-              v-model="searchParam.SEND_DEPT_CD"
             />
-            <!-- <i-select
+            <!--
+              <i-select
               label-width="50px"
               :label="$t('사업부')"
               :items="codeList.BSNS_CD"
@@ -594,9 +606,9 @@ watch(
               item-value="BSNS_CD"
               width="200px"
               v-model="searchParam.SEND_BSNS_CD"
-            >
-            </i-select>
-            <i-select
+              >
+              </i-select>
+              <i-select
               label-width="50px"
               :label="$t('부서')"
               :items="codeList.DEPT_CD"
@@ -604,76 +616,93 @@ watch(
               item-value="DEPT_CD"
               width="200px"
               v-model="searchParam.SEND_DEPT_CD"
-            ></i-select> -->
+              ></i-select> 
+            -->
             <v-checkbox
+              v-model="OLD_ASGN"
               label="과거조직포함"
               true-value="Y"
               false-value="N"
-              v-model="OLD_ASGN"
-            ></v-checkbox>
+            />
             <div class="ml-3">
-              <v-radio-group inline class="mt-1" v-model="searchParam.ACT_YN">
-                <v-radio label="All" value=""></v-radio>
-                <v-radio label="회신" value="Y"></v-radio>
-                <v-radio label="미회신" value="N"></v-radio>
+              <v-radio-group
+                v-model="searchParam.ACT_YN"
+                inline
+                class="mt-1"
+              >
+                <v-radio
+                  label="All"
+                  value=""
+                />
+                <v-radio
+                  label="회신"
+                  value="Y"
+                />
+                <v-radio
+                  label="미회신"
+                  value="N"
+                />
               </v-radio-group>
             </div>
           </div>
           <div class="d-flex">
             <v-checkbox
-              label="회신요구일"
               v-model="searchParam.REQ_REPLY_CHK"
+              label="회신요구일"
               class="mr-2"
               true-value="Y"
               false-value="N"
-            ></v-checkbox>
+            />
             <i-input
+              v-model="searchParam.REQ_REPLY_FROM"
               width="150px"
               type="date"
               class="mr-0"
-              v-model="searchParam.REQ_REPLY_FROM"
-            ></i-input>
+            />
             <span class="mt-2 mx-2">~</span>
             <i-input
+              v-model="searchParam.REQ_REPLY_TO"
               width="150px"
               type="date"
-              v-model="searchParam.REQ_REPLY_TO"
-            ></i-input>
+            />
             <i-select
+              v-model="searchParam.REC_BSNS_CD"
               :label="$t('수신 사업부')"
               width="250px"
               item-title="BSNS_NM"
               item-value="BSNS_CD"
               :items="codeList.REC_BSNS_CD"
-              v-model="searchParam.REC_BSNS_CD"
-            ></i-select>
+            />
             <i-select
+              v-model="searchParam.REC_DEPT_CD"
               :label="$t('부서')"
               width="250px"
               item-title="DEPT_NM"
               item-value="DEPT_CD"
               :items="codeList.REC_DEPT_CD"
-              v-model="searchParam.REC_DEPT_CD"
-            ></i-select>
+            />
             
             <i-select
+              v-model="searchParam.STATUS"
               label-width="50px"
               :items="codeList.STATUS"
               item-title="TXT"
               item-value="COD"
               :label="$t('진행상태')"
               width="200px"
-              v-model="searchParam.STATUS"
-            ></i-select>
+            />
             <i-input
+              v-model="searchParam.ACT_EMP_NM"
               :label="$t('점검자')"
               width="200px"
               append-inner-icon="mdi-magnify"
-              @click:appendInner="openEmpPopup"
-              v-model="searchParam.ACT_EMP_NM"
-            ></i-input>
-            <i-input width="100px" readonly v-model="searchParam.ACT_EMP_NO">
-            </i-input>
+              @click:append-inner="openEmpPopup"
+            />
+            <i-input
+              v-model="searchParam.ACT_EMP_NO"
+              width="100px"
+              readonly
+            />
           </div>
         </v-sheet>
         <v-sheet style="height: -webkit-fill-available">
@@ -682,18 +711,22 @@ watch(
             :grid-view-option="grdMainProps.gridViewOption"
             :fields="grdMainProps.fields"
             :columns="grdMainProps.columns"
-            @onCellDblClicked="onCellDblClicked"
+            @on-cell-dbl-clicked="onCellDblClicked"
           />
         </v-sheet>
       </div>
     </v-card-text>
   </v-card>
-  <EmpPopup ref="empPopup" @selected="selectedEmpPopup"></EmpPopup>
+  <EmpPopup
+    ref="empPopup"
+    @selected="selectedEmpPopup"
+  />
   <SAFDC0010_02Tab03Popup
     ref="sAFDC0010_02Tab03Popup"
     @closed="closedPopup"
-  ></SAFDC0010_02Tab03Popup>
+  />
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

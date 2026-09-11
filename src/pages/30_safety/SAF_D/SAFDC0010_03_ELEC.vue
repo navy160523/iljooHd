@@ -18,6 +18,7 @@ import Message from '@hiway/utils/notify'
 import IUpload from '@/components/IUpload.vue'
 import SAFDC0010_03Popup from './SAFDC0010_03.Popup_ELEC.vue'
 import deleteFlowHelper from '@/utils/deleteFlowHelper'
+
 defineOptions({
   name: '30_safety-SAF_D-SAFDC0010',
 })
@@ -30,6 +31,7 @@ const userStore = useUserStore()
 const workStopResist = ref(null)
 const { sliSAFDC0010_03 } = history.state
 const isMounted = ref(false)
+
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv,
   JSTOP_DATE_FR: '',
@@ -50,10 +52,10 @@ const initCodeList = async () => {
       param: {
         CMPNY_DIV: userStore.cmpnyDiv,
         BSNS_CD: searchParam.BSNS_CD,
-        USE_DIV: 'Y'
+        USE_DIV: 'Y',
       },
-    })
-  ]).then((res) => {
+    }),
+  ]).then(res => {
     codeList.BSNS_CD = res[0].ORESULT_CUR
     codeList.BSNS_CD.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
 
@@ -75,7 +77,7 @@ watch(() => searchParam.BSNS_CD, newValue => {
         param: {
           CMPNY_DIV: userStore.cmpnyDiv,
           BSNS_CD: newValue,
-          USE_DIV: 'Y'
+          USE_DIV: 'Y',
         },
       }).then(res => {
         searchParam.DEPT_CD = ''
@@ -415,6 +417,7 @@ onMounted(async () => {
   defaultDate()
   setSliParams()
   await initCodeList()
+
   //열고정 옵션
   grdMain.value.getGridView().setFixedOptions({
     colCount: 7,
@@ -424,7 +427,7 @@ onMounted(async () => {
   isMounted.value = true
 })
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnSearch') {
     new queryFlowHelper(vm, t)
       .setGridList([grdMain])
@@ -454,7 +457,7 @@ const searchData = () => {
   })
 }
 
-const afterSearch = (res) => {
+const afterSearch = res => {
   grdMain.value.getDataProvider().setRows(res.ORESULT_CUR)
 }
 
@@ -463,8 +466,10 @@ const beforeDelete = () => {
   let checkedData = grdMain.value.getGridView().getCheckedRows(true)
   if (checkedData.length === 0) {
     Message.warn(t('삭제할 데이터를 선택해주세요.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -491,6 +496,7 @@ const deleteData = () => {
 const afterDelete = () => {
   onButtonsClick({ id: 'btnSearch' })
 }
+
 //삭제관련 로직 끝
 
 //셀 더블클릭 이벤트 관련 로직 시작
@@ -498,6 +504,7 @@ const onCellDblClicked = (grid, clickData) => {
   let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
   workStopResist.value.openPopup2(data)
 }
+
 //셀 더블클릭 이벤트 관련 로직 끝
 
 //팝업 닫혔을때 재조회
@@ -519,37 +526,37 @@ const closedPopup = () => {
       <div class="d-flex flex-column fill-height">
         <v-sheet class="searchArea d-flex">
           <i-input
+            v-model="searchParam.JSTOP_DATE_FR"
             width="200px"
             :label="$t('중지일자')"
             type="date"
             class="mr-0"
-            v-model="searchParam.JSTOP_DATE_FR"
-          ></i-input>
+          />
           <span class="mt-2 mx-2">~</span>
           <i-input
+            v-model="searchParam.JSTOP_DATE_TO"
             width="150px"
             type="date"
             class="ml-0"
-            v-model="searchParam.JSTOP_DATE_TO"
-          ></i-input>
+          />
           <i-select
+            v-model="searchParam.BSNS_CD"
             width="220px"
             :label="$t('사업부')"
             :items="codeList.BSNS_CD"
             item-title="BSNS_NM"
             item-value="BSNS_CD"
-            v-model="searchParam.BSNS_CD"
             label-width="40px"
-          ></i-select>
+          />
           <i-select
+            v-model="searchParam.DEPT_CD"
             width="275px"
             :label="$t('부서')"
             :items="codeList.DEPT_CD"
             item-title="DEPT_NM"
             item-value="DEPT_CD"
-            v-model="searchParam.DEPT_CD"
             label-width="30px"
-          ></i-select>
+          />
         </v-sheet>
         <v-sheet style="height: -webkit-fill-available">
           <RealGrid
@@ -558,7 +565,7 @@ const closedPopup = () => {
             :keys="grdMainProps.keys"
             :fields="grdMainProps.fields"
             :columns="grdMainProps.columns"
-            @onCellDblClicked="onCellDblClicked"
+            @on-cell-dbl-clicked="onCellDblClicked"
           />
         </v-sheet>
       </div>
@@ -567,8 +574,9 @@ const closedPopup = () => {
   <SAFDC0010_03Popup
     ref="workStopResist"
     @closed="closedPopup"
-  ></SAFDC0010_03Popup>
+  />
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

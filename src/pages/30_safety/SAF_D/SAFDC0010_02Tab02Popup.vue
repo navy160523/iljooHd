@@ -24,6 +24,7 @@ import EmpPopup from '@/components/popup/EmpPopup.vue'
 import { MenuItemType } from 'realgrid'
 import OZReport from '@/components/OZReport.vue'
 
+const emit = defineEmits(['closed'])
 const imageUpload = ref(null)
 const vm = getCurrentInstance().proxy
 const t = useI18n().t
@@ -47,16 +48,17 @@ const carousel2 = ref(0)
 const carouselIdx2 = ref(0)
 
 const reportName = ref('/manage/hse/SAFDC0010.ozr')
+
 // OzReport 팝업 여부
 
 const showOz = ref(false)
-const emit = defineEmits(['closed'])
 const images = ref([])
 const images2 = ref([])
 const model = ref(0)
 const model2 = ref(0)
 const fileUploadPopup = ref(null)
 const menuTitle = ref(null)
+
 const municipalField = reactive({
   CMPNY_DIV: '', //사업장구분
   MNG_NO: '', //관리번호
@@ -108,7 +110,7 @@ const municipalField = reactive({
   SAGO_DIV_S_NM:'', //잠재사고유형(소)
 })
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
   if (btn.id === 'btnTemporaryStorage') {
     new saveFlowHelper(vm, t)
       .setBefore(beforeSave)
@@ -121,7 +123,7 @@ const onButtonsClick = (btn) => {
       .setQuery(saveData02)
       .setAfter(afterSave02)
       .setConfirmMessage(
-        '안전/환경 시정통보서 정보를 조치완료 처리하시겠습니까?'
+        '안전/환경 시정통보서 정보를 조치완료 처리하시겠습니까?',
       )
       .run()
   } else if (btn.id === 'btnPrint') {
@@ -136,11 +138,14 @@ const beforeSave = () => {
   //조치결과
   if (!municipalField.ACT_RSLT) {
     Message.warn(t('조치결과는 필수입력입니다.'))
+    
     return false
   } else if (!municipalField.ACT_EMP_NO) {
     Message.warn(t('조치자는 필수입력입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -165,6 +170,7 @@ const saveData = () => {
     USER_ID: userStore.userId,
   }
   saveParam.push(saveData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE07',
     list: saveParam,
@@ -176,11 +182,14 @@ const saveData = () => {
 const beforeSave02 = () => {
   if (!municipalField.ACT_RSLT) {
     Message.warn(t('조치결과는 필수입력입니다.'))
+    
     return false
   } else if (!municipalField.ACT_EMP_NO) {
     Message.warn(t('조치자 필수입력입니다.'))
+    
     return false
   }
+  
   return true
 }
 
@@ -205,6 +214,7 @@ const saveData02 = () => {
     USER_ID: userStore.userId,
   }
   saveParam.push(saveData)
+  
   return commonExecuteApi({
     queryId: 'SAFDC0010_SAVE07',
     list: saveParam,
@@ -289,9 +299,10 @@ const afterSave = () => {
   menuTitle.value.disableBtn('btnTemporaryStorage', false) //임시저장 활성화
   menuTitle.value.disableBtn('btnActionComplete', false) //조치완료 활성화
 }
+
 //임시저장 관련 로직 끝
 
-const openPopup = (rowData) => {
+const openPopup = rowData => {
   console.log('받은데이터', rowData)
   dialog.value = true
   for (const [key, value] of Object.entries(rowData)) {
@@ -344,6 +355,7 @@ const setButtonStatus = () => {
     menuTitle.value.disableBtn('btnTemporaryStorage', false) //임시저장 활성화
     menuTitle.value.disableBtn('btnActionComplete', false) //조치완료 활성화
   }
+
   //조치완료 또는 종결 상태일때
   else if (municipalField.STATUS === '40' || municipalField.STATUS === '50') {
     menuTitle.value.disableBtn('btnTemporaryStorage', true) //임시저장 비활성화
@@ -366,14 +378,16 @@ const closePopup = () => {
     municipalField[i] = ''
   }
   images.value = []
+
   //model.value = 0
   images2.value = []
+
   //model2.value = 0
   emit('closed')
 }
 
 //문제점 파일 가져오는 함수
-const getImages = async (FILE_ID) => {
+const getImages = async FILE_ID => {
   images.value = []
 
   await commonSearchApi({
@@ -382,13 +396,15 @@ const getImages = async (FILE_ID) => {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: FILE_ID,
     },
-  }).then((res) => {
+  }).then(res => {
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
         const blob = new Blob([res])
         const url = URL.createObjectURL(blob)
+
         images.value.push(url)
+
         const ss = ''
       })
     }
@@ -396,7 +412,7 @@ const getImages = async (FILE_ID) => {
 }
 
 //조치결과 파일아이디 존재시 실행
-const getImages2 = async (FILE_ID) => {
+const getImages2 = async FILE_ID => {
   images2.value = []
   
   await commonSearchApi({
@@ -405,12 +421,13 @@ const getImages2 = async (FILE_ID) => {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: FILE_ID,
     },
-  }).then((res) => {
+  }).then(res => {
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
         const blob = new Blob([res])
         const url = URL.createObjectURL(blob)
+
         images2.value.push(url)
       })
     }
@@ -423,7 +440,7 @@ const uploadFile = () => {
   fileUploadPopup.value.openPopup(municipalField.ACT_RSLT_SCAN)
 }
 
-const uploadedFile = async (val) => {
+const uploadedFile = async val => {
   //파일첨부 했을때 초기화진행 안하면 계속 늘어남
   images2.value = []
   municipalField.ACT_RSLT_SCAN = val.fileId
@@ -433,7 +450,7 @@ const uploadedFile = async (val) => {
       CMPNY_DIV: userStore.cmpnyDiv,
       FILE_ID: municipalField.ACT_RSLT_SCAN,
     },
-  }).then((res) => {
+  }).then(res => {
     //첨부한 파일들을 케러셀형태로 보여준다.
     for (let i = 0; i < res.ORESULT_CUR.length; i++) {
       let contentDisposition = null
@@ -441,7 +458,7 @@ const uploadedFile = async (val) => {
       let blob = null
       let url = null
       let img = new Image() // 이미지 요소 생성
-      commonDownloadFilesApi(res.ORESULT_CUR[i]).then((res) => {
+      commonDownloadFilesApi(res.ORESULT_CUR[i]).then(res => {
 
         contentDisposition = res.contentDisposition
         fileName = contentDisposition.match(/fileName="([^"]+)"/)[1]
@@ -470,7 +487,7 @@ const openEmpPopup = () => {
 }
 
 //조치자 선택 이벤트
-const selectedEmpPopup = (val) => {
+const selectedEmpPopup = val => {
   municipalField.ACT_EMP_NM = val.EMP_NM //성명
   municipalField.ACT_EMP_NO = val.EMP_NO //사번
   municipalField.ACT_ASGN_NM = val.ASGN_NM //조직이름
@@ -521,292 +538,315 @@ defineExpose({
         <div class="d-flex flex-column fill-height">
           <IGridTitle
             class="pl-0"
-            title="기본정보"/>
+            title="기본정보"
+          />
           <v-sheet class="searchArea mb-0">
             <div class="d-flex mb-0">
               <i-input
+                v-model="municipalField.SEND_ASGN_NM"
                 :label="$t('발신')"
                 width="400px"
                 top-label
                 readonly
-                v-model="municipalField.SEND_ASGN_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_EMP_NM"
                 :label="$t('점검자')"
                 width="200px"
                 top-label
                 readonly
-                v-model="municipalField.CHK_EMP_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.CHK_TEL_NO"
                 :label="$t('전화')"
                 width="200px"
                 top-label
-                v-model="municipalField.CHK_TEL_NO"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.NOTI_DT"
                 :label="$t('점검일자')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.NOTI_DT"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.REQ_REPLY_DT"
                 :label="$t('회신요구일')"
                 width="150px"
                 top-label
                 type="date"
-                v-model="municipalField.REQ_REPLY_DT"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.NOTI_TITLE"
                 :label="$t('제목')"
                 width="600px"
                 top-label
-                v-model="municipalField.NOTI_TITLE"
-              ></i-input>
+              />
               
               <i-input
+                v-model="municipalField.REC_ASGN_NM"
                 :label="$t('수신')"
                 width="400px"
                 top-label
                 readonly
-                v-model="municipalField.REC_ASGN_NM"
-              ></i-input>
+              />
             </div>
             <div class="d-flex mb-2">
               <i-input
+                v-model="municipalField.LOCATION_NM"
                 :label="$t('장소')"
                 top-label
                 width="200px"
                 readonly
-                v-model="municipalField.LOCATION_NM"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.NOTI_PLC_DESC"
                 :label="$t('장소상세')"
                 top-label
                 width="300px"
-                v-model="municipalField.NOTI_PLC_DESC"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.SHIP_NO"
                 :label="$t('호선No.')"
                 top-label
                 width="200px"
-                v-model="municipalField.SHIP_NO"
-              ></i-input>
+              />
               <i-input
+                v-model="municipalField.SAGO_DIV_L_NM"
                 :label="$t('잠재사고유형')"
                 width="200px"
                 top-label
-                v-model="municipalField.SAGO_DIV_L_NM"
                 append-inner-icon="mdi-magnify"
-                @click:appendInner="openSagoDivPopup"
                 required
                 readonly
-              >
-              </i-input>
+                @click:append-inner="openSagoDivPopup"
+              />
               <i-input
-                width="200px"
-                class="mt-5"
                 v-model="municipalField.SAGO_DIV_M_NM"
-                readonly
-              ></i-input>
-              <i-input
                 width="200px"
                 class="mt-5"
-                v-model="municipalField.SAGO_DIV_S_NM"
                 readonly
-              ></i-input>
+              />
+              <i-input
+                v-model="municipalField.SAGO_DIV_S_NM"
+                width="200px"
+                class="mt-5"
+                readonly
+              />
             </div>
           </v-sheet>
           <IGridTitle
             class="mt-1"
-            title="문제점 및 시정요구안"/>
-          <v-sheet height="100%" class="h-auto searchArea">
+            title="문제점 및 시정요구안"
+          />
+          <v-sheet
+            height="100%"
+            class="h-auto searchArea"
+          >
             <div class="h-grow">
-            <v-sheet width="60%" class="h-auto pa-2 pt-0" >
-              <div class="h-grow d-flex flex-column">
-                  <v-sheet width="100%">
-                    <i-textarea
-                      width="100%"
-                      label="문제점"
-                      top-label
-                      v-model="municipalField.PROBLEM_DESC"
-                    ></i-textarea>
-                  </v-sheet>
-                  <span class="mx-1"></span>
-                  <v-sheet width="100%">
-                    <i-textarea
-                      width="100%"
-                      label="시정요구(안)"
-                      top-label
-                      v-model="municipalField.REQUIRE_DESC"
-                    ></i-textarea>
-                  </v-sheet>
-                </div>
-            </v-sheet>
-            <v-sheet width="40%" class="h-auto pa-2 pt-0">
-              <div class="image_border">
-                <v-carousel 
-                  hide-delimiters 
-                  height="300px"
-                  class="border"
-                  show-arrows="hover"
-                  selected-class="bg-primary"
-                  hide-delimiter-background
-                  :key="carousel"
-                  v-model="model"
-                >
-                <v-carousel-item 
-                  v-for="(item, i) in images"
-                  :key="i"
-                  :src="item"
-                  width="584"
-                />
-                </v-carousel>
-              </div>
-            </v-sheet>
-          </div>
-          </v-sheet>
-          <!-- <v-sheet height="100%" class="h-auto searchArea">
-            <div class="h-grow d-flex flex-row">
-              <v-sheet width="60%">
+              <v-sheet
+                width="60%"
+                class="h-auto pa-2 pt-0"
+              >
                 <div class="h-grow d-flex flex-column">
                   <v-sheet width="100%">
                     <i-textarea
+                      v-model="municipalField.PROBLEM_DESC"
                       width="100%"
                       label="문제점"
                       top-label
-                      v-model="municipalField.PROBLEM_DESC"
-                    ></i-textarea>
+                    />
                   </v-sheet>
-                  <span class="mx-1"></span>
+                  <span class="mx-1" />
                   <v-sheet width="100%">
                     <i-textarea
+                      v-model="municipalField.REQUIRE_DESC"
                       width="100%"
                       label="시정요구(안)"
                       top-label
-                      v-model="municipalField.REQUIRE_DESC"
-                    ></i-textarea>
-                  </v-sheet>
-                </div>
-              </v-sheet>  
-            </div>
-            <div>
-              <v-sheet width="40%">
-                <div>
-                  <v-sheet width="100%">
-                    <div class="image_border">
-                      <v-carousel 
-                        hide-delimiters 
-                        height="300px"
-                        class="border"
-                        show-arrows="hover"
-                        selected-class="bg-primary"
-                        hide-delimiter-background
-                        :key="carousel"
-                        v-model="model"
-                      >
-                      <v-carousel-item 
-                        v-for="(item, i) in images"
-                        :key="i"
-                        :src="item"
-                        width="584"
-                      />
-                      </v-carousel>
-                    </div>
+                    />
                   </v-sheet>
                 </div>
               </v-sheet>
+              <v-sheet
+                width="40%"
+                class="h-auto pa-2 pt-0"
+              >
+                <div class="image_border">
+                  <v-carousel 
+                    :key="carousel" 
+                    v-model="model"
+                    hide-delimiters
+                    height="300px"
+                    class="border"
+                    show-arrows="hover"
+                    selected-class="bg-primary"
+                    hide-delimiter-background
+                  >
+                    <v-carousel-item 
+                      v-for="(item, i) in images"
+                      :key="i"
+                      :src="item"
+                      width="584"
+                    />
+                  </v-carousel>
+                </div>
+              </v-sheet>
             </div>
-          </v-sheet> -->
+          </v-sheet>
+          <!--
+            <v-sheet height="100%" class="h-auto searchArea">
+            <div class="h-grow d-flex flex-row">
+            <v-sheet width="60%">
+            <div class="h-grow d-flex flex-column">
+            <v-sheet width="100%">
+            <i-textarea
+            width="100%"
+            label="문제점"
+            top-label
+            v-model="municipalField.PROBLEM_DESC"
+            ></i-textarea>
+            </v-sheet>
+            <span class="mx-1"></span>
+            <v-sheet width="100%">
+            <i-textarea
+            width="100%"
+            label="시정요구(안)"
+            top-label
+            v-model="municipalField.REQUIRE_DESC"
+            ></i-textarea>
+            </v-sheet>
+            </div>
+            </v-sheet>  
+            </div>
+            <div>
+            <v-sheet width="40%">
+            <div>
+            <v-sheet width="100%">
+            <div class="image_border">
+            <v-carousel 
+            hide-delimiters 
+            height="300px"
+            class="border"
+            show-arrows="hover"
+            selected-class="bg-primary"
+            hide-delimiter-background
+            :key="carousel"
+            v-model="model"
+            >
+            <v-carousel-item 
+            v-for="(item, i) in images"
+            :key="i"
+            :src="item"
+            width="584"
+            />
+            </v-carousel>
+            </div>
+            </v-sheet>
+            </div>
+            </v-sheet>
+            </div>
+            </v-sheet> 
+          -->
           
           <div class="d-flex align-center">
             <IGridTitle title="조치정보" />
-            <v-btn style="margin-left: 85%;" @click="uploadFile">조치사항 파일첨부</v-btn>
+            <v-btn
+              style="margin-left: 85%;"
+              @click="uploadFile"
+            >
+              조치사항 파일첨부
+            </v-btn>
           </div>
-          <v-sheet height="100%" class="h-auto searchArea">
+          <v-sheet
+            height="100%"
+            class="h-auto searchArea"
+          >
             <div class="h-grow">
               <v-sheet width="60%">
                 <div class="h-grow">
                   <v-sheet width="100%">
                     <div class="d-flex">
                       <i-input
+                        v-model="municipalField.ACT_ASGN_NM"
                         width="31%"
                         :label="$t('조치자 소속')"
                         top-label
-                        v-model="municipalField.ACT_ASGN_NM"
                         readonly
-                      ></i-input>
+                      />
                       <i-input
+                        v-model="municipalField.ACT_EMP_NO"
                         width="20%"
                         :label="$t('사번')"
                         top-label
-                        v-model="municipalField.ACT_EMP_NO"
                         append-inner-icon="mdi-magnify"
-                        @click:appendInner="openEmpPopup"
                         readonly
                         required
-                      ></i-input>
+                        @click:append-inner="openEmpPopup"
+                      />
                       <i-input
+                        v-model="municipalField.ACT_EMP_NM"
                         width="20%"
                         :label="$t('조치자 성명')"
                         top-label
-                        v-model="municipalField.ACT_EMP_NM"
                         readonly
-                      ></i-input>
+                      />
                       <i-input
+                        v-model="municipalField.ACT_TEL_NO"
                         width="20%"
                         :label="$t('연락처')"
                         top-label
-                        v-model="municipalField.ACT_TEL_NO"
-                      ></i-input>
+                      />
                     </div>
-                      <v-sheet width="100%">
-                        <i-textarea
-                          label="조치결과"
-                          width="100%"
-                          v-model="municipalField.ACT_RSLT"
-                          required
-                        ></i-textarea>
-                        <i-textarea
+                    <v-sheet width="100%">
+                      <i-textarea
+                        v-model="municipalField.ACT_RSLT"
+                        label="조치결과"
+                        width="100%"
+                        required
+                      />
+                      <i-textarea
+                        v-model="municipalField.REJECT_DESC"
                         :label="$t('재조치 요청')"
                         top-label
                         width="100%"
-                        v-model="municipalField.REJECT_DESC"
                         readonly
-                      ></i-textarea>
-                      </v-sheet>
+                      />
+                    </v-sheet>
                   </v-sheet>
                 </div>
               </v-sheet>
-              <v-sheet width="40%" class="h-auto pa-2 pt-0">
+              <v-sheet
+                width="40%"
+                class="h-auto pa-2 pt-0"
+              >
                 <div class="image_border">
                   <v-carousel 
-                    hide-delimiters 
+                    :key="carousel2" 
+                    v-model="model2"
+                    hide-delimiters
                     height="300px"
                     class="border"
                     show-arrows="hover"
                     selected-class="bg-primary"
                     hide-delimiter-background
-                    :key="carousel2"
-                    v-model="model2"
                   >
-                  <v-carousel-item 
-                    v-for="(item, i) in images2"
-                    :key="i"
-                    :src="item"
-                    width="584"
-                  />
+                    <v-carousel-item 
+                      v-for="(item, i) in images2"
+                      :key="i"
+                      :src="item"
+                      width="584"
+                    />
                   </v-carousel>
                 </div>
               </v-sheet>
             </div>
           </v-sheet>
           <OZReport
-            :showPop="showOz"
-            :reportName="reportName"
+            :show-pop="showOz"
+            :report-name="reportName"
             :params="reportParam"
             @close="showOz = $event"
           />
@@ -817,10 +857,14 @@ defineExpose({
       ref="fileUploadPopup"
       :img-only="true"
       @uploaded="uploadedFile"
-    ></IUploadPopup>
-    <EmpPopup ref="empPopup" @selected="selectedEmpPopup"></EmpPopup>
+    />
+    <EmpPopup
+      ref="empPopup"
+      @selected="selectedEmpPopup"
+    />
   </v-dialog>
 </template>
+
 <style scoped lang="scss">
 .content-area {
   position: relative;

@@ -1,5 +1,4 @@
 <script setup>
-
 import { ref, reactive, nextTick, getCurrentInstance, watch } from 'vue'
 
 import { useUserStore } from '@hiway/stores/user'
@@ -12,23 +11,25 @@ import saveFlowHelper from '@/utils/saveFlowHelper'
 
 import deleteFlowHelper from '@/utils/deleteFlowHelper'
 
-import Message from '@hiway/utils/notify';
+import Message from '@hiway/utils/notify'
 
 import IGridTitle from "@/components/IGridTitle.vue"
 
 import dayjs from 'dayjs'
 
-import DeptPopup from '@/pages/COM/components/DeptPopup.vue'
+import DeptPopup from '@/components/popup/DeptPopup.vue'
 
 import CommonCodePopUpSAF from '@/components/popup/CommonCodePopUpSAF.vue'
 
-import EmpPopup from '@/pages/COM/components/EmpPopup.vue'
+import EmpPopup from '@/components/popup/EmpPopup.vue'
 
-import IUploadCom from "@/pages/COM/components/IUploadCom.vue";
+import IUpload from "@/components/IUpload.vue"
 
-import IUploadImageMulitCom from "@/pages/COM/components/IUploadImageMulitCom.vue";
+import IUploadImageMulit from "@/components/IUploadImageMulit.vue"
 
-import WorkLocationPopup from "@/components/popup/WorkLocationPopup.vue";
+import LocationPopup from "@/components/popup/LocationPopup.vue"
+
+const emit = defineEmits(['closed'])
 
 defineOptions({
 
@@ -42,9 +43,9 @@ defineOptions({
 
 // ==========================================
 
-const isEntryMode = ref(false);     // 신규 등록 모드 여부 (MNG_NO 없음)
+const isEntryMode = ref(false)     // 신규 등록 모드 여부 (MNG_NO 없음)
 
-const isActionWaiting = ref(false); // STATUS가 조치대기(30) 상태인지 여부
+const isActionWaiting = ref(false) // STATUS가 조치대기(30) 상태인지 여부
 
 const vm = getCurrentInstance().proxy
 
@@ -52,9 +53,7 @@ const t = useI18n().t
 
 const userStore = useUserStore()
 
-const emit = defineEmits(['closed'])
-
-const menuTitle = ref(null);
+const menuTitle = ref(null)
 
 const dialog = ref(false)
 
@@ -80,7 +79,7 @@ const notiChkEmpPopup = ref(null)
 
 const notiAppEmpPopup = ref(null)
 
-const approvalReadOnly = ref(true); // 승인자 필드 활성/비활성 제어 플래그
+const approvalReadOnly = ref(true) // 승인자 필드 활성/비활성 제어 플래그
 
 // ==========================================
 
@@ -234,35 +233,35 @@ const openPopup = async () => {
 
   initCodList()
 
-  isEntryMode.value = true;
+  isEntryMode.value = true
 
-  isActionWaiting.value = false;
+  isActionWaiting.value = false
 
   // 렌더링 완료 시점에 업로드 그리드를 비우고 고유한 신규 업로드 GUID를 새로 발급합니다.
 
-  await nextTick();
+  await nextTick()
 
-  imageUpload.value?.clearGrid?.();
+  imageUpload.value?.clearGrid?.()
 
-  imageUpload2.value?.clearGrid?.();
+  imageUpload2.value?.clearGrid?.()
 
-  vioFileUpload.value?.clearGrid?.();
+  vioFileUpload.value?.clearGrid?.()
 
-  actFileUpload.value?.clearGrid?.();
+  actFileUpload.value?.clearGrid?.()
 
-  imageUpload.value?.setGuid();
+  imageUpload.value?.setGuid()
 
-  imageUpload2.value?.setGuid();
+  imageUpload2.value?.setGuid()
 
-  vioFileUpload.value?.setGuid();
+  vioFileUpload.value?.setGuid()
 
-  actFileUpload.value?.setGuid();
+  actFileUpload.value?.setGuid()
 
 }
 
 // 수정 및 상세조회 팝업 호출 (기존 파일 로드 핵심)
 
-const openPopup2 = (rowData) => {
+const openPopup2 = rowData => {
 
   dialog.value = true
 
@@ -278,15 +277,15 @@ const openPopup2 = (rowData) => {
 
   }
 
-  isEntryMode.value = false;
+  isEntryMode.value = false
 
-  isActionWaiting.value = municipalField.STATUS === '30'; // 조치대기(30) 판별
+  isActionWaiting.value = municipalField.STATUS === '30' // 조치대기(30) 판별
 
   initCodList()
 
   // 데이터 모델에 세팅된 파일 ID 그룹들을 기반으로 첨부파일 컴포넌트 로드를 수행합니다.
 
-  loadAttachmentFiles();
+  loadAttachmentFiles()
 
 }
 
@@ -294,9 +293,9 @@ const openPopup2 = (rowData) => {
 
 const loadAttachmentFiles = async () => {
 
-  await nextTick();
+  await nextTick()
 
-  await nextTick();
+  await nextTick()
 
   const attachmentTargets = [
 
@@ -308,53 +307,53 @@ const loadAttachmentFiles = async () => {
 
     { component: actFileUpload.value, fileId: municipalField.FILE_ID2 },
 
-  ];
+  ]
 
   for (const target of attachmentTargets) {
 
-    if (!target.component) continue;
+    if (!target.component) continue
 
     // 컴포넌트에 이전에 맵핑된 내역이 남아있지 않도록 리셋
 
-    target.component.clearGrid?.();
+    target.component.clearGrid?.()
 
     if (target.fileId) {
 
       // 마스터 ID(그룹 키)가 존재할 경우에만 GUID를 심고 실서버 데이터를 조회 호출합니다.
 
-      target.component.setGuid(target.fileId);
+      target.component.setGuid(target.fileId)
 
-      target.component.onButtonsClick({ id: "btnSearch" });
+      target.component.onButtonsClick({ id: "btnSearch" })
 
     } else {
 
       // 매핑된 파일 ID가 없을 경우에는 컴포넌트 자체 독립 GUID만 새롭게 생성해 대기시킵니다.
 
-      target.component.setGuid();
+      target.component.setGuid()
 
     }
 
   }
 
-};
+}
 
 const closePopup = () => {
 
   for (let i in municipalField) {
 
-    municipalField[i] = "";
+    municipalField[i] = ""
 
   }
 
   municipalField.APP_SAME = "N"
 
-  isEntryMode.value = false;
+  isEntryMode.value = false
 
-  isActionWaiting.value = false;
+  isActionWaiting.value = false
 
-  menuTitle.value?.disableBtn("btnDelete", false);
+  menuTitle.value?.disableBtn("btnDelete", false)
 
-  menuTitle.value?.disableBtn("btnUpdate", false);
+  menuTitle.value?.disableBtn("btnUpdate", false)
 
   emit('closed')
 
@@ -428,7 +427,7 @@ const initField = () => {
 
   // 사용자 정보 기준 기본값 할당
 
-  municipalField.NOTI_TIME = dayjs().format("HH:mm");
+  municipalField.NOTI_TIME = dayjs().format("HH:mm")
 
   municipalField.CHK_EMP_NM = userStore.empNm
 
@@ -468,11 +467,11 @@ const initField = () => {
 
 const loadLocationPath = async () => {
 
-  const cmpnyDiv = municipalField.COMPANY || userStore.cmpnyDiv;
+  const cmpnyDiv = municipalField.COMPANY || userStore.cmpnyDiv
 
-  const result = { LOC_LARGE_NM: "", LOC_MEDIUM_NM: "", LOC_SMALL_NM: "" };
+  const result = { LOC_LARGE_NM: "", LOC_MEDIUM_NM: "", LOC_SMALL_NM: "" }
 
-  if (!municipalField.VIO_LPLC) return result;
+  if (!municipalField.VIO_LPLC) return result
 
   const largeRes = await commonPgSearchApi({
 
@@ -480,13 +479,13 @@ const loadLocationPath = async () => {
 
     param: { CMPNY_DIV: cmpnyDiv, LOCATION_LVL: "1", UP_CD: null },
 
-  }, { useProgress: false });
+  }, { useProgress: false })
 
-  const large = (largeRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_LPLC);
+  const large = (largeRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_LPLC)
 
-  result.LOC_LARGE_NM = large?.LOCATION_DESC || "";
+  result.LOC_LARGE_NM = large?.LOCATION_DESC || ""
 
-  if (!large || !municipalField.VIO_MPLC) return result;
+  if (!large || !municipalField.VIO_MPLC) return result
 
   const mediumRes = await commonPgSearchApi({
 
@@ -494,13 +493,13 @@ const loadLocationPath = async () => {
 
     param: { CMPNY_DIV: cmpnyDiv, LOCATION_LVL: "2", UP_CD: municipalField.VIO_LPLC },
 
-  }, { useProgress: false });
+  }, { useProgress: false })
 
-  const medium = (mediumRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_MPLC && row.ALL_UP_CD === large.ALL_LOCATION_COD);
+  const medium = (mediumRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_MPLC && row.ALL_UP_CD === large.ALL_LOCATION_COD)
 
-  result.LOC_MEDIUM_NM = medium?.LOCATION_DESC || "";
+  result.LOC_MEDIUM_NM = medium?.LOCATION_DESC || ""
 
-  if (!medium || !municipalField.VIO_SPLC) return result;
+  if (!medium || !municipalField.VIO_SPLC) return result
 
   const smallRes = await commonPgSearchApi({
 
@@ -508,15 +507,15 @@ const loadLocationPath = async () => {
 
     param: { CMPNY_DIV: cmpnyDiv, LOCATION_LVL: "3", UP_CD: municipalField.VIO_MPLC },
 
-  }, { useProgress: false });
+  }, { useProgress: false })
 
-  const small = (smallRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_SPLC && row.ALL_UP_CD === medium.ALL_LOCATION_COD);
+  const small = (smallRes.ORESULT_CUR || []).find(row => row.LOCATION_CODE === municipalField.VIO_SPLC && row.ALL_UP_CD === medium.ALL_LOCATION_COD)
 
-  result.LOC_SMALL_NM = small?.LOCATION_DESC || "";
+  result.LOC_SMALL_NM = small?.LOCATION_DESC || ""
 
-  return result;
+  return result
 
-};
+}
 
 const initCodList = () => {
 
@@ -528,13 +527,13 @@ const initCodList = () => {
 
     getPgCodeList("HHIG170"),
 
-  ]).then((res) => {
+  ]).then(res => {
 
     codeList.RESTART_DIV = res.ORESULT_CUR
 
-    codeList.SHIP_NO = res.ORESULT_CUR.map((item) => item.SHIP_COD);
+    codeList.SHIP_NO = res.ORESULT_CUR.map(item => item.SHIP_COD)
 
-    codeList.ACT_DIV = res.ORESULT_CUR;
+    codeList.ACT_DIV = res.ORESULT_CUR
 
   })
 
@@ -548,37 +547,37 @@ const initCodList = () => {
 
 // 1. 위반내용 다중 이미지 업로드 완료 콜백
 
-const uploadPicture = (val) => {
+const uploadPicture = val => {
 
   if (val?.FILE_ID) {
 
-    municipalField.IMG_ID1 = val.FILE_ID;
+    municipalField.IMG_ID1 = val.FILE_ID
 
   }
 
-};
+}
 
 // 2. 조치내용 다중 이미지 업로드 완료 콜백
 
-const uploadPicture2 = (val) => {
+const uploadPicture2 = val => {
 
   if (val?.FILE_ID) {
 
-    municipalField.IMG_ID2 = val.FILE_ID;
+    municipalField.IMG_ID2 = val.FILE_ID
 
   }
 
-};
+}
 
 // 3. 위반내용 일반파일 업로드 완료 콜백
 
-const uploadViolationFile = (val) => {
+const uploadViolationFile = val => {
 
-  const fileId = val?.FILE_ID ?? val?.fileId ?? "";
+  const fileId = val?.FILE_ID ?? val?.fileId ?? ""
 
-  if (!fileId) return;
+  if (!fileId) return
 
-  municipalField.FILE_ID1 = fileId;
+  municipalField.FILE_ID1 = fileId
 
   // 이미 서버에 등록되어 키값이 존재하는 데이터라면 파일 업로드 성공 즉시 마스터 테이블에 파일 ID를 즉시 업데이트 처리합니다.
 
@@ -600,21 +599,21 @@ const uploadViolationFile = (val) => {
 
       }],
 
-    });
+    })
 
   }
 
-};
+}
 
 // 4. 조치내용 일반파일 업로드 완료 콜백
 
-const uploadActionFile = (val) => {
+const uploadActionFile = val => {
 
-  const fileId = val?.FILE_ID ?? val?.fileId ?? "";
+  const fileId = val?.FILE_ID ?? val?.fileId ?? ""
 
-  if (!fileId) return;
+  if (!fileId) return
 
-  municipalField.FILE_ID2 = fileId;
+  municipalField.FILE_ID2 = fileId
 
   // 이미 서버에 등록되어 키값이 존재하는 데이터라면 파일 업로드 성공 즉시 마스터 테이블에 파일 ID를 즉시 업데이트 처리합니다.
 
@@ -640,11 +639,11 @@ const uploadActionFile = (val) => {
 
       }],
 
-    });
+    })
 
   }
 
-};
+}
 
 // ==========================================
 
@@ -706,13 +705,13 @@ const saveNotiData = () => {
 
   // 파일 업로드 컴포넌트가 가지고 있는 최종 발급 상태의 guid 그룹 키를 마스터 파라미터에 최종적으로 주입 보증합니다.
 
-  municipalField.IMG_ID1 = imageUpload.value?.guid || municipalField.IMG_ID1;
+  municipalField.IMG_ID1 = imageUpload.value?.guid || municipalField.IMG_ID1
 
-  municipalField.IMG_ID2 = imageUpload2.value?.guid || municipalField.IMG_ID2;
+  municipalField.IMG_ID2 = imageUpload2.value?.guid || municipalField.IMG_ID2
 
-  municipalField.FILE_ID1 = vioFileUpload.value?.guid || municipalField.FILE_ID1;
+  municipalField.FILE_ID1 = vioFileUpload.value?.guid || municipalField.FILE_ID1
 
-  municipalField.FILE_ID2 = actFileUpload.value?.guid || municipalField.FILE_ID2;
+  municipalField.FILE_ID2 = actFileUpload.value?.guid || municipalField.FILE_ID2
 
   let saveData = {
 
@@ -808,7 +807,7 @@ const saveNotiData = () => {
 
   })
 
-    .then((res) => {
+    .then(res => {
 
       if (!municipalField.MNG_NO && res.list && res.list) {
 
@@ -816,7 +815,7 @@ const saveNotiData = () => {
 
       }
 
-      Message.success(t('정상적으로 임시저장 되었습니다.'));
+      Message.success(t('정상적으로 임시저장 되었습니다.'))
 
     })
 
@@ -824,7 +823,7 @@ const saveNotiData = () => {
 
 const afterSave = () => {
 
-  closePopup();
+  closePopup()
 
 }
 
@@ -864,9 +863,9 @@ const actionCompleteQuery = () => {
 
   // 완료 트랜잭션 발생 시에도 현재 컴포넌트가 들고 있는 업로드 GUID 관계를 강제 동기화 보증합니다.
 
-  municipalField.IMG_ID2 = imageUpload2.value?.guid || municipalField.IMG_ID2;
+  municipalField.IMG_ID2 = imageUpload2.value?.guid || municipalField.IMG_ID2
 
-  municipalField.FILE_ID2 = actFileUpload.value?.guid || municipalField.FILE_ID2;
+  municipalField.FILE_ID2 = actFileUpload.value?.guid || municipalField.FILE_ID2
 
   let saveData = {
 
@@ -924,13 +923,13 @@ const onActionComplete = () => {
 
       municipalField.ACT_DIV = '조치완료'
 
-      closePopup();
+      closePopup()
 
     })
 
     .setConfirmMessage("조치완료하시겠습니까?")
 
-    .run();
+    .run()
 
 }
 
@@ -940,11 +939,11 @@ const beforeDelete = () => {
 
     Message.warn(t('저장되지 않은 지저서는 삭제할 수 없습니다.'))
 
-    return false;
+    return false
 
   }
 
-  return true;
+  return true
 
 }
 
@@ -964,7 +963,7 @@ const deleteQuery = () => {
 
       USER_ID: userStore.userId,
 
-    }]
+    }],
 
   })
 
@@ -996,31 +995,31 @@ const onDelete = () => {
 
 // ==========================================
 
-const onButtonsClick = (btn) => {
+const onButtonsClick = btn => {
 
   if (btn.id === "btnUpdate") {
 
-    new saveFlowHelper(vm, t).setBefore(beforeSave).setQuery(saveNotiData).setAfter(afterSave).run();
+    new saveFlowHelper(vm, t).setBefore(beforeSave).setQuery(saveNotiData).setAfter(afterSave).run()
 
   } else if (btn.id === "btnActionComplete") {
 
-    onActionComplete();
+    onActionComplete()
 
   } else if (btn.id === "btnDelete") {
 
-    onDelete();
+    onDelete()
 
   } else {
 
-    closePopup();
+    closePopup()
 
   }
 
-};
+}
 
 const openLocationPopup = async () => {
 
-  const locationPath = await loadLocationPath();
+  const locationPath = await loadLocationPath()
 
   locationPopup.value?.openPopup({
 
@@ -1038,21 +1037,21 @@ const openLocationPopup = async () => {
 
     LOC_SMALL_NM: locationPath.LOC_SMALL_NM,
 
-  });
+  })
 
-};
+}
 
-const selectedNotiLocation = (val) => {
+const selectedNotiLocation = val => {
 
-  municipalField.NOTI_LPLC = val.LOC_LARGE;
+  municipalField.NOTI_LPLC = val.LOC_LARGE
 
-  municipalField.NOTI_MPLC = val.LOC_MEDIUM;
+  municipalField.NOTI_MPLC = val.LOC_MEDIUM
 
-  municipalField.NOTI_SPLC = val.LOC_SMALL;
+  municipalField.NOTI_SPLC = val.LOC_SMALL
 
-  municipalField.NOTI_SPLC_NM = val.WORK_LOCATION;
+  municipalField.NOTI_SPLC_NM = val.WORK_LOCATION
 
-};
+}
 
 const openDeptPopup = () => {
 
@@ -1060,7 +1059,7 @@ const openDeptPopup = () => {
 
 }
 
-const selectedDept = (val) => {
+const selectedDept = val => {
 
   municipalField.REC_ASGN_NM = val.ASGN_FULL_NM
 
@@ -1076,7 +1075,7 @@ const openSafetyActEmpPopup = () => {
 
 }
 
-const selectedNotiActEmp = (val) => {
+const selectedNotiActEmp = val => {
 
   municipalField.ACT_EMP_NM = val.EMP_NM
 
@@ -1100,7 +1099,7 @@ const openNotiChkEmpPopup = () => {
 
 }
 
-const selectedNotiChkEmp = (val) => {
+const selectedNotiChkEmp = val => {
 
   municipalField.CHK_EMP_NM = val.EMP_NM
 
@@ -1118,7 +1117,7 @@ const selectedNotiChkEmp = (val) => {
 
 }
 
-const openAppEmpPopup = async (gbn) => {
+const openAppEmpPopup = async gbn => {
 
   if (gbn === "승인자인원조회") {
 
@@ -1132,13 +1131,13 @@ const openAppEmpPopup = async (gbn) => {
 
       readonly: true,
 
-    });
+    })
 
   }
 
-};
+}
 
-const selectedAppEmp = (val) => {
+const selectedAppEmp = val => {
 
   municipalField.APP_EMP_NM = val.EMP_NM
 
@@ -1148,9 +1147,9 @@ const selectedAppEmp = (val) => {
 
 const setApprovalStatus = () => {
 
-  approvalReadOnly.value = municipalField.APP_SAME !== "N";
+  approvalReadOnly.value = municipalField.APP_SAME !== "N"
 
-};
+}
 
 // ==========================================
 
@@ -1158,13 +1157,13 @@ const setApprovalStatus = () => {
 
 // ==========================================
 
-watch(() => municipalField.APP_SAME, (newValue) => {
+watch(() => municipalField.APP_SAME, newValue => {
 
-  municipalField.APP_SAME = String(newValue).trim().toUpperCase() === "Y" ? "Y" : "N";
+  municipalField.APP_SAME = String(newValue).trim().toUpperCase() === "Y" ? "Y" : "N"
 
-  setApprovalStatus();
+  setApprovalStatus()
 
-}, { immediate: true });
+}, { immediate: true })
 
 defineExpose({
 
@@ -1173,131 +1172,198 @@ defineExpose({
   openPopup2,
 
 })
-
 </script>
 
 <template>
+  <v-dialog
+    v-model="dialog"
+    persistent
+    width="1600"
+    height="800"
+    eager
+    class="draggable-dialog"
 
-  <v-dialog v-model="dialog" persistent width="1600" height="800" eager class="draggable-dialog"
+    @mousemove="handleDragging"
+    @mouseup="stopDragging"
+  >
+    <v-sheet
+      color="primarySub"
+      height="50"
+      class="px-4 d-flex align-center rounded-t-5 cursor-move"
 
-    @mousemove="handleDragging" @mouseup="stopDragging">
-
-    <v-sheet color="primarySub" height="50" class="px-4 d-flex align-center rounded-t-5 cursor-move"
-
-      @mousedown="startDragging">
-
+      @mousedown="startDragging"
+    >
       {{ t('시정통보등록') }}
-
     </v-sheet>
 
     <v-card class="pa-0 fill-height rounded-b-5">
-
       <v-card-title class="pa-3 pb-0">
+        <IGridTitle
+          ref="menuTitle"
+          :button-list="['btnUpdate', 'btnActionComplete', 'btnDelete', 'btnClose']"
 
-        <IGridTitle ref="menuTitle" :button-list="['btnUpdate', 'btnActionComplete', 'btnDelete', 'btnClose']"
-
-          @click-button="onButtonsClick" />
-
+          @click-button="onButtonsClick"
+        />
       </v-card-title>
 
       <v-card-text class="pa-3 pt-0 content-area">
-
         <div class="d-flex flex-column fill-height">
-
           <v-sheet class="searchArea">
-
             <!-- 🌟 [마스킹 시작] 조치대기(isActionWaiting) 상태일 때 1, 2, 3번 영역 전체를 잠금 -->
 
             <div :class="{ 'readonly-form': isActionWaiting }">
-
               <!-- 1. 일시 및 장소 영역 -->
 
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">1</v-avatar>
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  1
+                </v-avatar>
 
                 &nbsp;<b>{{ t('일시 및 장소') }}</b>
-
               </div>
 
               <div class="d-flex mt-2 mb-4 flex-wrap">
+                <i-input
+                  v-model="municipalField.NOTI_DT"
+                  :label="$t('점검일자')"
+                  width="150px"
+                  top-label
+                  type="date"
 
-                <i-input :label="$t('점검일자')" width="150px" top-label type="date" v-model="municipalField.NOTI_DT"
+                  required
+                />
 
-                  required></i-input>
+                <i-input
+                  v-model="municipalField.REQ_REPLY_DT"
+                  :label="$t('회신요구일')"
+                  width="150px"
+                  top-label
+                  type="date"
 
-                <i-input :label="$t('회신요구일')" width="150px" top-label type="date" v-model="municipalField.REQ_REPLY_DT"
+                  required
+                />
 
-                  required></i-input>
+                <i-input
+                  v-model="municipalField.NOTI_SPLC_NM"
+                  :label="$t('장소')"
+                  top-label
+                  width="200px"
+                  readonly
 
-                <i-input :label="$t('장소')" top-label width="200px" readonly append-inner-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
+                  required
+                  @click:append-inner="openLocationPopup"
+                />
 
-                  @click:appendInner="openLocationPopup" v-model="municipalField.NOTI_SPLC_NM" required></i-input>
+                <i-input
+                  v-model="municipalField.NOTI_PLC_DESC"
+                  :label="$t('장소상세')"
+                  top-label
+                  width="300px"
+                />
 
-                <i-input :label="$t('장소상세')" top-label width="300px" v-model="municipalField.NOTI_PLC_DESC"></i-input>
+                <i-select
+                  v-model="municipalField.SHIP_NO"
+                  :label="$t('호선/프로젝트No.')"
+                  top-label
+                  width="250px"
 
-                <i-select :label="$t('호선/프로젝트No.')" top-label width="250px" v-model="municipalField.SHIP_NO"
-
-                  :items="codeList.SHIP_NO" item-value="WORK_NO" item-title="WORK_NO"></i-select>
-
+                  :items="codeList.SHIP_NO"
+                  item-value="WORK_NO"
+                  item-title="WORK_NO"
+                />
               </div>
 
               <!-- 2. 위반 정보 영역 -->
 
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">2</v-avatar>
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  2
+                </v-avatar>
 
                 &nbsp;<b>{{ t('위반 정보') }}</b>
-
               </div>
 
               <div class="d-flex mt-2 mb-4 flex-wrap">
+                <i-input
+                  v-model="municipalField.NOTI_TITLE"
+                  :label="$t('제목')"
+                  width="600px"
+                  top-label
 
-                <i-input :label="$t('제목')" width="600px" top-label v-model="municipalField.NOTI_TITLE"
+                  required
+                />
 
-                  required></i-input>
+                <i-input
+                  v-model="municipalField.REC_ASGN_NM"
+                  :label="$t('수신조직')"
+                  width="300px"
+                  top-label
+                  readonly
 
-                <i-input :label="$t('수신조직')" width="300px" top-label readonly append-inner-icon="mdi-magnify"
-
-                  @click:appendInner="openDeptPopup" required v-model="municipalField.REC_ASGN_NM"></i-input>
-
+                  append-inner-icon="mdi-magnify"
+                  required
+                  @click:append-inner="openDeptPopup"
+                />
               </div>
 
               <!-- 3. 위반 내용 영역 -->
 
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">3</v-avatar>
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  3
+                </v-avatar>
 
                 &nbsp;<b>{{ t('위반 내용') }}</b>
-
               </div>
 
               <div class="d-flex mt-2 mb-4">
+                <i-textarea
+                  v-model="municipalField.PROBLEM_DESC"
+                  :label="$t('문제점')"
+                  width="50%"
+                  top-label
+                  required
 
-                <i-textarea :label="$t('문제점')" width="50%" top-label v-model="municipalField.PROBLEM_DESC" required
+                  class="mr-2"
+                />
 
-                  class="mr-2"></i-textarea>
+                <i-textarea
+                  v-model="municipalField.REQUIRE_DESC"
+                  :label="$t('시정요구안')"
+                  width="50%"
 
-                <i-textarea :label="$t('시정요구안')" width="50%" top-label
-
-                  v-model="municipalField.REQUIRE_DESC"></i-textarea>
-
+                  top-label
+                />
               </div>
 
               <div class="mb-6">
-
-                <IUploadImageMulitCom title="사진첨부(위반)" ref="imageUpload" @uploaded="uploadPicture" />
+                <IUploadImageMulit
+                  ref="imageUpload"
+                  title="사진첨부(위반)"
+                  @uploaded="uploadPicture"
+                />
 
                 <div style="height: 430px">
-
-                  <IUploadCom gridTitle="파일첨부(위반)" ref="vioFileUpload" @uploaded="uploadViolationFile" />
-
+                  <IUpload
+                    ref="vioFileUpload"
+                    grid-title="파일첨부(위반)"
+                    @uploaded="uploadViolationFile"
+                  />
                 </div>
-
               </div>
-
             </div>
 
             <!-- 🌟 [마스킹 끝] 1, 2, 3번 잠금 영역 종료 -->
@@ -1305,165 +1371,263 @@ defineExpose({
             <!-- 🟢 4. 조치 내용 영역 (마스킹 외부에 두어 항시 조작 가능) -->
 
             <div class="d-flex mt-2">
-
-              <v-avatar color="primary" size="24" class="text-white">4</v-avatar>
+              <v-avatar
+                color="primary"
+                size="24"
+                class="text-white"
+              >
+                4
+              </v-avatar>
 
               &nbsp;<b>{{ t('조치 내용') }}</b>
-
             </div>
 
             <!-- 신규 등록 및 조치대기 상태가 아닐 때(즉 조치 작성 가능 상태) 폼 오픈 -->
 
             <div v-if="!isEntryMode && !isActionWaiting">
-
               <div class="d-flex mt-2 mb-2 flex-wrap">
+                <i-input
+                  v-model="municipalField.ACT_EMP_NM"
+                  :label="$t('조치자성명')"
+                  width="200px"
+                  top-label
 
-                <i-input v-model="municipalField.ACT_EMP_NM" :label="$t('조치자성명')" width="200px" top-label
+                  append-inner-icon="mdi-magnify"
+                  @click:append-inner="openSafetyActEmpPopup"
+                />
 
-                  append-inner-icon="mdi-magnify" @click:appendInner="openSafetyActEmpPopup"></i-input>
+                <i-input
+                  v-model="municipalField.ACT_EMP_NO"
+                  :label="$t('사번')"
+                  width="200px"
+                  top-label
 
-                <i-input v-model="municipalField.ACT_EMP_NO" :label="$t('사번')" width="200px" top-label
+                  readonly
+                />
 
-                  readonly></i-input>
+                <i-input
+                  v-model="municipalField.ACT_JOB_TIT_NM"
+                  :label="$t('직위')"
+                  width="150px"
+                  top-label
 
-                <i-input v-model="municipalField.ACT_JOB_TIT_NM" :label="$t('직위')" width="150px" top-label
+                  readonly
+                />
 
-                  readonly></i-input>
+                <i-input
+                  v-model="municipalField.ACT_ASGN_NM"
+                  :label="$t('소속')"
+                  width="250px"
+                  top-label
 
-                <i-input v-model="municipalField.ACT_ASGN_NM" :label="$t('소속')" width="250px" top-label
+                  readonly
+                />
 
-                  readonly></i-input>
+                <i-input
+                  v-model="municipalField.ACT_TEL_NO"
+                  :label="$t('전화번호')"
+                  width="200px"
+                  top-label
 
-                <i-input v-model="municipalField.ACT_TEL_NO" :label="$t('전화번호')" width="200px" top-label
-
-                  readonly></i-input>
-
+                  readonly
+                />
               </div>
 
               <div class="d-flex mb-4 flex-wrap">
+                <i-textarea
+                  v-model="municipalField.ACT_RSLT"
+                  :label="$t('조치내용')"
+                  class="mt-2 flex-grow-1"
 
-                <i-textarea v-model="municipalField.ACT_RSLT" :label="$t('조치내용')" class="mt-2 flex-grow-1"
+                  top-label
+                />
 
-                  top-label></i-textarea>
+                <i-select
+                  v-model="municipalField.ACT_DIV"
+                  :label="$t('조치구분')"
+                  width="200px"
+                  top-label
 
-                <i-select v-model="municipalField.ACT_DIV" :label="$t('조치구분')" width="200px" top-label
-
-                  :items="codeList.ACT_DIV" item-title="TXT" item-value="COD" class="mt-2 ml-2"></i-select>
-
+                  :items="codeList.ACT_DIV"
+                  item-title="TXT"
+                  item-value="COD"
+                  class="mt-2 ml-2"
+                />
               </div>
 
               <div class="mb-6">
-
-                <IUploadImageMulitCom title="사진첨부(조치)" ref="imageUpload2" @uploaded="uploadPicture2" />
+                <IUploadImageMulit
+                  ref="imageUpload2"
+                  title="사진첨부(조치)"
+                  @uploaded="uploadPicture2"
+                />
 
                 <div style="height: 430px">
-
-                  <IUploadCom gridTitle="파일첨부(조치)" ref="actFileUpload" @uploaded="uploadActionFile" />
-
+                  <IUpload
+                    ref="actFileUpload"
+                    grid-title="파일첨부(조치)"
+                    @uploaded="uploadActionFile"
+                  />
                 </div>
-
               </div>
-
             </div>
 
             <!-- 숨김 가이드 메시지 영역 -->
 
-            <div v-else class="pa-4 text-grey-darken-1 text-body-2">
-
+            <div
+              v-else
+              class="pa-4 text-grey-darken-1 text-body-2"
+            >
               <span v-if="isEntryMode">※ 신규 등록 시점에는 조치 결과를 입력할 수 없습니다. 시정 통보 등록을 먼저 진행하십시오.</span>
 
               <span v-else-if="isActionWaiting">※ 조치대기 상태이므로 조치 결과 내용을 입력할 수 없습니다. 상단의 '조치완료' 버튼을 통해 프로세스를
 
                 진행하십시오.</span>
-
             </div>
 
             <!-- 🌟 [마스킹 시작] 조치대기(isActionWaiting) 상태일 때 5번 영역 전체를 잠금 -->
 
             <div :class="{ 'readonly-form': isActionWaiting }">
-
               <!-- 5. 단속자/승인자 정보 영역 -->
 
               <div class="d-flex mt-2">
-
-                <v-avatar color="primary" size="24" class="text-white">5</v-avatar>
+                <v-avatar
+                  color="primary"
+                  size="24"
+                  class="text-white"
+                >
+                  5
+                </v-avatar>
 
                 &nbsp;<b>{{ t('단속자/승인자 정보') }}</b>
-
               </div>
 
               <div class="d-flex mt-2 mb-4 align-center">
+                <i-input
+                  v-model="municipalField.CHK_EMP_NM"
+                  :label="$t('점검자성명')"
+                  width="200px"
+                  top-label
 
-                <i-input :label="$t('점검자성명')" width="200px" top-label append-inner-icon="mdi-magnify"
+                  append-inner-icon="mdi-magnify"
+                  required
+                  @click:append-inner="openNotiChkEmpPopup"
+                />
 
-                  @click:appendInner="openNotiChkEmpPopup" required v-model="municipalField.CHK_EMP_NM"></i-input>
+                <i-input
+                  v-model="municipalField.CHK_EMP_NO"
+                  :label="$t('사번')"
+                  width="150px"
+                  top-label
 
-                <i-input :label="$t('사번')" width="150px" top-label readonly
+                  readonly
+                />
 
-                  v-model="municipalField.CHK_EMP_NO"></i-input>
+                <i-input
+                  v-model="municipalField.CHK_JOB_TIT_NM"
+                  :label="$t('직위')"
+                  width="150px"
+                  top-label
 
-                <i-input :label="$t('직위')" width="150px" top-label readonly
+                  readonly
+                />
 
-                  v-model="municipalField.CHK_JOB_TIT_NM"></i-input>
+                <i-input
+                  v-model="municipalField.CHK_ASGN_NM"
+                  :label="$t('발신조직')"
+                  width="250px"
+                  top-label
 
-                <i-input :label="$t('발신조직')" width="250px" top-label readonly
+                  readonly
+                />
 
-                  v-model="municipalField.CHK_ASGN_NM"></i-input>
+                <i-input
+                  v-model="municipalField.CHK_TEL_NO"
+                  :label="$t('전화번호')"
+                  width="200px"
+                  top-label
 
-                <i-input :label="$t('전화번호')" width="200px" top-label readonly
-
-                  v-model="municipalField.CHK_TEL_NO"></i-input>
+                  readonly
+                />
 
                 <div class="d-flex align-center h-14 mt-5 mr-10">
+                  <v-checkbox
+                    v-model="municipalField.APP_SAME"
+                    true-value="Y"
+                    false-value="N"
+                    density="compact"
 
-                  <v-checkbox v-model="municipalField.APP_SAME" true-value="Y" false-value="N" density="compact"
-
-                    hide-details class="ma-0 flex-shrink-0"></v-checkbox>
+                    hide-details
+                    class="ma-0 flex-shrink-0"
+                  />
 
                   <span class="ml-1 flex-shrink-0 text-no-wrap text-body-2">{{ t('승인자 동일') }}</span>
-
                 </div>
 
-                <i-input :label="$t('승인자성명')" width="200px" top-label append-inner-icon="mdi-magnify"
+                <i-input
+                  v-model="municipalField.APP_EMP_NM"
+                  :label="$t('승인자성명')"
+                  width="200px"
+                  top-label
 
-                  @click:appendInner="openAppEmpPopup('승인자인원조회')" v-model="municipalField.APP_EMP_NM"
+                  append-inner-icon="mdi-magnify"
+                  :readonly="approvalReadOnly"
 
-                  :readonly="approvalReadOnly" required></i-input>
+                  required
+                  @click:append-inner="openAppEmpPopup('승인자인원조회')"
+                />
 
-                <v-btn class="mt-5" @click="onApproval">승인신청</v-btn>
+                <v-btn
+                  class="mt-5"
+                  @click="onApproval"
+                >
+                  승인신청
+                </v-btn>
 
-                <v-btn class="mt-5" @click="onCancelApproval">승인신청취소</v-btn>
-
+                <v-btn
+                  class="mt-5"
+                  @click="onCancelApproval"
+                >
+                  승인신청취소
+                </v-btn>
               </div>
-
             </div>
 
             <!-- 🌟 [마스킹 끝] 5번 잠금 영역 종료 -->
-
           </v-sheet>
-
         </div>
-
       </v-card-text>
-
     </v-card>
-
   </v-dialog>
 
-  <DeptPopup ref="deptPopup" @selected="selectedDept" check-bar="true" />
+  <DeptPopup
+    ref="deptPopup"
+    check-bar="true"
+    @selected="selectedDept"
+  />
 
-  <WorkLocationPopup ref="locationPopup" @selected="selectedNotiLocation" />
+  <LocationPopup
+    ref="locationPopup"
+    @selected="selectedNotiLocation"
+  />
 
-  <EmpPopup ref="notiActEmpPopup" @selected="selectedNotiActEmp" />
+  <EmpPopup
+    ref="notiActEmpPopup"
+    @selected="selectedNotiActEmp"
+  />
 
-  <EmpPopup ref="notiChkEmpPopup" @selected="selectedNotiChkEmp" />
+  <EmpPopup
+    ref="notiChkEmpPopup"
+    @selected="selectedNotiChkEmp"
+  />
 
-  <EmpPopup ref="notiAppEmpPopup" @selected="selectedAppEmp" />
-
+  <EmpPopup
+    ref="notiAppEmpPopup"
+    @selected="selectedAppEmp"
+  />
 </template>
 
 <style scoped lang="scss">
-
 .readonly-form {
 
   pointer-events: none !important;
@@ -1511,5 +1675,4 @@ defineExpose({
   border-bottom: 1px solid #e0e0e0;
 
 }
-
 </style>
