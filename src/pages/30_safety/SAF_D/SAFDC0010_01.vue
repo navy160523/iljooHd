@@ -133,25 +133,25 @@ const detailField = reactive({
 
 const codeList = reactive({
 
-  company: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  company: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
-  bsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
+  bsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정 (필수)
 
-  deptCd: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정
+  deptCd: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정 (필수)
 
-  dansokCompany: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  dansokCompany: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
-  dansokBsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
+  dansokBsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정 (필수)
 
-  dansokDeptCd: [{ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }], //2026.09.11 수정
+  dansokDeptCd: [{ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }], //2026.09.11 수정 (필수)
 
-  gubun: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  gubun: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
-  status: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  status: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
-  searchStatus: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  searchStatus: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
-  actDiv: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
+  actDiv: [{ TXT: "전체", COD: "" }], //2026.09.11 수정 (필수)
 
 })
 
@@ -227,7 +227,7 @@ const initCodeList = async () => {
       codeList.dansokCompany = res[0]?.ORESULT_CUR ? res[0].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.bsnsCd = res[1]?.ORESULT_CUR ? res[1].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.dansokBsnsCd = res[5]?.ORESULT_CUR ? res[5].ORESULT_CUR.slice() : [] //2026.09.11 수정
-      codeList.dansokDeptCd = (res[2]?.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정
+      codeList.dansokDeptCd = (res[2]?.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정 (필수)
         DANSOK_ASGN_NM: x.DANSOK_ASGN_NM || x.DEPT_NM || x.ASGN_NM || x.TXT,
         DANSOK_ASGN_CD: x.DANSOK_ASGN_CD || x.DEPT_CD || x.ASGN_CD || x.COD,
       }))
@@ -266,8 +266,8 @@ const initCodeList = async () => {
       codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
       codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
       codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
-      if (codeList.dansokDeptCd.length === 0 || codeList.dansokDeptCd[0].DANSOK_ASGN_CD !== "") { //2026.09.11 수정
-        codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
+      if (codeList.dansokDeptCd.length === 0 || codeList.dansokDeptCd[0].DANSOK_ASGN_CD !== "") { //2026.09.11 수정 (필수)
+        codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정 (필수)
       }
       codeList.gubun.unshift({ TXT: "전체", COD: "" })
       codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
@@ -4226,9 +4226,9 @@ watch(
 
       }))
 
-      list.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
+      list.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정 (필수)
 
-      codeList.dansokDeptCd = list //2026.09.11 수정
+      codeList.dansokDeptCd = list //2026.09.11 수정 (필수)
 
     })
 
