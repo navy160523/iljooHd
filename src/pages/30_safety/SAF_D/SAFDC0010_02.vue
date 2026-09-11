@@ -87,25 +87,25 @@ const { sliSAFDC0010_02Tab01 } = history.state || {} //2026.09.11 수정
 
 const codeList = reactive({
 
-  company: [],
+  company: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  bsnsCd: [],
+  bsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  deptCd: [],
+  deptCd: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정
 
-  dansokCompany: [],
+  dansokCompany: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  dansokBsnsCd: [],
+  dansokBsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  dansokDeptCd: [],
+  dansokDeptCd: [{ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }], //2026.09.11 수정
 
-  gubun: [],
+  gubun: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  status: [],
+  status: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  searchStatus: [],
+  searchStatus: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  actDiv: [],
+  actDiv: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
 })
 
@@ -221,6 +221,10 @@ const initCodeList = async () => {
       codeList.dansokCompany = res[0]?.ORESULT_CUR ? res[0].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.bsnsCd = res[1]?.ORESULT_CUR ? res[1].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.dansokBsnsCd = res[5]?.ORESULT_CUR ? res[5].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.dansokDeptCd = (res[2]?.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정
+        DANSOK_ASGN_NM: x.DANSOK_ASGN_NM || x.DEPT_NM || x.ASGN_NM || x.TXT,
+        DANSOK_ASGN_CD: x.DANSOK_ASGN_CD || x.DEPT_CD || x.ASGN_CD || x.COD,
+      }))
       codeList.gubun = (res[3]?.ORESULT_CUR || []).filter(x => x?.COD && !x.COD.includes("S")) //2026.09.11 수정
       codeList.status = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.searchStatus = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
@@ -256,6 +260,9 @@ const initCodeList = async () => {
       codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
       codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
       codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
+      if (codeList.dansokDeptCd.length === 0 || codeList.dansokDeptCd[0].DANSOK_ASGN_CD !== "") { //2026.09.11 수정
+        codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
+      }
       codeList.gubun.unshift({ TXT: "전체", COD: "" })
       codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
 
@@ -1359,6 +1366,9 @@ watch(
       codeList.dansokBsnsCd = res.ORESULT_CUR
 
       codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
+      if (codeList.dansokDeptCd.length === 0 || codeList.dansokDeptCd[0].DANSOK_ASGN_CD !== "") { //2026.09.11 수정
+        codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
+      }
 
     })
 
@@ -1386,11 +1396,17 @@ watch(
 
     }).then(res => {
 
-      searchParam.DANSOK_ASGN_CD = ""
+      searchParam.DANSOK_ASGN_CD = "" //2026.09.11 수정
 
-      codeList.dansokDeptCd = res.ORESULT_CUR
+      const list = (res.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정
 
-      codeList.dansokDeptCd.unshift({
+        DANSOK_ASGN_NM: x.DANSOK_ASGN_NM || x.DEPT_NM || x.ASGN_NM || x.TXT,
+
+        DANSOK_ASGN_CD: x.DANSOK_ASGN_CD || x.DEPT_CD || x.ASGN_CD || x.COD,
+
+      }))
+
+      list.unshift({ //2026.09.11 수정
 
         DANSOK_ASGN_NM: "전체",
 
@@ -1398,7 +1414,15 @@ watch(
 
       })
 
+      codeList.dansokDeptCd = list //2026.09.11 수정
+
     })
+
+  },
+
+  {
+
+    immediate: true, //2026.09.11 수정
 
   },
 

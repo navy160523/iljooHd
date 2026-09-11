@@ -133,25 +133,25 @@ const detailField = reactive({
 
 const codeList = reactive({
 
-  company: [], // 위반조직 회사
+  company: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  bsnsCd: [], // 위반조직 사업부
+  bsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  deptCd: [], // 위반조직 부서
+  deptCd: [{ DEPT_NM: "전체", DEPT_CD: "" }], //2026.09.11 수정
 
-  dansokCompany: [], // 단속조직 회사
+  dansokCompany: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  dansokBsnsCd: [], // 단속조직 사업부
+  dansokBsnsCd: [{ BSNS_NM: "전체", BSNS_CD: "" }], //2026.09.11 수정
 
-  dansokDeptCd: [], // 단속조직 부서
+  dansokDeptCd: [{ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }], //2026.09.11 수정
 
-  gubun: [], // 구분
+  gubun: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  status: [], // 결제진행상태
+  status: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  searchStatus: [], // 조회조건에있는 진행상태 -> 결제진행상태에서 '전체'만 추가됨
+  searchStatus: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
-  actDiv: [], //조치상태
+  actDiv: [{ TXT: "전체", COD: "" }], //2026.09.11 수정
 
 })
 
@@ -227,7 +227,10 @@ const initCodeList = async () => {
       codeList.dansokCompany = res[0]?.ORESULT_CUR ? res[0].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.bsnsCd = res[1]?.ORESULT_CUR ? res[1].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.dansokBsnsCd = res[5]?.ORESULT_CUR ? res[5].ORESULT_CUR.slice() : [] //2026.09.11 수정
-      codeList.dansokDeptCd = res[2]?.ORESULT_CUR ? res[2].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.dansokDeptCd = (res[2]?.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정
+        DANSOK_ASGN_NM: x.DANSOK_ASGN_NM || x.DEPT_NM || x.ASGN_NM || x.TXT,
+        DANSOK_ASGN_CD: x.DANSOK_ASGN_CD || x.DEPT_CD || x.ASGN_CD || x.COD,
+      }))
       codeList.gubun = (res[3]?.ORESULT_CUR || []).filter(x => x?.COD && !x.COD.includes("S")) //2026.09.11 수정
       codeList.status = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
       codeList.searchStatus = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
@@ -263,6 +266,9 @@ const initCodeList = async () => {
       codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
       codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
       codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
+      if (codeList.dansokDeptCd.length === 0 || codeList.dansokDeptCd[0].DANSOK_ASGN_CD !== "") { //2026.09.11 수정
+        codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
+      }
       codeList.gubun.unshift({ TXT: "전체", COD: "" })
       codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
 
@@ -4200,7 +4206,7 @@ watch(
 
       param: {
 
-        CMPNY_DIV: searchParam.COMPANY, //userStore.cmpnyDiv,
+        CMPNY_DIV: searchParam.CMPNY_DIV || userStore.cmpnyDiv, //2026.09.11 수정
 
         BSNS_CD: newValue,
 
@@ -4210,29 +4216,19 @@ watch(
 
     }).then(res => {
 
-      if (oldValue !== undefined) {
+      searchParam.DANSOK_ASGN_CD = "" //2026.09.11 수정
 
-        searchParam.DEPT_CD = ""
+      const list = (res.ORESULT_CUR || []).map(x => ({ //2026.09.11 수정
 
-        codeList.deptCd = res.ORESULT_CUR
+        DANSOK_ASGN_NM: x.DANSOK_ASGN_NM || x.DEPT_NM || x.ASGN_NM || x.TXT,
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
+        DANSOK_ASGN_CD: x.DANSOK_ASGN_CD || x.DEPT_CD || x.ASGN_CD || x.COD,
 
-      } else {
+      }))
 
-        codeList.deptCd = res.ORESULT_CUR
+      list.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" }) //2026.09.11 수정
 
-        codeList.deptCd.unshift({ DEPT_NM: "전체", DEPT_CD: "" })
-
-      }
-
-      searchParam.DANSOK_ASGN_CD = ""
-
-      codeList.dansokDeptCd = res.ORESULT_CUR
-
-      // 맨 앞에 '전체' 추가
-
-      codeList.dansokDeptCd.unshift({ DANSOK_ASGN_NM: "전체", DANSOK_ASGN_CD: "" })
+      codeList.dansokDeptCd = list //2026.09.11 수정
 
     })
 
@@ -4240,7 +4236,7 @@ watch(
 
   {
 
-    immediate: true, // 초기화 시점에도 동작하도록 위반조직과 동일하게 적용
+    immediate: true,
 
   },
 
