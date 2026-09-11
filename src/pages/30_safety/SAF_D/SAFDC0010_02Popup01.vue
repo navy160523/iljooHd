@@ -3086,7 +3086,7 @@ defineExpose({
 
   // calc(100vh - (180px + 컨텐츠영역 px)) 을 더해주세요.
 
-  height: calc(100vh -{ 180px);
+  height: calc(100vh - 180px); /* 2026.09.11 수정 */
 
   overflow-y: auto;
 
