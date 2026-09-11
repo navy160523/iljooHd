@@ -38,7 +38,7 @@ const gridTitle = ref(null)
 const grdMain = ref(null)
 const userStore = useUserStore()
 const sAFDC0010_02_Tab01_Popup = ref(null)
-const { sliSAFDC0010_02Tab01 } = history.state
+const { sliSAFDC0010_02Tab01 } = history.state || {} //2026.09.11 수정
 
 const searchParam = reactive({
   CMPNY_DIV: userStore.cmpnyDiv, //사업부

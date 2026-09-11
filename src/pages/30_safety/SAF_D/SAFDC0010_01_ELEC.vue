@@ -43,7 +43,7 @@ const sAFDC0010Popup02 = ref(null) //교통수칙위반 등록 팝업
 const empPopup = ref(null)
 const fileUpload = ref(null)
 const chkImage = reactive(['jpg', 'gif', 'bmp', 'png', 'jpeg'])
-const { sliSAFDC0010_01 } = history.state
+const { sliSAFDC0010_01 } = history.state || {} //2026.09.11 수정
 
 const detailField = reactive({
   sendTeam: '', //발신

@@ -29,7 +29,7 @@ const gridTitle = ref(null)
 const grdMain = ref(null)
 const userStore = useUserStore()
 const workStopResist = ref(null)
-const { sliSAFDC0010_03 } = history.state
+const { sliSAFDC0010_03 } = history.state || {} //2026.09.11 수정
 const isMounted = ref(false)
 
 const searchParam = reactive({

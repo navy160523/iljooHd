@@ -109,7 +109,7 @@ const fileUpload = ref(null)
 
 const chkImage = reactive(["jpg", "gif", "bmp", "png", "jpeg"])
 
-const { sliSAFDC0010_01 } = history.state
+const { sliSAFDC0010_01 } = history.state || {} //2026.09.11 수정
 
 const detailField = reactive({
 
@@ -192,122 +192,87 @@ const rowStyleCallback = (grid, item) => {
 }
 
 const initCodeList = async () => {
+  try { //2026.09.11 수정
+    await Promise.all([
+      commonPgSearchApi({
+        queryId: "searchCommonCode",
+        param: {
+          CMPNY_DIV: userStore.cmpnyDiv,
+          ALL_UP_CD: "HHIZ000",
+          USE_FLAG: "Y",
+          CODE_NAME_TYPE: "0",
+        },
+      }),
+      commonPgSearchApi({
+        queryId: "searchBSNS",
+        param: {
+          CMPNY_DIV: searchParam.COMPANY,
+        },
+      }),
+      commonPgSearchApi({
+        queryId: "searchDept3",
+        param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: "", USE_DIV: "Y" },
+      }),
+      getPgCodeList("HHIG110"),
+      getPgCodeList("HHIG180"),
+      commonPgSearchApi({
+        queryId: "searchBSNS",
+        param: {
+          CMPNY_DIV: searchParam.CMPNY_DIV,
+        },
+      }),
+      getPgCodeList("HHIG170"),
+    ]).then(res => {
+      codeList.company = res[0]?.ORESULT_CUR ? res[0].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.dansokCompany = res[0]?.ORESULT_CUR ? res[0].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.bsnsCd = res[1]?.ORESULT_CUR ? res[1].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.dansokBsnsCd = res[5]?.ORESULT_CUR ? res[5].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.dansokDeptCd = res[2]?.ORESULT_CUR ? res[2].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.gubun = (res[3]?.ORESULT_CUR || []).filter(x => x?.COD && !x.COD.includes("S")) //2026.09.11 수정
+      codeList.status = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.searchStatus = res[4]?.ORESULT_CUR ? res[4].ORESULT_CUR.slice() : [] //2026.09.11 수정
+      codeList.actDiv = res[6]?.ORESULT_CUR ? res[6].ORESULT_CUR.slice() : [] //2026.09.11 수정
 
-  await Promise.all([
+      if (codeList.gubun.length === 0) { //2026.09.11 수정
+        codeList.gubun = [
+          { TXT: '절대수칙', COD: 'A' },
+          { TXT: '일반수칙', COD: 'B' },
+          { TXT: '중대성수칙', COD: 'D' },
+          { TXT: '기타', COD: 'Z' },
+          { TXT: '교통수칙', COD: 'C' },
+        ]
+      }
+      if (codeList.status.length === 0) { //2026.09.11 수정
+        codeList.status = [
+          { TXT: '작성중', COD: '10' },
+          { TXT: '승인요청', COD: '20' },
+          { TXT: '승인완료', COD: '30' },
+          { TXT: '반려', COD: '90' },
+        ]
+        codeList.searchStatus = codeList.status.slice()
+      }
+      if (codeList.actDiv.length === 0) { //2026.09.11 수정
+        codeList.actDiv = [
+          { TXT: '조치필요', COD: '10' },
+          { TXT: '조치완료', COD: '20' },
+          { TXT: '해당없음', COD: '90' },
+        ]
+      }
 
-    commonPgSearchApi({
+      codeList.company.unshift({ TXT: "전체", COD: "" })
+      codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
+      codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
+      codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
+      codeList.gubun.unshift({ TXT: "전체", COD: "" })
+      codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
 
-      //회사조회
-
-      queryId: "searchCommonCode",
-
-      param: {
-
-        CMPNY_DIV: userStore.cmpnyDiv,
-
-        ALL_UP_CD: "HHIZ000",
-
-        USE_FLAG: "Y",
-
-        CODE_NAME_TYPE: "0",
-
-      },
-
-    }),
-
-    //사업부조회
-
-    commonPgSearchApi({
-
-      queryId: "searchBSNS",
-
-      param: {
-
-        CMPNY_DIV: searchParam.COMPANY, //userStore.cmpnyDiv
-
-      },
-
-    }),
-
-    //부서조회
-
-    commonPgSearchApi({
-
-      queryId: "searchDept3",
-
-      param: { CMPNY_DIV: userStore.cmpnyDiv, BSNS_CD: "", USE_DIV: "Y" },
-
-    }),
-
-    getPgCodeList("HHIG110"), // 진행상태 목록
-
-    getPgCodeList("HHIG180"), // 조치관리 목록
-
-    //단속사업부조회
-
-    commonPgSearchApi({
-
-      queryId: "searchBSNS",
-
-      param: {
-
-        CMPNY_DIV: searchParam.CMPNY_DIV, //userStore.cmpnyDiv
-
-      },
-
-    }),
-
-    getPgCodeList("HHIG170"),
-
-  ]).then(res => {
-
-    codeList.company = res[0].ORESULT_CUR.slice()
-
-    codeList.dansokCompany = res[0].ORESULT_CUR
-
-    codeList.bsnsCd = res[1].ORESULT_CUR.slice()
-
-    codeList.dansokBsnsCd = res[5].ORESULT_CUR
-
-    codeList.dansokDeptCd = res[2].ORESULT_CUR
-
-    codeList.gubun = res[3].ORESULT_CUR.filter(x => !x.COD.includes("S"))
-
-    codeList.status = res[4].ORESULT_CUR
-
-    codeList.searchStatus = res[4].ORESULT_CUR
-
-    codeList.company.unshift({ TXT: "전체", COD: "" })
-
-    codeList.dansokCompany.unshift({ TXT: "전체", COD: "" })
-
-    codeList.bsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
-
-    codeList.dansokBsnsCd.unshift({ BSNS_NM: "전체", BSNS_CD: "" })
-
-    codeList.gubun.unshift({ TXT: "전체", COD: "" })
-
-    codeList.searchStatus.unshift({ TXT: "전체", COD: "" })
-
-    grdMain.value.setBindingColumn("STATUS", codeList.status, "COD", "TXT")
-
-    //console.log("진행상태 ");
-
-    //console.log(codeList.status);
-
-    setButton(searchParam.VIO_GDIV)
-
-    //console.log("--");
-
-    // 조치구분
-
-    codeList.actDiv = res[6].ORESULT_CUR
-
-    // console.log("조치관리 : ", codeList.actDiv);
-
-    grdMain.value.setBindingColumn("ACT_DIV", codeList.actDiv, "COD", "TXT")
-
-  })
+      grdMain.value?.setBindingColumn?.("STATUS", codeList.status, "COD", "TXT") //2026.09.11 수정
+      setButton(searchParam.VIO_GDIV)
+      grdMain.value?.setBindingColumn?.("ACT_DIV", codeList.actDiv, "COD", "TXT") //2026.09.11 수정
+    })
+  } catch (err) { //2026.09.11 수정
+    console.error("initCodeList error:", err)
+  }
 
 }
 
@@ -3391,9 +3356,9 @@ const afterSearch = async res => {
 
   )
 
-  grdMain.value.getDataProvider().setRows(rows)
+  if (grdMain.value?.getDataProvider?.()) grdMain.value.getDataProvider().setRows(rows) //2026.09.11 수정
 
-  grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback)
+  if (grdMain.value?.getGridView?.()) grdMain.value.getGridView().setRowStyleCallback(rowStyleCallback) //2026.09.11 수정
 
 }
 
@@ -4035,7 +4000,7 @@ const setButton = gbn => {
 
   // HSE 직책자 그룹 (HSEMGR001)
 
-  let grpYN = userStore.authGrpCd.includes("HSEMGR001")
+  let grpYN = userStore?.authGrpCd?.includes?.("HSEMGR001") //2026.09.11 수정
 
   // gridTitle.value.visibleBtn('btnReqApprove', false)
 
@@ -4043,7 +4008,7 @@ const setButton = gbn => {
 
   // gridTitle.value.visibleBtn('btnTurnBack', false)
 
-  gridTitle.value.visibleBtn("btnApproveAndSend", false)
+  gridTitle.value?.visibleBtn?.("btnApproveAndSend", false) //2026.09.11 수정
 
   // 교통수칙 위반인 경우
 

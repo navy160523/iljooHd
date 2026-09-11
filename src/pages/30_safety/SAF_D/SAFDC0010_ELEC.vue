@@ -19,7 +19,7 @@ const vm = getCurrentInstance().proxy //다이얼로그관련
 const t = useI18n().t //다국어
 const menuTitle = ref(null)
 const userStore = useUserStore()
-const { sliSAFDC0010 } = history.state
+const { sliSAFDC0010 } = history.state || {} //2026.09.11 수정
 
 const value = ref(
   sliSAFDC0010 === undefined ? 'A' : sliSAFDC0010.GUBUN,
