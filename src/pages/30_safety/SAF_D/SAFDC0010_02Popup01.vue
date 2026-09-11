@@ -96,7 +96,7 @@ const props = defineProps({
 
     default() {
 
-      return ["btnFileUpload", "btnDownLoad", "btnDelete", "btnClose"];
+      return ["btnApplyApprove", "btnApplyCancel", "btnApplyTurnBack", "btnClose"];
 
     },
 
@@ -152,15 +152,17 @@ const approvalReadOnly = ref(true); //승인신청 disabled
 
 const locationPopup = ref(null); // 장소 선택
 
-const safetyEmpPopup = ref(null); //성명 팝업
+const imageUpload = ref(null);
 
-const imageUpload = ref(null); //위반사항 사진첨부
+//수칙위반 관련 로직 시작
 
-const imageUpload2 = ref(null); //조치사항 사진첨부
+const safetyEmpPopup = ref(null); //성명
 
 const safetyFileUpload = ref(null); //위반사항 파일첨부
 
 const safetyActionFileUpload = ref(null); //조치사항 파일첨부
+
+const imageUpload2 = ref(null); //조치사항 사진첨부
 
 const safetyActEmpPopup = ref(null); //조치자성명
 
@@ -179,8 +181,6 @@ const appEmail = ref("");
 const fileBtnVisible = ref("");
 
 const onload = ref(false);
-
-const isBindingRow = ref(false);
 
 const readOnlyValue = reactive({
 
@@ -334,7 +334,7 @@ const safetyField = reactive({
 
   VEHICLE_CAR_NO: "",                   // 차량번호
 
-  VEHICLE_REG_NO: "",                   // 등록번호
+  VEHICLE_REG_NO: "",                   // 등록번호(내부)
 
   VEHICLE_SPEED: "",                    // 주행속도
 
@@ -552,6 +552,12 @@ const initcodeList = () => {
 
   ]).then((res) => {
 
+    // console.log(res);
+
+    // console.log("호선 받는중!");
+
+    // console.log(res[1].ORESULT_CUR);
+
     codeList.GUBUN = res[0].ORESULT_CUR;
 
     codeList.APP_EMP_NO = res[1].ORESULT_CUR;
@@ -636,53 +642,83 @@ const mapRowToSafetyField = (rowData = {}) => {
 
     ACT_TIME_DS: "ACT_TIME",
 
+    act_time_ds: "ACT_TIME",
+
     ACT_DATE: "ACT_DATE",
 
-    CMPNY_DIV: "COMPANY",
+    act_date: "ACT_DATE",
+
+    cmpny_div: "COMPANY",
 
     COMPNY_DIV: "COMPANY",
 
+    compny_div: "COMPANY",
+
     BSNS_NM: "BSNS_CD",
+
+    bsns_nm: "BSNS_CD",
 
     DEPT_CD: "DEPT_CD",
 
+    dept_cd: "DEPT_CD",
+
     DEPT_NM: "DEPT_CD",
+
+    dept_nm: "DEPT_CD",
 
     JOB_TIT_NM: "JOB_TIT_NM",
 
+    job_tit_nm: "JOB_TIT_NM",
+
     VIO_EMP_ASGN: "VIO_EMP_ASGN",
+
+    vio_emp_asgn: "VIO_EMP_ASGN",
 
     VEND_NAME: "VEND_NAME",
 
+    vend_name: "VEND_NAME",
+
     DTL_ASGN_NM: "ASGN_CD",
+
+    dtl_asgn_nm: "ASGN_CD",
 
     ACT_RESULT: "ACT_RSLT",
 
+    act_result: "ACT_RSLT",
+
     VIO_PHOTO: "IMG_ID1",
+
+    vio_photo: "IMG_ID1",
 
     ACT_PHOTO: "IMG_ID2",
 
+    act_photo: "IMG_ID2",
+
     VIO_FILE: "FILE_ID1",
+
+    vio_file: "FILE_ID1",
 
     ACT_FILE: "FILE_ID2",
 
-    ACT_BSNS_CD: "ACT_BSNS_CD",
+    act_bsns_cd: "ACT_BSNS_CD",
 
-    APP_SAME: "APP_SAME",
+    app_same: "APP_SAME",
 
-    APP_ASGN_CD: "APP_ASGN_CD",
+    app_asgn_cd: "APP_ASGN_CD",
 
-    APP_DEPT: "APP_DEPT",
+    app_dept: "APP_DEPT",
 
-    SIGN_ID: "SIGN_ID",
+    sign_id: "SIGN_ID",
 
-    FILE_ID1: "FILE_ID1",
+    act_file: "FILE_ID2",
 
-    FILE_ID2: "FILE_ID2",
+    file_id1: "FILE_ID1",
 
-    IMG_ID1: "IMG_ID1",
+    file_id2: "FILE_ID2",
 
-    IMG_ID2: "IMG_ID2",
+    img_id1: "IMG_ID1",
+
+    img_id2: "IMG_ID2",
 
     VEHICLE_TYPE: "VEHICLE_TYPE",
 
@@ -696,7 +732,7 @@ const mapRowToSafetyField = (rowData = {}) => {
 
   Object.entries(rowData).forEach(([key, value]) => {
 
-    const normalizedKey = aliasMap[key.toUpperCase()] ?? key.toUpperCase();
+    const normalizedKey = aliasMap[key] ?? key.toUpperCase();
 
     if (!Object.prototype.hasOwnProperty.call(safetyField, normalizedKey)) return;
 
@@ -731,6 +767,62 @@ const mapRowToSafetyField = (rowData = {}) => {
     safetyField[normalizedKey] = value ?? "";
 
   });
+
+  const rawViolationTime = String(
+
+    rowData.VIO_TIME ??
+
+    rowData.vio_time ??
+
+    rowData.VIO_TIME_DS ??
+
+    rowData.vio_time_ds ??
+
+    safetyField.VIO_TIME ??
+
+    ""
+
+  ).trim();
+
+  if (/^\d{12}$/.test(rawViolationTime)) {
+
+    safetyField.VIO_DT1 = `${rawViolationTime.substring(0, 4)}-${rawViolationTime.substring(4, 6)}-${rawViolationTime.substring(6, 8)}`;
+
+    safetyField.VIO_TIME2 = `${rawViolationTime.substring(8, 10)}:${rawViolationTime.substring(10, 12)}`;
+
+  } else {
+
+    const violationTimeMatch = rawViolationTime.match(
+
+      /^(\d{4})[-./](\d{2})[-./](\d{2})(?:[T\s]+(\d{2}):?(\d{2}))?/
+
+    );
+
+    if (violationTimeMatch) {
+
+      safetyField.VIO_DT1 = `${violationTimeMatch[1]}-${violationTimeMatch[2]}-${violationTimeMatch[3]}`;
+
+      if (violationTimeMatch[4] && violationTimeMatch[5]) {
+
+        safetyField.VIO_TIME2 = `${violationTimeMatch[4]}:${violationTimeMatch[5]}`;
+
+      }
+
+    }
+
+  }
+
+  const rawViolationTime2 = String(
+
+    rowData.VIO_TIME2 ?? rowData.vio_time2 ?? safetyField.VIO_TIME2 ?? ""
+
+  ).trim();
+
+  if (/^\d{4}$/.test(rawViolationTime2)) {
+
+    safetyField.VIO_TIME2 = `${rawViolationTime2.substring(0, 2)}:${rawViolationTime2.substring(2, 4)}`;
+
+  }
 
   if (safetyField.VIO_TIME && !safetyField.VIO_DT1) {
 
@@ -770,13 +862,13 @@ const openPopup2 = async (rowData) => {
 
   dialog.value = true;
 
-  isBindingRow.value = true;
-
   const mappedRow = { ...rowData };
 
   mapRowToSafetyField(mappedRow);
 
   safetyField.VEHICLE_TYPE = normalizeVehicleType(safetyField.VEHICLE_TYPE);
+
+  trafficReg.value = safetyField.VIO_GDIV === "C";
 
   // 기존 행에 승인자 동일 값이 없던 데이터는 미선택 상태로 연다.
 
@@ -789,8 +881,6 @@ const openPopup2 = async (rowData) => {
   safetyField.APP_EMP_NO =
 
     rowData.APP_EMP_NO ?? rowData.app_emp_no ?? safetyField.APP_EMP_NO ?? "";
-
-  isBindingRow.value = false;
 
   // 그리드 조회 결과의 대소문자 차이와 관계없이 위반 파일 ID를 직접 확정한다.
 
@@ -876,6 +966,14 @@ const openPopup2 = async (rowData) => {
 
 };
 
+// 조회 전용 팝업의 차량 영역에서 사용하는 이벤트 핸들러
+
+const changeVioDiv = () => { };
+
+const openCarPopup = () => { };
+
+const checkResistCarNo = () => { };
+
 // 저장된 사진/파일 ID로 각 업로드 그리드의 기존 목록을 조회한다.
 
 const loadAttachmentFiles = async () => {
@@ -932,8 +1030,6 @@ onMounted(() => {
 
 const setSafetyButtonStatus = () => {
 
-  console.log("상태값: ", safetyField.STATUS);
-
   //안전수칙 삭제 관리자면 삭제 버튼 활성화(2026.05.07)
 
   if (
@@ -954,7 +1050,11 @@ const setSafetyButtonStatus = () => {
 
   else if (
 
-    (userStore.userId === safetyField.INSERT_USER_ID || userStore.userId === safetyField.DANSOK_EMP_NO) && safetyField.STATUS
+    (userStore.userId === safetyField.INSERT_USER_ID ||
+
+      userStore.userId === safetyField.DANSOK_EMP_NO) &&
+
+    safetyField.STATUS
 
   ) {
 
@@ -1040,47 +1140,23 @@ const setApprovalStatus = () => {
 
 const onButtonsClick = (btn) => {
 
-  if (btn.id === "btnUpdate") {
+  if (btn.id === "btnApprove") {
 
-    new saveFlowHelper(vm, t)
+    approval();
 
-      .setBefore(beforeSafetySave)
+  } else if (btn.id === "btnApproveCancel") {
 
-      .setQuery(saveSafetyData)
+    cancelApproval();
 
-      .setAfter(afterSave)
+  } else if (btn.id === "btnReject") {
 
-      .run();
-
-  } else if (btn.id === "btnActionComplete") {
-
-    new saveFlowHelper(vm, t)
-
-      .setBefore(beforeSafetySave)
-
-      .setQuery(saveSafetyData)
-
-      .setAfter(afterSave)
-
-      .setConfirmMessage("조치완료하시겠습니까?")
-
-      .run();
-
-  } else if (btn.id === "btnDelete") {
-
-    new deleteFlowHelper(vm, t)
-
-      .setBefore(beforeDelete)
-
-      .setQuery(deleteData)
-
-      .setAfter(afterDelete)
-
-      .run();
+    reject();
 
   } else {
 
     closePopup();
+
+    //팝업 닫을때 초기화
 
   }
 
@@ -1178,8 +1254,6 @@ const afterDelete = () => {
 
 //안전수칙위반 삭제관련 로직 끝
 
-//안전수칙위반 저장 관련 로직 시작
-
 //안전수칙위반 저장 Validation
 
 const beforeSafetySave = () => {
@@ -1232,33 +1306,21 @@ const beforeSafetySave = () => {
 
   }
 
-  //교통 수칙 위반이 아닐 때
+  else if (!safetyField.DANSOK_EMP_NM) {
 
-  if (safetyField.VIO_GDIV != "C") {
+    Message.warn(t("단속자는 필수값입니다."));
 
-    if (!safetyField.DANSOK_EMP_NM) {
-
-      Message.warn(t("단속자는 필수값입니다."));
-
-      return false;
-
-    }
-
-  } else {
-
-    if (safetyField.DANSOK_EMP_NM == "A" || safetyField.DANSOK_EMP_NM == "B" || safetyField.DANSOK_EMP_NM == "E") {
-
-      if (!safetyField.VEHICLE_CAR_NO) {
-
-        Message.warn(t("차량번호 입력은 필수값입니다."));
-
-        return false;
-
-      }
-
-    }
+    return false;
 
   }
+
+  // else if (!safetyField.APP_EMP_NO) {
+
+  //   Message.warn(t("승인자는 필수값입니다."));
+
+  //   return false;
+
+  // }
 
   return true;
 
@@ -1272,111 +1334,129 @@ const saveSafetyData = () => {
 
   let saveData = {
 
-    CMPNY_DIV: userStore.cmpnyDiv,
+    //TFA1010C01(안전수칙위반 master)
 
-    VIO_NO: safetyField.VIO_NO,
+    CMPNY_DIV: userStore.cmpnyDiv,    //사업장구분(HHI) |
 
-    VIO_DT1: safetyField.VIO_DT1,
+    VIO_NO: safetyField.VIO_NO,       //위반No |
 
-    VIO_TIME2: safetyField.VIO_TIME2,
+    VIO_DT1: safetyField.VIO_DT1,     //위반일시 |
 
-    VIO_LPLC: safetyField.VIO_LPLC,
+    VIO_TIME2: safetyField.VIO_TIME2, //위반일시 옆 시간 |
 
-    VIO_MPLC: safetyField.VIO_MPLC,
+    VIO_LPLC: safetyField.VIO_LPLC,         //위반장소(대)  |
 
-    VIO_SPLC: safetyField.VIO_SPLC,
+    VIO_MPLC: safetyField.VIO_MPLC,         //위반장소(중)  |
 
-    VIO_PLC_DESC: safetyField.VIO_PLC_DESC,
+    VIO_SPLC: safetyField.VIO_SPLC,         //위반장소(소)  |
 
-    SHIP_NO: safetyField.SHIP_NO,
+    VIO_PLC_DESC: safetyField.VIO_PLC_DESC, //위반장소상세  |
 
-    BSNS_CD: safetyField.BSNS_CD,
+    SHIP_NO: safetyField.SHIP_NO,           //호선/프로젝트 No. |
 
-    VIOLATOR: safetyField.VIOLATOR,
+    //위반정보
 
-    VIO_EMP_NO: safetyField.VIO_EMP_NO,
+    BSNS_CD: safetyField.BSNS_CD,           //위반자 사업부 | (사업본부)
 
-    DEPT_CD: safetyField.DEPT_CD,
+    VIOLATOR: safetyField.VIOLATOR,         //위반자 성명 |
 
-    ASGN_CD: safetyField.ASGN_CD,
+    VIO_EMP_NO: safetyField.VIO_EMP_NO,     //위반자 사번 |
 
-    IO_DIV: safetyField.IO_DIV,
+    //JOB_TIT_NM :safetyField.JOB_TIT_NM,     //위반자 직위 (불필요한듯)
 
-    VEND_NAME: safetyField.VEND_NAME,
+    DEPT_CD: safetyField.DEPT_CD,           //위반자 부서(소속조직) |
 
-    VIO_GDIV: safetyField.VIO_GDIV,
+    ASGN_CD: safetyField.ASGN_CD,           //위반 조직 |
 
-    VIO_MDIV: safetyField.VIO_MDIV,
+    IO_DIV: safetyField.IO_DIV,             //위반자 대상구분(직영,협력사) |
 
-    VIO_DESC: safetyField.VIO_DESC,
+    VEND_NAME: safetyField.VEND_NAME,       //수기입력 (위반조직으로 검색되지 않는 경우에 수기입력하세요) |
 
-    USER_ID: userStore.userId,
+    //위반 내용
 
-    COMPANY: safetyField.COMPANY,
+    VIO_GDIV: safetyField.VIO_GDIV, //위반 종류 |
+
+    VIO_MDIV: safetyField.VIO_MDIV, //위반 종류 상세 |
+
+    VIO_DESC: safetyField.VIO_DESC, //위반 내용 |
+
+    IMG_ID1: safetyField.IMG_ID1,   //위반내용 사진첨부 아이디
+
+    FILE_ID1: safetyField.FILE_ID1, //위반 내용 파일첨부 아이디 |
+
+    //조치 내용
+
+    //ACT_BSNS_CD: safetyField.ACT_BSNS_CD,     //조치자 사업부
+
+    ACT_ASGN_CD: safetyField.ACT_ASGN_CD,       //조치자 조직 코드
+
+    ACT_ASGN_NM: safetyField.ACT_ASGN_NM,       //조치자 조직명
+
+    ACTOR: safetyField.ACTOR,                   //조치자 성명
+
+    ACT_EMP_NO: safetyField.ACT_EMP_NO,        //조치자 사번
+
+    //ACT_JOB_TIT_NM: safetyField.ACT_JOB_TIT_NM, //조치자 직위 (불필요한듯)
+
+    ACT_DEPT_CD: safetyField.ACT_DEPT_CD,       //조치자 소속
+
+    ACT_PHONE: safetyField.ACT_PHONE,           //조치자 전화번호
+
+    ACT_RSLT: safetyField.ACT_RSLT,             //조치내용
+
+    ACT_DIV: safetyField.ACT_DIV,               //조치구분
+
+    IMG_ID2: safetyField.IMG_ID2,               //조치내용 사진첨부 아이디 X
+
+    FILE_ID2: safetyField.FILE_ID2,             //조치내용 파일첨부 아이디 |
+
+    //단속자/승인자 정보
+
+    DANSOK_ASGN_CD: safetyField.DANSOK_ASGN_CD,   //단속자 조직 |
+
+    DANSOK_EMP_NO: safetyField.DANSOK_EMP_NO,     //단속자 사번 |
+
+    DANSOK_DEPT_CD: safetyField.DANSOK_DEPT_CD,   //단속자 부서 코드|
+
+    APP_SAME: safetyField.APP_SAME,               //승인자 동일 체크여부
+
+    APP_ASGN_CD: safetyField.APP_ASGN_CD,         //승인자 조직
+
+    APP_EMP_NO: safetyField.APP_EMP_NO,           //승인자 사번 |
+
+    APP_DEPT: safetyField.APP_DEPT,               //승인자 부서
+
+    //차량정보(교통수칙, VEHICLE)
+
+    VEHICLE_TYPE: safetyField.VEHICLE_TYPE,          //차량 종류
+
+    VEHICLE_CAR_NO: safetyField.VEHICLE_CAR_NO,      //차량번호
+
+    VEHICLE_REG_NO: safetyField.VEHICLE_REG_NO,      //등록번호(내부)
+
+    VEHICLE_SPEED: safetyField.VEHICLE_SPEED,       //주행속도
+
+    USER_ID: userStore.userId,                      //유저아이디 |
+
+    COMPANY: safetyField.COMPANY,                   //위반자 회사 |
+
+    // 제외!!! (잠재사고유형, 점검대상물, 조치사항 파일 첨부)
+
+    // CHECK_TARGET_OBJ1: safetyField.CHECK_TARGET_OBJ1, //점검대상물(대)
+
+    // CHECK_TARGET_OBJ2: safetyField.CHECK_TARGET_OBJ2, //점검대상물(중)
+
+    // CHECK_TARGET_OBJ3: safetyField.CHECK_TARGET_OBJ3, //점검대상물(소)
+
+    // SAGO_DIV_L: safetyField.SAGO_DIV_L,               //잠재사고유형LV1
+
+    // SAGO_DIV_M: safetyField.SAGO_DIV_M,               //잠재사고유형LV2
+
+    // SAGO_DIV_S: safetyField.SAGO_DIV_S,               //잠재사고유형LV3
+
+    //SAVE_YN: safetyField.VIO_NO === "" ? "N" : "Y", //저장여부 (필요없음)
 
   };
-
-  //위반 종류가 교통수칙일때
-
-  if (safetyField.VIO_GDIV === "C") {
-
-    Object.assign(saveData, {
-
-      VEHICLE_TYPE: safetyField.VEHICLE_TYPE,
-
-      VEHICLE_CAR_NO: safetyField.VEHICLE_CAR_NO,
-
-      VEHICLE_REG_NO: safetyField.VEHICLE_REG_NO,
-
-      VEHICLE_SPEED: safetyField.VEHICLE_SPEED,
-
-    });
-
-  } else {
-
-    Object.assign(saveData, {
-
-      IMG_ID1: safetyField.IMG_ID1,
-
-      FILE_ID1: safetyField.FILE_ID1,
-
-      ACT_ASGN_CD: safetyField.ACT_ASGN_CD,
-
-      ACT_ASGN_NM: safetyField.ACT_ASGN_NM,
-
-      ACTOR: safetyField.ACTOR,
-
-      ACT_EMP_NO: safetyField.ACT_EMP_NO,
-
-      ACT_DEPT_CD: safetyField.ACT_DEPT_CD,
-
-      ACT_PHONE: safetyField.ACT_PHONE,
-
-      ACT_RSLT: safetyField.ACT_RSLT,
-
-      ACT_DIV: safetyField.ACT_DIV,
-
-      IMG_ID2: safetyField.IMG_ID2,
-
-      FILE_ID2: safetyField.FILE_ID2,
-
-      DANSOK_ASGN_CD: safetyField.DANSOK_ASGN_CD,
-
-      DANSOK_EMP_NO: safetyField.DANSOK_EMP_NO,
-
-      DANSOK_DEPT_CD: safetyField.DANSOK_DEPT_CD,
-
-      APP_SAME: safetyField.APP_SAME,
-
-      APP_ASGN_CD: safetyField.APP_ASGN_CD,
-
-      APP_EMP_NO: safetyField.APP_EMP_NO,
-
-      APP_DEPT: safetyField.APP_DEPT,
-
-    });
-
-  }
 
   console.log("data");
 
@@ -1391,12 +1471,6 @@ const saveSafetyData = () => {
     list: saveParam,
 
   });
-
-};
-
-const afterSave = () => {
-
-  closePopup();
 
 };
 
@@ -1524,6 +1598,10 @@ const openActEmpPopup = async (gbn) => {
 
 const selectedActEmp = (val) => {
 
+  console.log("조치자 인원팝업")
+
+  console.log(val)
+
   safetyField.ACTOR = val.EMP_NM;               //조치자 성명
 
   safetyField.ACT_EMP_NO = val.EMP_NO;          //조치자 사번
@@ -1645,6 +1723,22 @@ const uploadPicture2 = (val) => {
     safetyField.IMG_ID2 = val.FILE_ID;
 
   }
+
+};
+
+// 사진 업로드 컴포넌트 이벤트를 저장 필드에 연결한다.
+
+const uploadCheckPicture = (val) => {
+
+  uploadPicture(val);
+
+};
+
+// 조치내용 사진 업로드 컴포넌트 이벤트를 저장 필드에 연결한다.
+
+const uploadJoChiPicture = (val) => {
+
+  uploadPicture2(val);
 
 };
 
@@ -1862,19 +1956,19 @@ const selectedSagoDivPopup = (val) => {
 
 };
 
-//승인신청 관련 로직 시작
+//승인 관련 로직 시작
 
 const approval = () => {
 
   new saveFlowHelper(vm, t)
 
-    .setBefore(saveSafetyData)
+    //.setBefore(saveSafetyData)
 
     .setQuery(saveApprovalData)
 
     .setAfter(afterApproval)
 
-    .setConfirmMessage("승인신청 하시겠습니까?")
+    .setConfirmMessage("승인하시겠습니까?")
 
     .run();
 
@@ -1894,6 +1988,8 @@ const saveApprovalData = () => {
 
     USER_ID: userStore.userId,          //로그인유저 아이디
 
+    STATUS: '30',
+
   };
 
   approvalParam.push(approvalData);
@@ -1902,7 +1998,7 @@ const saveApprovalData = () => {
 
   return commonPgExecuteApi({
 
-    queryId: "SAFDC0010_SAVE03",
+    queryId: "SAFDC0010_APPROVE01",
 
     list: approvalParam,
 
@@ -1974,9 +2070,9 @@ const afterApproval = () => {
 
 };
 
-//승인신청 관련 로직 끝
+//승인 관련 로직 끝
 
-//승인신청 취소 관련 로직 시작
+//승인취소 관련 로직 시작
 
 const cancelApproval = () => {
 
@@ -1988,7 +2084,7 @@ const cancelApproval = () => {
 
     .setConfirmMessage(
 
-      `승인 신청을 취소합니다.
+      `승인을 취소합니다.
 
   수정후 재 신청할 수 있습니다!!`
 
@@ -2010,13 +2106,15 @@ const cancelApprovalSaveData = () => {
 
     USER_ID: userStore.userId,
 
+    STATUS: '20',
+
   };
 
   cencelApprovalParam.push(cencelApprovalData);
 
   return commonPgExecuteApi({
 
-    queryId: "SAFDC0010_CANCEL01",
+    queryId: "SAFDC0010_APPROVE01",
 
     list: cencelApprovalParam,
 
@@ -2032,13 +2130,67 @@ const afterCancelApproval = () => {
 
 const changeback = () => { };
 
-//승인신청 취소 관련 로직 끝
+//승인취소 관련 로직 끝
+
+//반려 관련 로직 시작
+
+const reject = () => {
+
+  new saveFlowHelper(vm, t)
+
+    //.setBefore(saveSafetyData)
+
+    .setQuery(rejectData)
+
+    .setAfter(afterReject)
+
+    .setConfirmMessage("반려하시겠습니까?")
+
+    .run();
+
+};
+
+const rejectData = () => {
+
+  let rejectParam = [];
+
+  let rejectData = {
+
+    CMPNY_DIV: userStore.cmpnyDiv,      //사업장구분
+
+    VIO_NO: safetyField.VIO_NO,         //위반No
+
+    APP_EMP_NO: safetyField.VIO_EMP_NO, //단속자 사번
+
+    USER_ID: userStore.userId,          //로그인유저 아이디
+
+    STATUS: '11',
+
+  };
+
+  rejectParam.push(rejectData);
+
+  return commonPgExecuteApi({
+
+    queryId: "SAFDC0010_APPROVE01",
+
+    list: rejectParam,
+
+  });
+
+};
+
+const afterReject = () => {
+
+  closePopup();
+
+}
+
+//반려 관련 로직 끝
 
 //권한에 따른 버튼 활성화 여부 설정 함수
 
 const setButtonStatus = () => {
-
-  //여기
 
   if (!safetyField.VIO_NO) {
 
@@ -2160,93 +2312,7 @@ watch(
 
 );
 
-const clearViolationTypeDependentFields = () => {
-
-  Object.assign(safetyField, {
-
-    VIO_GDIV_NM: "",
-
-    VIO_MDIV: "",
-
-    VIO_MDIV_NM: "",
-
-    VIO_DESC: "",
-
-    IMG_ID1: "",
-
-    FILE_ID1: "",
-
-    ACT_BSNS_CD: "",
-
-    ACT_ASGN_CD: "",
-
-    ACT_ASGN_NM: "",
-
-    ACTOR: "",
-
-    ACT_EMP_NO: "",
-
-    ACT_JOB_TIT_NM: "",
-
-    ACT_DEPT_CD: "",
-
-    ACT_PHONE: "",
-
-    ACT_RSLT: "",
-
-    ACT_DIV: "",
-
-    ACT_DATE: "",
-
-    ACT_TIME: "",
-
-    IMG_ID2: "",
-
-    FILE_ID2: "",
-
-    DANSOK_EMP_NM: "",
-
-    DANSOK_ASGN_CD: "",
-
-    DANSOK_ASGN_NM: "",
-
-    DANSOK_JOB_TIT_NM: "",
-
-    DANSOK_DEPT_CD: "",
-
-    DANSOK_EMP_NO: "",
-
-    APP_SAME: "N",
-
-    APP_EMP_NM: "",
-
-    APP_EMP_NO: "",
-
-    APP_JOB_TIT_NM: "",
-
-    APP_ASGN_CD: "",
-
-    APP_DEPT: "",
-
-    VEHICLE_TYPE: "A",
-
-    VEHICLE_CAR_NO: "",
-
-    VEHICLE_REG_NO: "",
-
-    VEHICLE_SPEED: "",
-
-    SIGN_ID: "",
-
-  });
-
-  appEmail.value = "";
-
-  approvalReadOnly.value = true;
-
-}
-
-//위반종류 변경감지
+//위반종류 변경감지(2026.08.26 신규 추가)
 
 watch(
 
@@ -2254,13 +2320,9 @@ watch(
 
   (newValue, oldValue) => {
 
-    if (!isBindingRow.value && newValue !== oldValue && oldValue !== undefined) {
+    // console.log("값1 : " + safetyField.VIO_GDIV);
 
-      clearViolationTypeDependentFields();
-
-    }
-
-    if (newValue === "C") {
+    if (safetyField.VIO_GDIV === "C") {
 
       trafficReg.value = true;
 
@@ -2270,9 +2332,7 @@ watch(
 
     }
 
-  },
-
-  { flush: "sync" }
+  }
 
 );
 
@@ -2324,7 +2384,7 @@ defineExpose({
 
       <v-card-title class="pa-3 pb-0">
 
-        <IGridTitle ref="menuTitle" :button-list="['btnUpdate', 'btnActionComplete', 'btnDelete', 'btnClose']"
+        <IGridTitle ref="menuTitle" :button-list="['btnApprove', 'btnApproveCancel', 'btnReject', 'btnClose']"
 
           @click-button="onButtonsClick" />
 
@@ -2332,115 +2392,131 @@ defineExpose({
 
       <v-card-text class="pa-3 pt-0">
 
-        <div class="d-flex flex-column fill-height">
+        <fieldset class="view-only-fields">
 
-          <v-sheet class="searchArea">
+          <div class="d-flex flex-column fill-height">
 
-            <div class="d-flex mt-2">
+            <v-sheet class="searchArea">
 
-              <v-avatar color="primary" size="24" class="text-white">
+              <div class="d-flex mt-2">
 
-                1
+                <v-avatar color="primary" size="24" class="text-white">
 
-              </v-avatar>
+                  1
 
-              &nbsp;<b>일시 및 장소</b>
+                </v-avatar>
 
-            </div>
+                &nbsp;<b>일시 및 장소</b>
 
-            <div class="d-flex mt-2">
+              </div>
 
-              <i-input v-model="safetyField.VIO_DT1" :label="$t('위반일시')" width="150px" top-label type="date" required>
+              <div class="d-flex mt-2">
 
-              </i-input>
+                <i-input :disabled="true" v-model="safetyField.VIO_DT1" :label="$t('위반일시')" width="150px" top-label
 
-              <i-input v-model="safetyField.VIO_TIME2" width="130px" class="mt-5" type="time"
+                  type="date" required>
 
-                append-inner-icon="mdi-clock-time-outline" required></i-input>
+                </i-input>
 
-              <i-input v-model="safetyField.VIO_SPLC_NM" :label="$t('장소')" width="400px" top-label
+                <i-input :disabled="true" v-model="safetyField.VIO_TIME2" width="130px" class="mt-5" type="time"
 
-                append-inner-icon="mdi-magnify" readonly @click:appendInner="openLocationPopup" required></i-input>
+                  append-inner-icon="mdi-clock-time-outline" readonly required></i-input>
 
-              <i-input v-model="safetyField.VIO_PLC_DESC" :label="$t('장소상세')" width="400px" top-label></i-input>
+                <i-input :disabled="true" v-model="safetyField.VIO_SPLC_NM" :label="$t('장소')" width="400px" top-label
 
-              <i-select v-model="safetyField.SHIP_NO" :label="$t('호선/프로젝트No.')" top-label label-width="200px"
+                  append-inner-icon="mdi-magnify" readonly required></i-input>
 
-                width="200px" :items="codeList.SHIP_NO" item-value="WORK_NO" item-title="WORK_NO" />
+                <i-input :disabled="true" v-model="safetyField.VIO_PLC_DESC" :label="$t('장소상세')" width="400px"
 
-            </div>
+                  top-label></i-input>
 
-            <div class="d-flex mt-2">
+                <i-select :disabled="true" v-model="safetyField.SHIP_NO" :label="$t('호선/프로젝트No.')" top-label
 
-              <v-avatar color="primary" size="24" class="text-white">
+                  label-width="200px" width="200px" :items="codeList.SHIP_NO" item-value="WORK_NO"
 
-                2
+                  item-title="WORK_NO" />
 
-              </v-avatar>
+              </div>
 
-              &nbsp;<b>위반 정보</b>
+              <div class="d-flex mt-2">
 
-            </div>
+                <v-avatar color="primary" size="24" class="text-white">
 
-            <div class="d-flex mt-2">
+                  2
 
-              <i-input v-model="safetyField.<)/span>VIOLATOR" :label="$t('위반자 성명')" width="200px" top-label required
+                </v-avatar>
 
-                append-inner-icon="mdi-magnify" @click:appendInner="openSafetyEmpPopup('인원조회')" @keydown.enter="
+                &nbsp;<b>위반 정보</b>
 
-                  (e) => {
+              </div>
 
-                    openSafetyEmpPopup('인원조회');
+              <div class="d-flex mt-2">
 
-                  }
+                <i-input :disabled="true" v-model="safetyField.VIOLATOR" :label="$t('위반자 성명')" width="200px" top-label
 
-                " />
+                  required append-inner-icon="mdi-magnify" @click:appendInner="openSafetyEmpPopup('인원조회')"
 
-              <i-input v-model="safetyField.VIO_EMP_NO" :label="$t('사번')" width="200px" top-label readonly />
+                  @keydown.enter="
 
-              <i-input v-model="safetyField.JOB_TIT_NM" :label="$t('직위')" width="150px" top-label readonly />
+                    (e) => {
 
-              <i-input v-model="safetyField.VIO_EMP_ASGN" :label="$t('소속조직')" width="250px" top-label readonly />
+                      openSafetyEmpPopup('인원조회');
 
-            </div>
+                    }
 
-            <div class="d-flex mt-2">
+                  " />
 
-              <i-input v-model="safetyField.ASGN_NM" :label="$t('위반조직')" width="350px" top-label required readonly
+                <i-input :disabled="true" v-model="safetyField.VIO_EMP_NO" :label="$t('사번')" width="200px" top-label
 
-                append-inner-icon="mdi-magnify" @click:appendInner="openSafetyVioDeptPopup" />
+                  readonly />
 
-              <i-select v-model="safetyField.IO_DIV" :label="$t('대상구분')" width="200px" top-label readonly
+                <i-input :disabled="true" v-model="safetyField.JOB_TIT_NM" :label="$t('직위')" width="150px" top-label
 
-                :items="codeList.GUBUN" item-title="TXT" item-value="COD" required />
+                  readonly />
 
-              <i-input v-model="safetyField.VEND_NAME" class="mt-5" width="250px" />
+                <i-input :disabled="true" v-model="safetyField.VIO_EMP_ASGN" :label="$t('소속조직')" width="250px" top-label
 
-              <span class="mt-6">위반조직으로 검색되지 않는 경우에 수기입력하세요.</span>
+                  readonly />
 
-            </div>
+              </div>
 
-            <div class="d-flex mt-2">
+              <div class="d-flex mt-2">
 
-              <v-avatar color="primary" size="24" class="text-white">
+                <i-input :disabled="true" v-model="safetyField.ASGN_NM" :label="$t('위반조직')" width="350px" top-label
 
-                3
+                  required readonly append-inner-icon="mdi-magnify" @click:appendInner="openSafetyVioDeptPopup" />
 
-              </v-avatar>
+                <i-select :disabled="true" v-model="safetyField.IO_DIV" :label="$t('대상구분')" width="200px" top-label
 
-              &nbsp;<b>위반 내용</b>
+                  readonly :items="codeList.GUBUN" item-title="TXT" item-value="COD" required />
 
-            </div>
+                <i-input :disabled="true" v-model="safetyField.VEND_NAME" class="mt-5" width="250px" />
 
-            <div class="d-flex mt-2">
+                <span class="mt-6">위반조직으로 검색되지 않는 경우에 수기입력하세요.</span>
 
-              <i-input :label="$t('위반 종류')" top-label width="350px" required readonly append-inner-icon="mdi-magnify"
+              </div>
 
-                @click:appendInner="openVioDivPopup" v-model="safetyField.VIO_GDIV_NM" />
+              <div class="d-flex mt-2">
 
-              <i-input width="470px" readonly class="mt-5" v-model="safetyField.VIO_MDIV_NM" />
+                <v-avatar color="primary" size="24" class="text-white">
 
-              <!-- <span
+                  3
+
+                </v-avatar>
+
+                &nbsp;<b>위반 내용</b>
+
+              </div>
+
+              <div class="d-flex mt-2">
+
+                <i-input :label="$t('위반 종류')" top-label width="350px" required readonly append-inner-icon="mdi-magnify"
+
+                  @click:appendInner="openVioDivPopup" :disabled="true" v-model="safetyField.VIO_GDIV_NM" />
+
+                <i-input width="470px" readonly class="mt-5" :disabled="true" v-model="safetyField.VIO_MDIV_NM" />
+
+                <!-- <span
 
                 class="sheetTitle"
 
@@ -2454,253 +2530,275 @@ defineExpose({
 
               </span> -->
 
-            </div>
+              </div>
 
-            <div>
+              <div>
 
-              <i-textarea v-model="safetyField.VIO_DESC" :label="$t('내용')" width="100%" class="mt-2" />
+                <i-textarea :disabled="true" v-model="safetyField.VIO_DESC" :label="$t('내용')" width="100%"
 
-            </div>
-
-            <div v-if="!trafficReg">
-
-              <div class="mb-6">
-
-                <!-- 위반내용 - 사진첨부 start -->
-
-                <div class="mt-2">
-
-                  <IUploadImageMulitCom title="사진첨부" ref="imageUpload" @uploaded="uploadPicture"></IUploadImageMulitCom>
-
-                </div>
-
-                <!-- 위반내용 - 사진첨부 end -->
-
-                <!-- 위반내용 - 파일첨부 start -->
-
-                <div style="height: 430px">
-
-                  <IUploadCom gridTitle="파일첨부" ref="safetyFileUpload" @uploaded="uploadViolationFile"></IUploadCom>
-
-                </div>
-
-                <!-- 위반내용 - 파일첨부 end -->
+                  class="mt-2" />
 
               </div>
 
-            </div>
+              <div v-if="!trafficReg">
 
-            <!-- 교통수칙 start -->
+                <div class="mb-6">
 
-            <div v-else>
+                  <!-- 위반내용 - 사진첨부 start -->
 
-              <div class="sheetTitle mt-2">차량정보</div>
+                  <div class="mt-2">
 
-              <div class="d-flex">
+                    <IUploadImageMulitCom :button-list="[]" title="사진첨부" ref="imageUpload"
 
-                <div class="mt-4">
+                      @uploaded="uploadCheckPicture"></IUploadImageMulitCom>
 
-                  <v-radio-group inline v-model="safetyField.VEHICLE_TYPE" @update:model-value="changeVioDiv">
+                  </div>
 
-                    <v-radio v-for="option in vehicleTypeOptions" :key="option.value" :label="option.label"
+                  <!-- 위반내용 - 사진첨부 end -->
 
-                      :value="option.value" />
+                  <!-- 위반내용 - 파일첨부 start -->
 
-                  </v-radio-gro?up>
+                  <div style="height: 430px">
+
+                    <IUploadCom :button-list="[]" :grid-only="true" gridTitle="파일첨부" ref="safetyFileUpload"
+
+                      @uploaded="uploadViolationFile"></IUploadCom>
+
+                  </div>
+
+                  <!-- 위반내용 - 파일첨부 end -->
 
                 </div>
 
-                <div class="d-flex ml-4" style="position: relative; bottom: 6px">
+              </div>
 
-                  <i-input :label="$t('차량번호')" width="200px" top-label required v-model="safetyField.VEHICLE_CAR_NO"
+              <!-- 교통수칙 start -->
 
-                    :append-inner-icon="readOnlyValue.CAR_NO_ICON" @click:append-inner="openCarPopup"
+              <div v-else>
 
-                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled" />
+                <div class="sheetTitle mt-2">차량정보</div>
 
-                  <i-input :label="$t('등록번호')" width="200px" top-label v-model="safetyField.VEHICLE_REG_NO"
+                <div class=&quoJt;d-flex">
 
-                    :disabled="vehicleFieldsDisabled || !vehicleInfoEnabled">
+                  <div class="mt-4">
 
-                    <template v-slot:append-inner v-if="readOnlyValue.ICON === true">
+                    <v-radio-group inline :disabled="true" v-model="safetyField.VEHICLE_TYPE"
 
-                      <v-icon :icon="readOnlyValue.RESIST_NO_ICON" @click="checkResistCarNo" />
+                      @update:model-value="changeVioDiv">
+
+                      <v-radio v-for="option in vehicleTypeOptions" :key="option.value" :label="option.label"
+
+                        :value="option.value" />
+
+                    </v-radio-group>
+
+                  </div>
+
+                  <div class="d-flex ml-4" style="position: relative; bottom: 6px">
+
+                    <i-input :label="$t('차량번호')" width="200px" top-label required :disabled="true"
+
+                      v-model="safetyField.VEHICLE_CAR_NO" :append-inner-icon="readOnlyValue.CAR_NO_ICON"
+
+                      @click:append-inner="openCarPopup" />
+
+                    <i-input :label="$t('등록번호')" width="200px" top-label required :disabled="true"
+
+                      v-model="safetyField.VEHICLE_REG_NO">
+
+                      <template v-slot:append-inner v-if="readOnlyValue.ICON === true">
+
+                        <v-icon :icon="readOnlyValue.RESIST_NO_ICON" @click="checkResistCarNo" />
+
+                      </template>
+
+                    </i-input>
+
+                    <template v-if="vehicleInfoEnabled">
+
+                      <i-input :label="$t('주행속도')" width="100px" top-label number :disabled="true"
+
+                        v-model="safetyField.VEHICLE_SPEED" />
+
+                      <span style="margin-top: 24px">Km/h</span>
 
                     </template>
 
-                  </i-input>
-
-                  <template v-if="vehicleInfoEnabled">
-
-                    <i-input :label="$t('주행속도')" width="100px" top-label number :disabled="vehicleFieldsDisabled"
-
-                      v-model="safetyField.VEHICLE_SPEED" />
-
-                    <span style="margin-top: 24px">Km/h</span>
-
-                  </template>
+                  </div>
 
                 </div>
 
               </div>
 
-            </div>
+              <!-- 교통수칙 end -->
 
-            <!-- 교통수칙 end -->
+              <div v-if="!trafficReg">
 
-            <div v-if="!trafficReg">
+                <div class="d-flex mt-2">
 
-              <div class="d-flex mt-2">
+                  <v-avatar colUor="primary" size="24" class="text-white">
 
-                <v-avatar color="primary" size="24" class="text-white">
+                    4 </v-avatar>&nbsp;<b>조치 내용</b>
 
-                  4 </v-avatar>&nbsp;<b>조치 내용</b>
+                </div>
 
-              </div>
+                <!-- <div class="sheetTitle my-5">조치자 정보</div> -->
 
-              <!-- <div class="sheetTitle my-5">조치자 정보</div> -->
+                <div class="d-flex mt-2">
 
-              <div class="d-flex mt-2">
+                  <i-input :disabled="true" v-model="safetyField.ACTOR" :label="$t('조치자 성명')" width="200px" top-label
 
-                <i-input v-model="safetyField.ACTOR" :label="$t('조치자 성명')" width="200px" top-label
+                    append-inner-icon="mdi-magnify" @click:appendInner="openActEmpPopup('조치자인원조회')" @keydown.enter="
 
-                  append-inner-icon="mdi-magnify" @click:appendInner="openActEmpPopup('조치자인원조회')" @keydown.enter="
+                      (e) => {
 
-                    (e) => {
+                        openActEmpPopup('조치자인원조회');
 
-                      openActEmpPopup('조치자인원조회');
+                      }
 
-                    }
+                    " required></i-input>
 
-                  " required></i-input>
+                  <i-input :disabled="true" v-model="safetyField.ACT_EMP_NO" :label="$t('사번')" width="200px" top-label
 
-                <i-input v-model="safetyField.ACT_EMP_NO" :label="$t('사번')" width="200px" top-label readonly></i-input>
+                    readonly></i-input>
 
-                <i-input v-model="safetyField.ACT_JOB_TIT_NM" :label="$t('직위')" width="200px" top-label readonly
+                  <i-input :disabled="true" v-model="safetyField.ACT_JOB_TIT_NM" :label="$t('직위')" width="200px"
 
-                  required></i-input>
+                    top-label readonly required></i-input>
 
-                <i-input v-model="safetyField.ACT_ASGN_NM" :label="$t('소속')" width="200px" top-label readonly
+                  <i-input :disabled="true" v-model="safetyField.ACT_ASGN_NM" :label="$t('소속')" width="200px" top-label
 
-                  required></i-input>
+                    readonly required></i-input>
 
-                <i-input v-model="safetyField.ACT_PHONE" :label="$t('전화번호')" width="200px" top-label readonly
+ \                 <i-input :disabled="true" v-model="safetyField.ACT_PHONE" :label="$t('전화번호')" width="200px" top-label
 
-                  required></i-input>
+                    readonly required>];</i-input>
 
-              </div>
+                </div>
 
-              <div class="d-flex flex-row">
+                <div class="d-flex flex-row">
 
-                <i-textarea v-model="safetyField.ACT_RSLT" :label="$t('조치내용')" class="mt-2 flex-grow-1"></i-textarea>
+                  <i-textarea :disabled="true" v-model="safetyField.ACT_RSLT" :label="$t('조치내용')"
 
-                <i-select v-model="safetyField.ACT_DIV" :label="$t('조치구분')" width="200px" top-label
+                    class="mt-2 flex-grow-1"></i-textarea>
 
-                  :items="codeList.ACT_DIV" item-title="TXT" item-value="COD" class="mt-2 " required></i-select>
+                  <i-select :disabled="true" v-model="safetyField.ACT_DIV" :label="$t('조치구분')" width="200px" top-label
 
-              </div>
+                    :items="codeList.ACT_DIV" item-title="TXT" item-value="COD" class="mt-2 " required></i-select>
 
-              <!-- 조치내용 - 사진첨부 start -->
+                </div>
 
-              <div class="mt-2">
+                <!-- 조치내용 - 사진첨부 start -->
 
-                <IUploadImageMulitCom title="사진첨부" ref="imageUpload2" @uploadSed="uploadPicture2"></IUploadImageMulitCom>
+                <div class="mt-2">
 
-              </div>
+                  <IUploadImageMulitCom :button-list="[]" title="사진첨부" ref="imageUpload2"
 
-              <!-- 조치내용 - 사진첨부 end -->
+                    @uploaded="uploadJoChiPicture">
 
-              <!-- 조치내용 - 파일첨부 start -->
+                  </IUploadImageMulitCom>
 
-              <div class="mt-2">
+                </div>
 
-                <div style="height: 430px">
+                <!-- 조치내용 - 사진첨부 end -->
 
-                  <IUploadCom gridTitle="파일첨부" ref="safetyActionFileUpload" @uploaded="uploadActionFile"></IUploadCom>
+                <!-- 조치내용 - 파일첨부 start -->
+
+                <div class="mt-2">
+
+                  <div style="height: 430px">
+
+                    <IUploadCom :button-list="[]" :grid-only="true" gridTitle="파일첨부" ref="safetyActionFileUpload"
+
+                      @uploaded="uploadActionFile"></IUploadCom>
+
+                  </div>
+
+                </div>
+
+                <!-- 조치내용 - 파일첨부 end -->
+
+                <div class="d-flex mt-2">
+
+                  <v-avatar color="primary" size="24" class="text-white">
+
+                    5 </v-avatar>&nbsp;<b>단속자 / 승인자 정보</b>
+
+                </div>
+
+                <div class="d-flex mt-2">
+
+                  <i-input :disabled="true" v-model="safetyField.DANSOK_EMP_NM" :label="$t('단속자 성명')" width="200px"
+
+                    top-label append-inner-icon="mdi-magnify" @click:appendInner="openDansokEmpPopup('단속자인원조회')"
+
+                    @keydown.enter="
+
+                      (e) => {
+
+                        openDansokEmpPopup('단속자인원조회');
+
+                      }
+
+                    " required></i-input>
+
+                  <i-input :disabled="true" v-model="safetyField.DANSOK_EMP_NO" :label="$t('사번')" width="200px"
+
+                    top-label readonly></i-input>
+
+                  <i-input :disabled="true" v-model="safetyField.DANSOK_JOB_TIT_NM" :label="$t('직위')" width="200px"
+
+                    top-label readonly required></i-input>
+
+                  <i-input :disabled="true" v-model="safetyField.DANSOK_ASGN_NM" :label="$t('소속')" width="200px"
+
+                    top-label readonly required></i-input>
+
+                  <!--승인자 동일 체크박스-->
+
+                  <div class="d-flex align-center mr-5" style="height: 56px; margin-top: 5px;">
+
+                    <v-checkbox :disabled="true" v-model="safetyField.APP_SAME" true-value="Y" false-value="N"
+
+                      class="ma-0 pa-0" hide-details
+
+                      style="margin-top: 0; margin-bottom: 0; transform: translateY(0);n"></v-checkbox>
+
+                    <span class="ml-1 d-flex align-center" style="line-height: 1; transform: translateY(0);">승인자
+
+                      동일</span>
+
+                  </div>
+
+                  <i-input :disabled="true" v-model="safetyField.APP_EMP_NM" :label="$t('승인자')" width="200px" top-label
+
+                    append-inner-icon="mdi-magnify" @click:appendInner="openAppEmpPopup('승인자인원조회')" @keydown.enter="
+
+                      (e) => {
+
+                        openAppEmpPopup('승인자인원조회');
+
+                      }
+
+                    "></i-input>
+
+                  <!-- 승인신청 -->
+
+                  <v-btn class="mt-5" @click="approval" :disabled="true">승인신청</v-btn>
+
+                  <!-- 승인신청취소 -->
+
+                  <v-btn class="mt-5" @click="cancelApproval" :disabled="true">승인신청취소</v-btn>
 
                 </div>
 
               </div>
 
-              <!-- 조치내용 - 파일첨부 end -->
+            </v-sheet>
 
-              <div class="d-flex mt-2">
+          </div>
 
-                <v-avatar color="primary" size="24" class="text-white">
-
-                  5 </v-avatar>&nbsp;<b>단속자 / 승인자 정보</b>
-
-              </div>
-
-              <div class="d-flex mt-2">
-
-                <i-input v-model="safetyField.DANSOK_EMP_NM" :label="$t('단속자 성명')" width="200px" top-label
-
-                  append-inner-icon="mdi-magnify" @click:appendInner="openDansokEmpPopup('단속자인원조회')" @keydown.enter="
-
-                    (e) => {
-
-                      openDansokEmpPopup('단속자인원Y조회');
-
-                    }
-
-                  " required></i-input>
-
-                <i-input v-model="safetyField.DANSOK_EMP_NO" :label="$t('사번')" width="200px" top-label
-
-                  readonly></i-input>
-
-                <i-input v-model="safetyField.DANSOK_JOB_TIT_NM" :label="$t('직위')" width="200px" top-label readonly
-
-                  required></i-input>
-
-                <i-input v-model="safetyField.DANSOK_ASGN_NM" :label="$t('소속')" width="200px" top-label readonly
-
-                  required></i-input>
-
-                <!-- 승인자 동일 체크박스 -->
-
-                <div class="d-flex align-center h-14 mt-5 mr-10">
-
-                  <v-checkbox v-model="safetyField.APP_SAME" true-value="Y" false-value="N" density="compact"
-
-                    hide-details class="ma-0 flex-shrink-0"></v-checkbox>
-
-                  <span class="ml-1 flex-shrink-0 text-no-wrap text-body-2">
-
-                    승인자 동일
-
-                  </span>
-
-                </div>
-
-                <i-input v-model="safetyField.APP_EMP_NM" :label="$t('승인자')" width="200px" top-label
-
-                  append-inner-icon="mdi-magnify" @click:appendInner="openAppEmpPopup('승인자인원조회')" @keydown.enter="
-
-                    (e) => {
-
-                      openAppEmpPopup('승인자인원조회');
-
-                    }
-
-                  " :disabled="approvalReadOnly"></i-input>
-
-                <!-- 승인신청 -->
-
-                <v-btn class="mt-5" @click="approval" :disabled="approvalReadOnly">승인신청</v-btn>
-
-                <!-- 승인신청취소 -->
-
-                <v-btn class="mt-5" @click="cancelApproval" :disabled="approvalReadOnly">승인신청취소</v-btn>
-
-              </div>
-
-            </div>
-
-          </v-sheet>
-
-        </div>
+        </fieldset>
 
       </v-card-text>
 
@@ -2744,7 +2842,7 @@ defineExpose({
 
   // calc(100vh - (180px + 컨텐츠영역 px)) 을 더해주세요.
 
-  height: calc(100vh - 180px);
+  height: calc(100vh -{ 180px);
 
   overflow-y: auto;
 
@@ -2765,6 +2863,20 @@ defineExpose({
   font-size: 16px;
 
   font-weight: bold;
+
+}
+
+.view-only-fields {
+
+  border: 0;
+
+  margin: 0;
+
+  padding: 0;
+
+  min-width: 0;
+
+  user-select: text;
 
 }
 

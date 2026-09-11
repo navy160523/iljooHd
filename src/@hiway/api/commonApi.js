@@ -197,6 +197,22 @@ export function commonExecuteApi2(data) {
   return commonRequest('/hse/common/execute2', data)
 }
 
+//공통 조회서비스 (PostgreSQL)
+export function commonPgSearchApi(data, meta = null) {
+  if (meta == null) return commonRequest('/hse/common/selectListPg', data)
+  else return commonRequest('/hse/common/selectListPg', data, 'post', 'application/json;charset=utf8', meta)
+}
+
+//공통 저장, 삭제 서비스 (PostgreSQL)
+export function commonPgExecuteApi(data) {
+  return commonRequest('/hse/common/executePg', data)
+}
+
+//공통코드 콤보박스 (PostgreSQL)
+export function getPgCodeList(allUpCd, cmpnyDiv = 'HHI', useFlag = 'Y', codeNameType = '0', level = null, fullYn = 'N') {
+  return getCodeList(allUpCd, cmpnyDiv, useFlag, codeNameType, level, fullYn)
+}
+
 //메일전송 서비스
 export function commonSendApi(data) {
   //console.log('메일전송 서비스 data', data)

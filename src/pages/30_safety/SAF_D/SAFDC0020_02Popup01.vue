@@ -266,8 +266,6 @@ const openPopup2 = (rowData) => {
 
   dialog.value = true
 
-  console.log("받은 데이터 : ", rowData);
-
   // 넘겨받은 그리드 행 데이터를 데이터 모델에 바인딩
 
   for (const [key, value] of Object.entries(rowData)) {
@@ -532,11 +530,11 @@ const initCodList = () => {
 
   ]).then((res) => {
 
-    codeList.RESTART_DIV = res[0].ORESULT_CUR
+    codeList.RESTART_DIV = res.ORESULT_CUR
 
-    codeList.SHIP_NO = res[1].ORESULT_CUR.map((item) => item.SHIP_COD);
+    codeList.SHIP_NO = res.ORESULT_CUR.map((item) => item.SHIP_COD);
 
-    codeList.ACT_DIV = res[2].ORESULT_CUR;
+    codeList.ACT_DIV = res.ORESULT_CUR;
 
   })
 

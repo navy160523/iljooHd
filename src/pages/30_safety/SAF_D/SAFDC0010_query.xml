@@ -1,0 +1,2947 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hhi.hse.com.pg">
+
+	<select id="SAFDC0010_SEARCH_00" parameterType="map" resultType="java.util.LinkedHashMap">
+
+		<![CDATA[
+
+		SELECT
+
+		    A.DANSOK_ASGN_CD,
+
+		    B.ASGN_FULL_NM AS DANSOK_ASGN_NM
+
+		FROM (
+
+		    SELECT DISTINCT
+
+		        X.CMPNY_DIV,
+
+		        X.BSNS_CD,
+
+		        X.DEPT_CD,
+
+		        X.ASGN_CD AS DANSOK_ASGN_CD
+
+		    FROM (
+
+		        SELECT DISTINCT
+
+		            P.CMPNY_DIV,
+
+		            P.BSNS_CD,
+
+		            P.DEPT_CD,
+
+		            P.ASGN_CD
+
+		        FROM (
+
+		            SELECT
+
+		                T1.CMPNY_DIV,
+
+		                TZA.BSNS_CD,
+
+		                TZA.DEPT_CD,
+
+		                TZA.ASGN_CD
+
+		            FROM (
+
+		                SELECT
+
+		                    CMPNY_DIV,
+
+		                    DANSOK_EMP_NO
+
+		                FROM TFA1010C01
+
+		                WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+		                UNION ALL
+
+		                SELECT
+
+		                    CMPNY_DIV,
+
+		                    CRADN_EMP_NO AS DANSOK_EMP_NO
+
+		                FROM TGB3011C01
+
+		                WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+		            ) T1
+
+		            JOIN TZA1010C01 TZA
+
+		              ON T1.CMPNY_DIV = TZA.CMPNY_DIV
+
+		             AND T1.DANSOK_EMP_NO = TZA.EMP_NO
+
+		            WHERE TZA.HLD_OFFI_GBN <> '3'
+
+		              AND TZA.BSNS_CD LIKE #{DANSOK_BSNS_CD} || '%'
+
+		        ) P
+
+		    ) X
+
+		    JOIN VZZ1020C01 V
+
+		      ON X.CMPNY_DIV = V.CMPNY_DIV
+
+		     AND X.BSNS_CD = V.BSNS_CD
+
+		     AND X.DEPT_CD = V.DEPT_CD
+
+		     AND X.ASGN_CD = V.ASGN_CD
+
+		) A
+
+		JOIN VZZ1020C01 B
+
+		  ON A.CMPNY_DIV = B.CMPNY_DIV
+
+		 AND A.BSNS_CD = B.BSNS_CD
+
+		 AND A.DEPT_CD = B.DEPT_CD
+
+		 AND A.DANSOK_ASGN_CD = B.ASGN_CD
+
+		ORDER BY B.ORGN_DIV, A.DANSOK_ASGN_CD
+
+	]]>
+
+	</select>
+
+	<!-- 대분류 조회 (PARENT_COMM_ID IS NULL) -->
+
+	<select id="SAFDC0010_SEARCH_01" parameterType="map" resultType="java.util.LinkedHashMap">
+
+		 <![CDATA[
+
+	      WITH base AS (
+
+		    SELECT
+
+		        a.cmpny_div,
+
+		        a.vio_no,
+
+		        a.bsns_cd,
+
+		        a.dept_cd,
+
+		        a.asgn_cd,
+
+		        a.vio_emp_no,
+
+		        a.violator,
+
+		        a.io_div,
+
+		        a.vio_gdiv,
+
+		        a.vio_mdiv,
+
+		        get_code_nm(
+
+		            a.cmpny_div,
+
+		            a.cmpny_div || 'G110',
+
+		            a.vio_gdiv
+
+		        ) AS vio_gdiv_nm,
+
+		        get_code_nm(
+
+		            a.cmpny_div,
+
+		            a.cmpny_div || 'G110' || a.vio_gdiv,
+
+		            a.vio_mdiv
+
+		        ) AS vio_mdiv_nm,
+
+		        xx10.get_location_desc(
+
+		            a.cmpny_div,
+
+		            concat(
+
+		                a.vio_lplc,
+
+		                a.vio_mplc,
+
+		                a.vio_splc
+
+		            )
+
+		        ) AS vio_splc_nm,
+
+		        a.vio_desc,
+
+		        a.vio_lplc,
+
+		        a.vio_mplc,
+
+		        a.vio_splc,
+
+		        a.vio_plc_desc,
+
+		        a.dansok_asgn_cd,
+
+		        a.dansok_emp_no,
+
+		        a.dansok_dept_cd,
+
+		        get_emp_info(
+
+		            a.cmpny_div,
+
+		            a.dansok_emp_no,
+
+		            'JOB_TIT_NM'
+
+		        ) AS dansok_job_tit_nm,
+
+		        a.file_id1,
+
+		        a.file_id2,
+
+		        a.img_id1,
+
+		        a.img_id2,
+
+		        a.vio_time,
+
+		        CASE
+
+		            WHEN a.vio_time ~ '^[0-9]{8,12}$'
+
+		            THEN to_date(
+
+		                substring(a.vio_time, 1, 8),
+
+		                'YYYYMMDD'
+
+		            )
+
+		        END AS vio_dt1,
+
+		        CASE
+
+		            WHEN a.vio_time ~ '^[0-9]{12}$'
+
+		            THEN substring(a.vio_time, 9, 4)
+
+		        END AS vio_time2,
+
+		        CASE
+
+		            WHEN a.vio_time ~ '^[0-9]{12}$'
+
+		            THEN to_char(
+
+		                to_timestamp(a.vio_time, 'YYYYMMDDHH24MI'),
+
+		                'YYYY.MM.DD HH24:MI'
+
+		            )
+
+		        END AS vio_time_ds,
+
+		        b.asgn_full_nm AS asgn_nm,
+
+		        b.asgn_shrt_nm AS team_nm,
+
+		        get_emp_info(
+
+		            a.cmpny_div,
+
+		            a.vio_emp_no,
+
+		            'JOB_TIT_CD'
+
+		        ) AS job_tit_cd,
+
+		        get_emp_info(
+
+		            a.cmpny_div,
+
+		            a.vio_emp_no,
+
+		            'JOB_TIT_NM'
+
+		        ) AS job_tit_nm,
+
+		        a.act_bsns_cd,
+
+		        a.actor,
+
+		        a.act_emp_no,
+
+		        get_emp_info(
+
+		            a.cmpny_div,
+
+		            a.act_emp_no,
+
+		            'JOB_TIT_NM'
+
+		        ) AS act_job_tit_nm,
+
+		        a.act_dept_cd,
+
+		        a.act_phone,
+
+		        a.act_rslt,
+
+		        a.act_div,
+
+		        get_dept_info7(
+
+		            a.cmpny_div,
+
+		            a.act_bsns_cd,
+
+		            a.act_dept_cd,
+
+		            get_emp_info(
+
+		                a.cmpny_div,
+
+		                a.act_emp_no,
+
+		                'ASGN_CD'
+
+		            ),
+
+		            'ASGN_FULL_NM'
+
+		        ) AS act_asgn_nm,
+
+		        a.app_same,
+
+		        a.app_asgn_cd,
+
+		        a.app_dept,
+
+		        a.app_emp_no,
+
+		        (
+
+		            SELECT e.kor_nm
+
+		            FROM xx10.tza1010c01 e
+
+		            WHERE e.cmpny_div = a.cmpny_div
+
+		              AND e.emp_no = a.app_emp_no
+
+		            LIMIT 1
+
+		        ) AS app_emp_nm,
+
+		        get_code_nm(
+
+		            a.cmpny_div,
+
+		            a.cmpny_div || 'Z020',
+
+		            a.io_div
+
+		        ) AS io_div_nm,
+
+		        a.vend_name,
+
+		        a.vend_cd,
+
+		        a.ship_no,
+
+		        a.company,
+
+		        a.vehicle_type,
+
+		        a.vehicle_car_no,
+
+		        a.vehicle_reg_no,
+
+		        a.vehicle_speed,
+
+		        a.check_target_obj1,
+
+		        a.check_target_obj2,
+
+		        a.check_target_obj3,
+
+		        a.sago_div_l,
+
+		        a.sago_div_m,
+
+		        a.sago_div_s,
+
+		        a.insert_date,
+
+		        a.insert_user_id,
+
+		        a.status
+
+		    FROM xx10.tfa1010c01 a
+
+		    LEFT JOIN xx10.vzz1020c03 b
+
+		        ON b.cmpny_div = a.company
+
+		       AND b.bsns_cd = a.bsns_cd
+
+		       AND b.dept_cd = a.dept_cd
+
+		       AND b.asgn_cd = a.asgn_cd
+
+		    WHERE (
+
+		            NULLIF(#{CMPNY_DIV}, '') IS NULL
+
+		            OR a.cmpny_div = #{CMPNY_DIV}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{STATUS}, '') IS NULL
+
+		            OR a.status = #{STATUS}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{COMPANY}, '') IS NULL
+
+		            OR a.company = #{COMPANY}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{BSNS_CD}, '') IS NULL
+
+		            OR a.bsns_cd = #{BSNS_CD}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{DEPT_CD}, '') IS NULL
+
+		            OR a.dept_cd = #{DEPT_CD}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{ASGN_CD}, '') IS NULL
+
+		            OR a.asgn_cd = #{ASGN_CD}
+
+		          )
+
+		      AND (
+
+		            NULLIF(#{VIO_DATE_FR}, '') IS NULL
+
+		            OR substring(a.vio_time, 1, 8)
+
+		               BETWEEN replace(#{VIO_DATE_FR}, '-', '')
+
+		                   AND coalesce(
+
+		                       nullif(
+
+		                           replace(#{VIO_DATE_TO}, '-', ''),
+
+		                           ''
+
+		                       ),
+
+		                       '99991231'
+
+		                   )
+
+		          )
+
+		)
+
+		SELECT
+
+		    b.cmpny_div,
+
+		    b.vio_no,
+
+		    b.bsns_cd,
+
+		    b.dept_cd,
+
+		    'A' AS gubun,
+
+		    b.asgn_cd,
+
+		    b.vio_emp_no,
+
+		    b.violator,
+
+		    b.io_div,
+
+		    b.vio_gdiv,
+
+		    b.vio_mdiv,
+
+		    b.vio_gdiv_nm,
+
+		    b.vio_mdiv_nm,
+
+		    b.vio_splc_nm,
+
+		    b.vio_desc,
+
+		    b.vio_lplc,
+
+		    b.vio_mplc,
+
+		    b.vio_splc,
+
+		    b.vio_plc_desc,
+
+		    coalesce(
+
+		        b.dansok_asgn_cd,
+
+		        k.asgn_cd
+
+		    ) AS dansok_asgn_cd,
+
+		    b.dansok_emp_no,
+
+		    k.kor_nm AS dansok_emp_nm,
+
+		    b.dansok_dept_cd,
+
+		    b.dansok_job_tit_nm,
+
+		    (
+
+		        SELECT o.asgn_full_nm
+
+		        FROM xx10.vzz1020c03 o
+
+		        WHERE o.cmpny_div = k.cmpny_div
+
+		          AND o.asgn_cd = coalesce(
+
+		              b.dansok_asgn_cd,
+
+		              k.asgn_cd
+
+		          )
+
+		          AND o.dept_cd = coalesce(
+
+		              b.dansok_dept_cd,
+
+		              k.dept_cd
+
+		          )
+
+		        LIMIT 1
+
+		    ) AS dansok_asgn_nm,
+
+		    b.vio_time,
+
+		    b.vio_dt1,
+
+		    b.vio_time2,
+
+		    b.vio_time_ds,
+
+		    b.status,
+
+		    b.file_id1,
+
+		    b.file_id2,
+
+		    b.img_id1,
+
+		    b.img_id2,
+
+		    (
+
+		        SELECT o.asgn_shrt_nm
+
+		        FROM xx10.vzz1020c03 o
+
+		        WHERE o.cmpny_div = b.company
+
+		          AND o.asgn_cd = b.bsns_cd
+
+		        LIMIT 1
+
+		    ) AS bsns_nm,
+
+		    (
+
+		        SELECT o.asgn_shrt_nm
+
+		        FROM xx10.vzz1020c03 o
+
+		        WHERE o.cmpny_div = b.company
+
+		          AND o.asgn_cd = b.dept_cd
+
+		        LIMIT 1
+
+		    ) AS dept_nm,
+
+		    b.asgn_nm,
+
+		    b.team_nm,
+
+		    b.job_tit_cd,
+
+		    b.job_tit_nm,
+
+		    coalesce(
+
+		        CASE
+
+		            WHEN b.asgn_nm IS NULL THEN (
+
+		                SELECT c.comp_nm
+
+		                FROM xx10.support_c10_txxccomp_n c
+
+		                WHERE c.comp_cd = b.asgn_cd
+
+		                LIMIT 1
+
+		            )
+
+		            WHEN position(
+
+		                '-' IN substring(
+
+		                    b.asgn_nm,
+
+		                    position('-' IN b.asgn_nm) + 1
+
+		                )
+
+		            ) = 0 THEN ''
+
+		            ELSE substring(
+
+		                substring(
+
+		                    b.asgn_nm,
+
+		                    position('-' IN b.asgn_nm) + 1
+
+		                ),
+
+		                position(
+
+		                    '-' IN substring(
+
+		                        b.asgn_nm,
+
+		                        position('-' IN b.asgn_nm) + 1
+
+		                    )
+
+		                ) + 1
+
+		            )
+
+		        END,
+
+		        get_dept_info(
+
+		            b.cmpny_div,
+
+		            get_emp_info(
+
+		                b.cmpny_div,
+
+		                b.vio_emp_no,
+
+		                'ASGN_CD'
+
+		            ),
+
+		            'ASGN_SHRT_NM'
+
+		        )
+
+		    ) AS dtl_asgn_nm,
+
+		    b.act_bsns_cd,
+
+		    b.actor,
+
+		    b.act_emp_no,
+
+		    b.act_job_tit_nm,
+
+		    b.act_dept_cd,
+
+		    b.act_asgn_nm,
+
+		    b.act_phone,
+
+		    b.act_rslt,
+
+		    b.act_div,
+
+		    b.app_same,
+
+		    b.app_asgn_cd,
+
+		    b.app_dept,
+
+		    b.app_emp_no,
+
+		    b.app_emp_nm,
+
+		    b.io_div_nm,
+
+		    b.vend_name,
+
+		    b.vend_cd,
+
+		    b.ship_no,
+
+		    b.company,
+
+		    b.vehicle_type,
+
+		    b.vehicle_car_no,
+
+		    b.vehicle_reg_no,
+
+		    b.vehicle_speed,
+
+		    b.check_target_obj1,
+
+		    b.check_target_obj2,
+
+		    b.check_target_obj3,
+
+		    b.sago_div_l,
+
+		    b.sago_div_m,
+
+		    b.sago_div_s,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B010',
+
+		        b.sago_div_l
+
+		    ) AS sago_div_l_nm,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B010' || b.sago_div_l,
+
+		        b.sago_div_m
+
+		    ) AS sago_div_m_nm,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B010'
+
+		            || b.sago_div_l
+
+		            || b.sago_div_m,
+
+		        b.sago_div_s
+
+		    ) AS sago_div_s_nm,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B040',
+
+		        b.check_target_obj1
+
+		    ) AS check_target_obj1_nm,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B040'
+
+		            || b.check_target_obj1,
+
+		        b.check_target_obj2
+
+		    ) AS check_target_obj2_nm,
+
+		    get_code_nm(
+
+		        b.cmpny_div,
+
+		        b.cmpny_div || 'B040'
+
+		            || b.check_target_obj1
+
+		            || b.check_target_obj2,
+
+		        b.check_target_obj3
+
+		    ) AS check_target_obj3_nm,
+
+		    0 AS vio_cnt_a,
+
+		    0 AS vio_cnt_b,
+
+		    0 AS vio_cnt_c,
+
+		    0 AS vio_cnt,
+
+		    to_char(
+
+		        b.insert_date,
+
+		        'YYYY-MM-DD'
+
+		    ) AS rg_date,
+
+		    coalesce(
+
+		        get_dept_info(
+
+		            b.company,
+
+		            get_emp_info(
+
+		                b.company,
+
+		                b.vio_emp_no,
+
+		                'ASGN_CD'
+
+		            ),
+
+		            'ASGN_FULL_NM'
+
+		        ),
+
+		        get_dept_info7(
+
+		            b.cmpny_div,
+
+		            b.bsns_cd,
+
+		            b.dept_cd,
+
+		            get_emp_info(
+
+		                b.cmpny_div,
+
+		                b.vio_emp_no,
+
+		                'ASGN_CD'
+
+		            ),
+
+		            'ASGN_SHRT_NM'
+
+		        )
+
+		    ) AS vio_emp_asgn,
+
+		    b.insert_user_id
+
+		FROM base b
+
+		LEFT JOIN xx10.tza1010c01 k
+
+		    ON k.cmpny_div = b.cmpny_div
+
+		   AND k.emp_no = b.dansok_emp_no
+
+		WHERE (
+
+		        NULLIF(#{VIO_GDIV}, '') IS NULL
+
+		        OR b.vio_gdiv = #{VIO_GDIV}
+
+		      )
+
+		  AND (
+
+		        NULLIF(#{DANSOK_BSNS_CD}, '') IS NULL
+
+		        OR k.bsns_cd = #{DANSOK_BSNS_CD}
+
+		      )
+
+		  AND (
+
+		        NULLIF(#{DANSOK_ASGN_CD}, '') IS NULL
+
+		        OR coalesce(
+
+		            b.dansok_asgn_cd,
+
+		            k.asgn_cd
+
+		        ) = #{DANSOK_ASGN_CD}
+
+		      )
+
+		  AND (
+
+		        NULLIF(#{DANSOK_EMP_NO}, '') IS NULL
+
+		        OR b.dansok_emp_no = #{DANSOK_EMP_NO}
+
+		      )
+
+		ORDER BY b.vio_time DESC;
+
+	    ]]>
+
+	</select>
+
+	<!-- 자식 목록 조회 (대분류 클릭 → 중분류, 중분류 클릭 → 소분류) -->
+
+	<select id="SAFDC0010_SEARCH_02" parameterType="map" resultType="java.util.HashMap">
+
+		SELECT cmpny_div AS "CMPNY_DIV"
+
+		, comm_id AS "COMM_ID"
+
+		,
+
+		bsns_cd AS "BSNS_CD"
+
+		, parent_comm_id AS "PARENT_COMM_ID"
+
+		, code_nm AS
+
+		"CODE_NM"
+
+		, order_num AS "ORDER_NUM"
+
+		FROM tb_com_work_standard_type
+
+		WHERE cmpny_div = #{CMPNY_DIV}
+
+		AND bsns_cd = #{BSNS_CD}
+
+		AND
+
+		parent_comm_id = #{COMM_ID}
+
+		ORDER BY order_num, comm_id
+
+	</select>
+
+	<!-- 안전수칙위반등록 - 위반 종류 조회 -->
+
+	<select id="SAFDC0010_SEARCH_03" parameterType="map" resultType="java.util.HashMap">
+
+		WITH RECURSIVE TMPTBL AS (
+
+		SELECT *
+
+		FROM (
+
+		SELECT CMPNY_DIV, ALL_UP_CD,
+
+		ALL_SYS_CD, UP_CD AS UP_COD, SYS_CD AS COD,
+
+		SYS_CDNM AS TXT,
+
+		CODE_SHORTNM
+
+		, CODE_DESC1, CODE_DESC2, CODE_DESC3, CODE_DESC4,
+
+		CODE_DESC5, USE_FLAG,
+
+		ORDER_NUM, DEFAULT_FLAG
+
+		FROM TB_COM_SYSTEMCODE
+
+		WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+		AND ALL_SYS_CD LIKE #{CMPNY_DIV} ||
+
+		'G110%'
+
+		AND USE_FLAG = 'Y'
+
+		AND COALESCE(CODE_DESC2, 'N') &lt;&gt; 'Y' <!--	XML 특수문자(<>) 처리 -->
+
+		AND COALESCE(CODE_DESC3, 'N') &lt;&gt; 'N'
+
+		AND COALESCE(CODE_DESC4,
+
+		'N') &lt;&gt; 'Y'
+
+		UNION ALL
+
+		SELECT CMPNY_DIV, ALL_UP_CD, ALL_SYS_CD,
+
+		UP_CD AS UP_COD, SYS_CD AS COD,
+
+		SYS_CDNM AS TXT, CODE_SHORTNM
+
+		,
+
+		CODE_DESC1, CODE_DESC2, CODE_DESC3, CODE_DESC4, CODE_DESC5, USE_FLAG,
+
+		ORDER_NUM, DEFAULT_FLAG
+
+		FROM TB_COM_SYSTEMCODE
+
+		WHERE CMPNY_DIV =
+
+		#{CMPNY_DIV}
+
+		AND ALL_SYS_CD LIKE #{CMPNY_DIV} || 'G110%'
+
+		AND USE_FLAG =
+
+		'Y'
+
+		AND COALESCE(CODE_DESC2, 'N') = 'Y'
+
+		AND (CODE_DESC1 IS NULL OR
+
+		CODE_DESC1 = 'COMM' OR CODE_DESC1 =
+
+		#{BSNS_CD})
+
+		AND COALESCE(CODE_DESC4,
+
+		'N') &lt;&gt; 'Y'
+
+		ORDER BY ORDER_NUM, COD
+
+		) BASE
+
+		),
+
+		HIERARCHY_QUERY AS (
+
+		<!-- [START WITH] 성공하신 ALL_UP_CD 조건 반영 -->
+
+		SELECT
+
+		1 AS LVL,
+
+		',' || COD AS PATH,
+
+		CMPNY_DIV, ALL_UP_CD, ALL_SYS_CD, UP_COD, COD, TXT, CODE_SHORTNM
+
+		,
+
+		CODE_DESC1, CODE_DESC2, CODE_DESC3, CODE_DESC4, DEFAULT_FLAG
+
+		FROM
+
+		TMPTBL
+
+		WHERE ALL_UP_CD = #{CMPNY_DIV} || 'G110'
+
+		AND CMPNY_DIV =
+
+		#{CMPNY_DIV}
+
+		UNION ALL
+
+		<!-- [CONNECT BY] 성공하신 PATH 결합 문법 및 조인 조건 반영 -->
+
+		SELECT
+
+		H.LVL + 1 AS LVL,
+
+		H.PATH || ',' || T.COD AS PATH,
+
+		T.CMPNY_DIV,
+
+		T.ALL_UP_CD, T.ALL_SYS_CD, T.UP_COD, T.COD, T.TXT, T.CODE_SHORTNM
+
+		,
+
+		T.CODE_DESC1, T.CODE_DESC2, T.CODE_DESC3, T.CODE_DESC4,
+
+		T.DEFAULT_FLAG
+
+		FROM TMPTBL T
+
+		INNER JOIN HIERARCHY_QUERY H
+
+		ON H.ALL_SYS_CD = T.ALL_UP_CD
+
+		AND T.CMPNY_DIV = #{CMPNY_DIV}
+
+		)
+
+		<!-- [최종 조회] CASE WHEN을 이용한 오라클 DECODE 문법	대체 및 결과 추출 -->
+
+		SELECT
+
+		TXT, LVL, PATH, CMPNY_DIV, ALL_UP_CD, ALL_SYS_CD,
+
+		UP_COD, COD,
+
+		CODE_SHORTNM
+
+		, CODE_DESC1, CODE_DESC2, CODE_DESC3,
+
+		CODE_DESC4, DEFAULT_FLAG
+
+		FROM HIERARCHY_QUERY
+
+		WHERE LVL = 2
+
+	</select>
+
+	<select id="SAFDC0010_SEARCH_04" parameterType="map" resultType="java.util.HashMap">
+
+		SELECT
+
+			B.JOB_TIT_NM AS APP_JOB,
+
+			B.KOR_NM AS APP_EMP_NM,
+
+			B.EMP_NO AS
+
+			APP_EMP_NO,
+
+			B.OFFI_RES_CD,
+
+			B.EMAIL
+
+		FROM TZB1010C01 A
+
+		JOIN TZB1010C01 B
+
+		ON
+
+		A.CMPNY_DIV = B.CMPNY_DIV
+
+		AND A.DEPT_CD = B.DEPT_CD
+
+		WHERE A.CMPNY_DIV = #{cmpnyDiv}
+
+		AND A.EMP_NO = #{dansokEmpNo}
+
+		AND TRIM(B.OFFI_RES_CD) IS NOT
+
+		NULL
+
+		AND B.HLD_OFFI_GBN = '1'
+
+		AND B.OFFI_RES_CD NOT IN ('15Z');
+
+	</select>
+
+	<!-- 작업중지 목록  -->
+
+	<select id="SAFDC0010_SEARCH_13" parameterType="map" resultType="java.util.HashMap">
+
+	    SELECT A.*
+
+	         , A.ASGN_NM_TEMP
+
+	         || (CASE
+
+	                WHEN A.DEPT_CD != A.ASGN_CD AND A.ASGN_NM_TEMP2 IS NOT NULL
+
+	                THEN '-' || A.ASGN_NM_TEMP2
+
+	                ELSE ''
+
+	             END) AS ASGN_NM
+
+	    FROM (
+
+	        SELECT A.CMPNY_DIV
+
+	             , A.JSTOP_NO
+
+	             , A.BSNS_CD
+
+	             , A.DEPT_CD
+
+	             , (SELECT O.ASGN_SHRT_NM FROM XX10.VZZ1020C03 O WHERE O.CMPNY_DIV = A.COMPANY AND O.ASGN_CD = A.DEPT_CD LIMIT 1 ) AS DEPT_NM
+
+	             , A.ASGN_CD
+
+	             , A.CHG_EMP_NO
+
+	             , get_emp_info(A.CMPNY_DIV, A.CHG_EMP_NO, 'JOB_TIT_NM' ) AS JOB_TIT_NM
+
+	             , A.FILE_ID
+
+	             , A.JOB_LPLC
+
+	             , A.JOB_MPLC
+
+	             , A.JOB_SPLC
+
+	             , get_location_desc(A.CMPNY_DIV, concat(A.JOB_LPLC, A.JOB_MPLC, A.JOB_SPLC)) AS JOB_SPLC_NM
+
+	             , TO_CHAR(TO_DATE(SUBSTRING(A.JSTOP_TIME FROM 1 FOR 8), 'YYYYMMDD'), 'YYYY-MM-DD') AS JSTOP_DT
+
+	             , TO_CHAR(TO_TIMESTAMP(A.JSTOP_TIME, 'YYYYMMDDHH24MI'), 'HH24:MI') AS JSTOP_TIME
+
+	             , TO_CHAR(TO_DATE(SUBSTRING(A.RESTART_TIME FROM 1 FOR 8), 'YYYYMMDD'), 'YYYY-MM-DD') AS RESTART_DT
+
+	             , CASE
+
+	                   WHEN A.RESTART_TIME ~ '^[0-9]{12}$'
+
+	                   THEN TO_CHAR(TO_TIMESTAMP(A.RESTART_TIME, 'YYYYMMDDHH24MI'), 'HH24:MI')
+
+	                   ELSE NULL
+
+	               END AS RESTART_TIME
+
+	             , COALESCE(
+
+	                   B.ASGN_FULL_NM
+
+	                 , (SELECT MAX(ASGN_FULL_NM)
+
+	                      FROM VZZ1020C01
+
+	                     WHERE CMPNY_DIV = COALESCE(A.COMPANY, A.CMPNY_DIV)
+
+	                       AND ASGN_CD = A.DEPT_CD)
+
+	               ) AS ASGN_NM_TEMP
+
+	             , COALESCE(
+
+	                   (SELECT MAX(ASGN_SHRT_NM)
+
+	                      FROM VZZ1020C03
+
+	                     WHERE CMPNY_DIV = COALESCE(A.COMPANY, A.CMPNY_DIV)
+
+	                       AND ASGN_CD = A.ASGN_CD)
+
+	               ) AS ASGN_NM_TEMP2
+
+	             , B.ASGN_SHRT_NM AS TEAM_NM
+
+	             , A.CHG_EMP_NO
+
+	             , GET_EMP_INFO(#{CMPNY_DIV}, A.CHG_EMP_NO, 'EMP_NM') AS CHG_EMP_NM
+
+	             , A.WORKER_CNT
+
+	             , GET_CODE_NM(#{CMPNY_DIV}, #{CMPNY_DIV} || '2010' || A.JOB_LPLC || A.JOB_MPLC, A.JOB_SPLC) AS JOB_SPLC_NM
+
+	             , GET_CODE_NM('HHI', 'HHI' || '2010' || A.JOB_LPLC, A.JOB_MPLC) AS JOB_MPLC_NM
+
+	             , GET_CODE_NM('HHI', 'HHI' || '2010', A.JOB_LPLC) AS JOB_LPLC_NM
+
+	             , GET_ASGN_SHORT_NM(#{CMPNY_DIV}, A.ASGN_CD) AS ASGN_SHRT_NM
+
+	             , A.JSTOP_EMP_NO
+
+	             , A.JSTOP_ASGN_CD
+
+	             , GET_EMP_INFO( A.CMPNY_DIV, A.JSTOP_EMP_NO, 'JOB_TIT_NM' ) AS JSTOP_JOB_TIT_NM
+
+	             , A.JSTOP_DEPT_CD
+
+	             ,(SELECT E.KOR_NM FROM TZA1010C01 E WHERE E.CMPNY_DIV = A.CMPNY_DIV AND E.EMP_NO = A.JSTOP_EMP_NO LIMIT 1) AS JSTOP_EMP_NM
+
+	             , GET_DEPT_INFO7(A.CMPNY_DIV,  A.JSTOP_BSNS_CD, A.JSTOP_DEPT_CD, GET_EMP_INFO(A.CMPNY_DIV, A.JSTOP_EMP_NO, 'ASGN_CD'),'ASGN_FULL_NM') AS JSTOP_ASGN_NM
+
+	             , A.JOB_PLC_DESC
+
+	             , A.JSTOP_DESC
+
+	             , GET_CODE_NM(#{CMPNY_DIV}, #{CMPNY_DIV} || 'G170', A.RESTART_DIV) AS RESTART_DIV_NM
+
+	             , A.RESTART_DIV
+
+	             , A.RESTART_DESC
+
+	             , CASE
+
+	                   WHEN A.RESTART_TIME ~ '^[0-9]{12}$'
+
+	                   THEN ROUND(
+
+	                            (EXTRACT(EPOCH FROM (
+
+	                                 TO_TIMESTAMP(A.RESTART_TIME, 'YYYYMMDDHH24MI')
+
+	                               - TO_TIMESTAMP(A.JSTOP_TIME, 'YYYYMMDDHH24MI')
+
+	                            )) / 3600.0) * A.WORKER_CNT
+
+	                        , 1)
+
+	                   ELSE NULL
+
+	               END AS LOSS_TIME
+
+	             , A.SHIP_NO
+
+	             , A.SAGO_DIV_L
+
+	             , A.SAGO_DIV_M
+
+	             , A.SAGO_DIV_S
+
+	             , GET_CODE_NM(A.CMPNY_DIV, A.CMPNY_DIV || 'B010', A.SAGO_DIV_L) AS SAGO_DIV_L_NM
+
+	             , GET_CODE_NM(A.CMPNY_DIV, A.CMPNY_DIV || 'B010' || A.SAGO_DIV_L, A.SAGO_DIV_M) AS SAGO_DIV_M_NM
+
+	             , GET_CODE_NM(A.CMPNY_DIV, A.CMPNY_DIV || 'B010' || A.SAGO_DIV_L || A.SAGO_DIV_M, A.SAGO_DIV_S) AS SAGO_DIV_S_NM
+
+	             , A.COMPANY
+
+	             , A.IMG_ID
+
+	             , A.IMG_ID2
+
+	             , A.FILE_ID2
+
+	          FROM TFA1050C01 A
+
+	          LEFT JOIN VZZ1020C03 B
+
+	            ON A.COMPANY = B.COMPANY
+
+	           AND A.BSNS_CD = B.BSNS_CD
+
+	           AND A.DEPT_CD = B.DEPT_CD
+
+	           AND A.ASGN_CD = B.ASGN_CD
+
+	         WHERE A.CMPNY_DIV = #{CMPNY_DIV}
+
+	        <if test="BSNS_CD != null and BSNS_CD != ''">
+
+	           AND A.BSNS_CD = #{BSNS_CD}
+
+	        </if>
+
+	        <if test="DEPT_CD != null and DEPT_CD != ''">
+
+	           AND A.DEPT_CD = #{DEPT_CD}
+
+	        </if>
+
+	        <if test="JSTOP_DATE_FR != null and JSTOP_DATE_FR != '' and JSTOP_DATE_TO != null and JSTOP_DATE_TO != ''">
+
+	           AND SUBSTRING(A.JSTOP_TIME FROM 1 FOR 8)
+
+	               BETWEEN TO_CHAR(TO_DATE(#{JSTOP_DATE_FR}, 'YYYY-MM-DD'), 'YYYYMMDD')
+
+	                   AND TO_CHAR(TO_DATE(#{JSTOP_DATE_TO}, 'YYYY-MM-DD'), 'YYYYMMDD')
+
+	        </if>
+
+	        <if test="RESTART_DIV != null and RESTART_DIV != ''">
+
+	        	AND RESTART_DIV = #{RESTART_DIV}
+
+	        </if>
+
+	    ) A
+
+	    ORDER BY A.JSTOP_DT DESC
+
+	</select>
+
+	<!-- 시정통보 목록 -->
+
+	<select id="SAFDC0010_SEARCH_14" parameterType="map" resultType="java.util.HashMap">
+
+		SELECT
+
+	        a.cmpny_div,
+
+	        a.mng_no,
+
+	        b.asgn_full_nm AS send_asgn_nm,
+
+	        CASE
+
+	            WHEN LENGTH(a.rec_asgn_cd) &lt; 5
+
+	            THEN get_dept_info(a.cmpny_div, get_emp_info(a.cmpny_div, a.mng_no, 'ASGN_CD'), 'ASGN_FULL_NM')
+
+	            ELSE (
+
+	                SELECT asgn_full_nm
+
+	                FROM tzb1020c03
+
+	                WHERE dept_cd = a.rec_dept_cd
+
+	                  AND asgn_cd = a.rec_asgn_cd
+
+	                LIMIT 1
+
+	            )
+
+	        END AS rec_asgn_nm,
+
+	        d.sys_cdnm || (
+
+	            CASE
+
+	                WHEN e.sys_cdnm IS NULL THEN ''
+
+	                ELSE ' / ' || e.sys_cdnm
+
+	            END
+
+	        ) AS target_facility_nm,
+
+	        g.sys_cdnm AS sago_div_nm,
+
+	        a.problem_desc,
+
+	        TO_CHAR(TO_DATE(a.noti_dt, 'YYYYMMDD'), 'YYYY-MM-DD') AS noti_dt,
+
+	        TO_CHAR(TO_DATE(a.req_reply_dt, 'YYYYMMDD'), 'YYYY-MM-DD') AS req_reply_dt,
+
+	        COALESCE(h.sys_cdnm, '작성중') AS status_nm,
+
+	        COALESCE(TO_CHAR(TO_DATE(a.act_dt, 'YYYYMMDD'), 'YYYY-MM-DD'), '') AS act_dt,
+
+	        GET_EMP_INFO(a.cmpny_div, a.chk_emp_no, 'EMP_NM') as chk_emp_nm,
+
+	        GET_EMP_INFO(a.cmpny_div, a.chk_emp_no, 'EMAIL') as chk_emp_email,
+
+	        get_dept_info7( a.cmpny_div, a.act_bsns_cd, a.act_dept_cd, get_emp_info( a.cmpny_div, a.chk_emp_no, 'ASGN_CD' ), 'ASGN_FULL_NM') AS act_asgn_nm,
+
+	        a.ship_no,
+
+	        a.company,
+
+	        '' AS reason,
+
+	        a.rec_dept_cd,
+
+	        COALESCE(a.status, '10') AS status,
+
+	        a.vend_name,
+
+	        a.noti_lplc,
+
+	        a.noti_mplc,
+
+	        a.noti_splc,
+
+	        get_location_desc( a.cmpny_div, concat( a.noti_lplc, a.noti_mplc, a.noti_splc )) as noti_splc_nm,
+
+	        a.img_id1,
+
+	        a.file_id1,
+
+	        a.require_desc,
+
+	        a.chk_emp_no,
+
+	        a.chk_tel_no,
+
+	        a.rec_asgn_cd,
+
+	        a.noti_title,
+
+	        a.noti_plc_desc,
+
+	        a.chk_asgn_cd,
+
+	        a.chk_dept_cd,
+
+	        a.img_id2,
+
+	        a.file_id2,
+
+	        a.act_rslt,
+
+	        get_dept_info7( a.cmpny_div, a.act_bsns_cd, a.act_dept_cd, get_emp_info( a.cmpny_div, a.act_emp_no, 'ASGN_CD' ), 'ASGN_FULL_NM') AS act_asgn_nm,
+
+	        GET_EMP_INFO(a.cmpny_div, a.act_emp_no, 'EMP_NM') as act_emp_nm,
+
+	        a.act_emp_no,
+
+	        a.act_tel_no,
+
+	        a.act_asgn_cd,
+
+	        a.act_dept_cd,
+
+	        TO_CHAR(TO_DATE(COALESCE(TRIM(a.close_dt), ''), 'YYYYMMDD'), 'YYYY-MM-DD') AS close_dt,
+
+	        a.close_asgn_cd,
+
+	        a.close_emp_no,
+
+	        a.insert_user_id,
+
+	        a.rej_desc,
+
+	        a.reject_desc,
+
+	        get_asgn_short_nm(a.cmpny_div, a.close_asgn_cd) AS close_asgn_nm,
+
+	        a.app_emp_no,
+
+	        GET_EMP_INFO(a.cmpny_div, a.app_emp_no, 'EMP_NM') as app_emp_nm,
+
+	        a.approve_id,
+
+	        a.sago_div_l_code,
+
+	        a.sago_div_m_code,
+
+	        a.sago_div_s_code,
+
+	        a.app_same
+
+	    FROM tfa2010c01 a
+
+	    LEFT JOIN vzz1020c03 b
+
+	        ON b.cmpny_div = a.cmpny_div
+
+	       AND b.dept_cd   = a.CHK_DEPT_CD
+
+	       AND b.asgn_cd   = a.CHK_ASGN_CD
+
+	    LEFT JOIN vzz1020c03 c
+
+	        ON c.cmpny_div = a.company
+
+	       AND c.dept_cd   = a.rec_dept_cd
+
+	       AND c.asgn_cd   = a.rec_asgn_cd
+
+	    LEFT JOIN tb_com_systemcode d
+
+	        ON d.cmpny_div   = a.cmpny_div
+
+	       AND d.all_sys_cd  = a.cmpny_div || 'F120'
+
+	       AND d.all_sys_cd  = a.cmpny_div || 'F120' || a.subject_cd
+
+	    LEFT JOIN tb_com_systemcode e
+
+	        ON e.cmpny_div   = a.cmpny_div
+
+	       AND e.all_sys_cd  = a.cmpny_div || 'F120'
+
+	       AND e.all_sys_cd  = a.cmpny_div || 'F120' || a.subject_cd || a.target_facility
+
+	    LEFT JOIN tb_com_systemcode g
+
+	        ON g.cmpny_div   = a.cmpny_div
+
+	       AND g.all_sys_cd  = a.cmpny_div || 'B010'
+
+	       AND g.all_sys_cd  = a.cmpny_div || 'B010' || a.sago_div_m
+
+	    LEFT JOIN tb_com_systemcode h
+
+	        ON h.cmpny_div   = a.cmpny_div
+
+	       AND h.all_sys_cd  = a.cmpny_div || 'F190'
+
+	       AND h.all_sys_cd  = a.cmpny_div || 'F190' || a.status
+
+	    WHERE 1 = 1
+
+	    <choose>
+
+	        <when test='GUBUN == "A"'>
+
+	            AND a.cmpny_div = #{CMPNY_DIV}
+
+	        </when>
+
+	        <otherwise>
+
+	            AND a.company = #{CMPNY_DIV}
+
+	        </otherwise>
+
+	    </choose>
+
+		 <!--날짜 조회 부분  -->
+
+        AND a.noti_dt
+
+        	BETWEEN COALESCE(TO_CHAR(TO_DATE(NULLIF(#{NOTI_FROM}, ''), 'YYYY-MM-DD'), 'YYYYMMDD'), '19000101')
+
+        	AND COALESCE(TO_CHAR(TO_DATE(NULLIF(#{NOTI_TO}, ''), 'YYYY-MM-DD'), 'YYYYMMDD'), '99991231')
+
+		<!--
+
+		회신요구일 제외
+
+	    AND (
+
+	        #{REQ_REPLY_CHK} &lt;&gt; 'Y'
+
+	        OR (
+
+	            #{REQ_REPLY_CHK} = 'Y'
+
+	            AND a.req_reply_dt BETWEEN CASE
+
+	                                           WHEN REPLACE(#{REQ_REPLY_FROM}, '-', '') IS NULL OR REPLACE(#{REQ_REPLY_FROM}, '-', '') = '' THEN '19000101'
+
+	                                           ELSE REPLACE(#{REQ_REPLY_FROM}, '-', '')
+
+	                                       END
+
+	                                   AND CASE
+
+	                                           WHEN REPLACE(#{REQ_REPLY_TO}, '-', '') IS NULL OR REPLACE(#{REQ_REPLY_TO}, '-', '') = '' THEN '99991231'
+
+	                                           ELSE REPLACE(#{REQ_REPLY_TO}, '-', '')
+
+	                                       END
+
+	        )
+
+	    )
+
+		-->
+
+	    <if test="SEND_BSNS_CD != null and SEND_BSNS_CD != ''">
+
+	        AND (
+
+	            b.bsns_cd = #{SEND_BSNS_CD}
+
+	            OR (#{SEND_BSNS_CD} = 'AN00' AND b.bsns_cd = 'AC00')
+
+	        )
+
+	    </if>
+
+	    <if test="CHK_DEPT_CD != null and CHK_DEPT_CD != ''">
+
+	        AND a.chk_dept_cd = #{CHK_DEPT_CD}
+
+	    </if>
+
+	    <if test="CHK_ASGN_CD != null and CHK_ASGN_CD != ''">
+
+	        AND a.CHK_ASGN_CD = #{CHK_ASGN_CD}
+
+	    </if>
+
+	    <if test="REC_BSNS_CD != null and REC_BSNS_CD != ''">
+
+	        AND c.bsns_cd = #{REC_BSNS_CD}
+
+	    </if>
+
+	    <if test="REC_DEPT_CD != null and REC_DEPT_CD != ''">
+
+	        AND a.rec_dept_cd = #{REC_DEPT_CD}
+
+	    </if>
+
+	    <if test="REC_ASGN_CD != null and REC_ASGN_CD != ''">
+
+	        AND a.rec_asgn_cd = #{REC_ASGN_CD}
+
+	    </if>
+
+	    AND (
+
+	        (
+
+	            #{TYPE} = 'A'
+
+	            AND (
+
+	                #{STATUS} IS NULL OR #{STATUS} = ''
+
+	                OR (#{STATUS} IS NOT NULL AND #{STATUS} != '' AND a.status = #{STATUS})
+
+	            )
+
+	        )
+
+	        OR (
+
+	            #{TYPE} = 'B'
+
+	            AND (
+
+	                (#{STATUS} IS NULL OR #{STATUS} = '' AND a.status &gt; '20')
+
+	                OR (#{STATUS} IS NOT NULL AND #{STATUS} != '' AND a.status = #{STATUS})
+
+	            )
+
+	        )
+
+	    )
+
+	    <if test="ACT_YN != null and ACT_YN != ''">
+
+	        <choose>
+
+	            <when test="ACT_YN == 'Y'">
+
+	                AND a.status = '40'
+
+	            </when>
+
+	            <when test="ACT_YN == 'N'">
+
+	                AND a.status = '30'
+
+	            </when>
+
+	        </choose>
+
+	    </if>
+
+	    <if test="ACT_EMP_NO != null and ACT_EMP_NO != ''">
+
+	        AND a.chk_emp_no = #{CHK_EMP_NO}
+
+	    </if>
+
+	    <if test="STATUS != null and STATUS != ''">
+
+	    	AND a.status = '30'
+
+	    </if>
+
+	    ORDER BY a.mng_no DESC
+
+	</select>
+
+	<select id="SAFDC0010_SEARCH_17" parameterType="map" resultType="java.util.HashMap">
+
+		SELECT S.CMPNY_DIV
+
+		, S.SHIP_COD
+
+		, S.SHIP_TYPE
+
+		, S.SHIP_CAPA
+
+		, S.USE_YN
+
+		, S.INSERT_USER_ID
+
+		, TO_CHAR(S.INSERT_DATE, 'YYYY-MM-DD
+
+		HH24:MI:SS') AS INSERT_DATE
+
+		, S.UPDATE_USER_ID
+
+		, TO_CHAR(S.UPDATE_DATE,
+
+		'YYYY-MM-DD HH24:MI:SS') AS UPDATE_DATE
+
+		FROM TB_COM_SHIPLIST S
+
+		WHERE
+
+		S.CMPNY_DIV = 'HHI'
+
+		AND COALESCE(S.USE_YN, 'Y') = 'Y'
+
+		ORDER BY
+
+		S.SHIP_COD
+
+	</select>
+
+	<!-- 안전수칙위반 등록/수정 -->
+
+	<insert id="SAFDC0010_SAVE01" parameterType="map">
+
+	    WITH max_seq AS (
+
+	        SELECT
+
+	            COALESCE(
+
+	                MAX(CAST(SUBSTRING(v.vio_no FROM 10 FOR 3) AS INTEGER)),
+
+	                0
+
+	            ) + 1 AS next_seq
+
+	        FROM xx10.tfa1010c01 v
+
+	        WHERE v.cmpny_div = #{CMPNY_DIV}
+
+	          AND v.vio_no LIKE TO_CHAR(CURRENT_DATE, 'YYYYMMDD')
+
+	                           || SUBSTRING(#{VIO_GDIV} FROM 1 FOR 1)
+
+	                           || '%'
+
+	    ),
+
+	    new_vio AS (
+
+	        SELECT
+
+	            CASE
+
+	                WHEN TRIM(COALESCE(#{VIO_NO}, '')) = '' THEN
+
+	                    TO_CHAR(CURRENT_DATE, 'YYYYMMDD')
+
+	                    || SUBSTRING(#{VIO_GDIV} FROM 1 FOR 1)
+
+	                    || LPAD(CAST(ms.next_seq AS TEXT), 3, '0')
+
+	                ELSE #{VIO_NO}
+
+	            END AS vio_no
+
+	        FROM max_seq ms
+
+	    )
+
+	    INSERT INTO xx10.tfa1010c01 (
+
+	        cmpny_div,
+
+	        vio_no,
+
+	        vio_time,
+
+	        bsns_cd,
+
+	        dept_cd,
+
+	        asgn_cd,
+
+	        vio_emp_no,
+
+	        violator,
+
+	        io_div,
+
+	        vio_gdiv,
+
+	        vio_mdiv,
+
+	        vio_desc,
+
+	        vio_lplc,
+
+	        vio_mplc,
+
+	        vio_splc,
+
+	        vio_plc_desc,
+
+	        dansok_asgn_cd,
+
+	        dansok_emp_no,
+
+	        insert_user_id,
+
+	        insert_date,
+
+	        update_user_id,
+
+	        update_date,
+
+	        file_id1,
+
+	        file_id2,
+
+	        vreg_no,
+
+	        sign_id,
+
+	        status,
+
+	        app_emp_no,
+
+	        dansok_dept_cd,
+
+	        vend_cd,
+
+	        vend_name,
+
+	        ship_no,
+
+	        company,
+
+	        sago_div_l,
+
+	        sago_div_m,
+
+	        sago_div_s,
+
+	        check_target_obj1,
+
+	        check_target_obj2,
+
+	        check_target_obj3,
+
+	        img_id1,
+
+	        act_bsns_cd,
+
+	        actor,
+
+	        act_emp_no,
+
+	        act_dept_cd,
+
+	        act_phone,
+
+	        act_rslt,
+
+	        act_div,
+
+	        act_date,
+
+	        img_id2,
+
+	        app_same,
+
+	        app_asgn_cd,
+
+	        app_dept,
+
+	        vehicle_type,
+
+	        vehicle_car_no,
+
+	        vehicle_reg_no,
+
+	        vehicle_speed
+
+	    )
+
+	    SELECT
+
+	        #{CMPNY_DIV},
+
+	        n.vio_no,
+
+	        TO_CHAR(TO_DATE(#{VIO_DT1}, 'YYYY-MM-DD'), 'YYYYMMDD')
+
+	            || REPLACE(#{VIO_TIME2}, ':', ''),
+
+	        #{BSNS_CD},
+
+	        #{DEPT_CD},
+
+	        #{ASGN_CD},
+
+	        #{VIO_EMP_NO},
+
+	        #{VIOLATOR},
+
+	        #{IO_DIV},
+
+	        #{VIO_GDIV},
+
+	        #{VIO_MDIV},
+
+	        #{VIO_DESC},
+
+	        #{VIO_LPLC},
+
+	        #{VIO_MPLC},
+
+	        #{VIO_SPLC},
+
+	        #{VIO_PLC_DESC},
+
+	        #{DANSOK_ASGN_CD},
+
+	        #{DANSOK_EMP_NO},
+
+	        #{USER_ID},
+
+	        CURRENT_DATE,
+
+	        #{USER_ID},
+
+	        CURRENT_DATE,
+
+	        #{FILE_ID1},
+
+	        #{FILE_ID2},
+
+	        #{VREG_NO},
+
+	        #{SIGN_ID},
+
+	        <choose>
+
+	            <when test='APP_SAME == "Y"'>
+
+	                '30',
+
+	            </when>
+
+	            <otherwise>
+
+	                '10',
+
+	            </otherwise>
+
+	        </choose>
+
+	        #{APP_EMP_NO},
+
+	        #{DANSOK_DEPT_CD},
+
+	        #{VEND_CD},
+
+	        #{VEND_NAME},
+
+	        #{SHIP_NO},
+
+	        #{COMPANY},
+
+	        #{SAGO_DIV_L},
+
+	        #{SAGO_DIV_M},
+
+	        #{SAGO_DIV_S},
+
+	        #{CHECK_TARGET_OBJ1},
+
+	        #{CHECK_TARGET_OBJ2},
+
+	        #{CHECK_TARGET_OBJ3},
+
+	        #{IMG_ID1},
+
+	        #{ACT_BSNS_CD},
+
+	        #{ACTOR},
+
+	        #{ACT_EMP_NO},
+
+	        #{ACT_DEPT_CD},
+
+	        #{ACT_PHONE},
+
+	        #{ACT_RSLT},
+
+	        #{ACT_DIV},
+
+	        CASE
+
+	            WHEN #{ACT_DIV} = '11' THEN NOW()
+
+	            ELSE NULL
+
+	        END,
+
+	        #{IMG_ID2},
+
+	        #{APP_SAME},
+
+	        #{APP_ASGN_CD},
+
+	        #{APP_DEPT},
+
+	        #{VEHICLE_TYPE},
+
+	        #{VEHICLE_CAR_NO},
+
+	        #{VEHICLE_REG_NO},
+
+	        CAST(NULLIF(#{VEHICLE_SPEED}, '') AS INTEGER)
+
+	    FROM new_vio n
+
+	    ON CONFLICT (cmpny_div, vio_no, company)
+
+	    DO UPDATE SET
+
+	        vio_time = EXCLUDED.vio_time,
+
+	        bsns_cd = EXCLUDED.bsns_cd,
+
+	        dept_cd = EXCLUDED.dept_cd,
+
+	        asgn_cd = EXCLUDED.asgn_cd,
+
+	        vio_emp_no = EXCLUDED.vio_emp_no,
+
+	        violator = EXCLUDED.violator,
+
+	        io_div = EXCLUDED.io_div,
+
+	        vio_gdiv = EXCLUDED.vio_gdiv,
+
+	        vio_mdiv = EXCLUDED.vio_mdiv,
+
+	        vio_desc = EXCLUDED.vio_desc,
+
+	        vio_lplc = EXCLUDED.vio_lplc,
+
+	        vio_mplc = EXCLUDED.vio_mplc,
+
+	        vio_splc = EXCLUDED.vio_splc,
+
+	        vio_plc_desc = EXCLUDED.vio_plc_desc,
+
+	        dansok_asgn_cd = EXCLUDED.dansok_asgn_cd,
+
+	        dansok_emp_no = EXCLUDED.dansok_emp_no,
+
+	        update_user_id = EXCLUDED.update_user_id,
+
+	        update_date = EXCLUDED.update_date,
+
+	        file_id1 = EXCLUDED.file_id1,
+
+	        file_id2 = EXCLUDED.file_id2,
+
+	        vreg_no = EXCLUDED.vreg_no,
+
+	        sign_id = EXCLUDED.sign_id,
+
+	        status = EXCLUDED.status,
+
+	        app_emp_no = EXCLUDED.app_emp_no,
+
+	        dansok_dept_cd = EXCLUDED.dansok_dept_cd,
+
+	        vend_cd = EXCLUDED.vend_cd,
+
+	        vend_name = EXCLUDED.vend_name,
+
+	        ship_no = EXCLUDED.ship_no,
+
+	        sago_div_l = EXCLUDED.sago_div_l,
+
+	        sago_div_m = EXCLUDED.sago_div_m,
+
+	        sago_div_s = EXCLUDED.sago_div_s,
+
+	        check_target_obj1 = EXCLUDED.check_target_obj1,
+
+	        check_target_obj2 = EXCLUDED.check_target_obj2,
+
+	        check_target_obj3 = EXCLUDED.check_target_obj3,
+
+	        img_id1 = EXCLUDED.img_id1,
+
+	        act_bsns_cd = EXCLUDED.act_bsns_cd,
+
+	        actor = EXCLUDED.actor,
+
+	        act_emp_no = EXCLUDED.act_emp_no,
+
+	        act_dept_cd = EXCLUDED.act_dept_cd,
+
+	        act_phone = EXCLUDED.act_phone,
+
+	        act_rslt = EXCLUDED.act_rslt,
+
+	        act_div = EXCLUDED.act_div,
+
+	        act_date = CASE
+
+	            WHEN EXCLUDED.act_div = '11' THEN NOW()
+
+	            ELSE NULL
+
+	        END,
+
+	        img_id2 = EXCLUDED.img_id2,
+
+	        app_same = EXCLUDED.app_same,
+
+	        app_asgn_cd = EXCLUDED.app_asgn_cd,
+
+	        app_dept = EXCLUDED.app_dept,
+
+	        vehicle_type = EXCLUDED.vehicle_type,
+
+	        vehicle_car_no = EXCLUDED.vehicle_car_no,
+
+	        vehicle_reg_no = EXCLUDED.vehicle_reg_no,
+
+	        vehicle_speed = EXCLUDED.vehicle_speed
+
+	    RETURNING vio_no;
+
+	</insert>
+
+	<!-- 시정통보 등록/수정 -->
+
+	<insert id="SAFDC0010_SAVE04" parameterType="map">
+
+		WITH target_mng AS (
+
+	        SELECT
+
+	            COALESCE(
+
+	                NULLIF(#{MNG_NO}, ''),
+
+	                (
+
+	                    SELECT
+
+	                        #{CMPNY_DIV} || '-' || #{BSNS_CD} || '-' || TO_CHAR(TO_DATE(#{NOTI_DT}, 'YYYY-MM-DD'), 'YYYY') || '-' ||
+
+	                        LPAD(
+
+	                            (COALESCE(
+
+	                                MAX(CAST(SUBSTR(mng_no, LENGTH(#{CMPNY_DIV} || '-' || #{BSNS_CD} || '-' || TO_CHAR(TO_DATE(#{NOTI_DT}, 'YYYY-MM-DD'), 'YYYY') || '-') + 1) AS INTEGER)),
+
+	                                0
+
+	                            ) + 1)::TEXT,
+
+	                            4,
+
+	                            '0'
+
+	                        )
+
+	                    FROM tfa2010c01
+
+	                    WHERE cmpny_div = #{CMPNY_DIV}
+
+	                      AND bsns_cd   = #{BSNS_CD}
+
+	                      AND noti_dt LIKE TO_CHAR(TO_DATE(#{NOTI_DT}, 'YYYY-MM-DD'), 'YYYY') || '%'
+
+	                )
+
+	            ) AS mng_no
+
+	    )
+
+	    INSERT INTO tfa2010c01 (
+
+	        cmpny_div,
+
+	        mng_no,
+
+	        noti_dt,
+
+	        bsns_cd,
+
+	        rec_dept_cd,
+
+	        noti_title,
+
+	        img_id1,
+
+	        file_id1,
+
+	        problem_desc,
+
+	        require_desc,
+
+	        noti_lplc,
+
+	        noti_mplc,
+
+	        noti_splc,
+
+	        noti_plc_desc,
+
+	        sago_div_m,
+
+	        subject_cd,
+
+	        target_facility,
+
+	        chk_asgn_cd,
+
+	        chk_bsns_cd,
+
+	        chk_emp_no,
+
+	        chk_tel_no,
+
+	        req_reply_dt,
+
+	        approve_id,
+
+	        act_rslt,
+
+	        img_id2,
+
+	        file_id2,
+
+	        act_dept_cd,
+
+	        act_asgn_cd,
+
+	        act_bsns_cd,
+
+	        act_emp_no,
+
+	        act_tel_no,
+
+	        status,
+
+	        close_dt,
+
+	        close_asgn_cd,
+
+	        close_emp_no,
+
+	        sago_div_list,
+
+	        close_dept_cd,
+
+	        chk_dept_cd,
+
+	        rec_asgn_cd,
+
+	        ship_no,
+
+	        company,
+
+	        app_emp_no,
+
+	        sago_div_l_code,
+
+	        sago_div_m_code,
+
+	        sago_div_s_code,
+
+	        app_same,
+
+	        insert_user_id,
+
+	        insert_date,
+
+	        update_user_id,
+
+	        update_date
+
+	    )
+
+	    SELECT
+
+	        #{CMPNY_DIV},
+
+	        tm.mng_no,
+
+	        TO_CHAR(TO_DATE(#{NOTI_DT}, 'YYYY-MM-DD'), 'YYYYMMDD'),
+
+	        #{BSNS_CD},
+
+	        #{REC_DEPT_CD},
+
+	        #{NOTI_TITLE},
+
+	        #{IMG_ID1},
+
+	        #{FILE_ID1},
+
+	        #{PROBLEM_DESC},
+
+	        #{REQUIRE_DESC},
+
+	        #{NOTI_LPLC},
+
+	        #{NOTI_MPLC},
+
+	        #{NOTI_SPLC},
+
+	        #{NOTI_PLC_DESC},
+
+	        #{SAGO_DIV_M},
+
+	        #{SUBJECT_CD},
+
+	        #{TARGET_FACILITY},
+
+	        #{CHK_ASGN_CD},
+
+	        #{CHK_BNSS_CD},
+
+	        #{CHK_EMP_NO},
+
+	        #{CHK_TEL_NO},
+
+	        TO_CHAR(TO_DATE(#{REQ_REPLY_DT}, 'YYYY-MM-DD'), 'YYYYMMDD'),
+
+	        #{APPROVE_ID},
+
+	        #{ACT_RSLT},
+
+	        #{IMG_ID2},
+
+	        #{FILE_ID2},
+
+	        #{ACT_DEPT_CD},
+
+	        #{ACT_ASGN_CD},
+
+	        #{ACT_BSNS_CD},
+
+	        #{ACT_EMP_NO},
+
+	        #{ACT_TEL_NO},
+
+	        #{STATUS},
+
+	        #{CLOSE_DT},
+
+	        #{CLOSE_ASGN_CD},
+
+	        #{CLOSE_EMP_NO},
+
+	        #{SAGO_DIV_LIST},
+
+	        #{CLOSE_DEPT_CD},
+
+	        #{CHK_DEPT_CD},
+
+	        #{REC_ASGN_CD},
+
+	        #{SHIP_NO},
+
+	        #{COMPANY},
+
+	        #{APP_EMP_NO},
+
+	        #{SAGO_DIV_L_CODE},
+
+	        #{SAGO_DIV_M_CODE},
+
+	        #{SAGO_DIV_S_CODE},
+
+	        #{APP_SAME},
+
+	        #{USER_ID},
+
+	        CURRENT_TIMESTAMP,
+
+	        #{USER_ID},
+
+	        CURRENT_TIMESTAMP
+
+	    FROM target_mng tm
+
+	    ON CONFLICT (cmpny_div, mng_no, company)
+
+	    DO UPDATE SET
+
+	        noti_dt 		= TO_CHAR(TO_DATE(EXCLUDED.noti_dt, 'YYYYMMDD'), 'YYYYMMDD'),
+
+	        bsns_cd         = EXCLUDED.bsns_cd,
+
+	        rec_dept_cd     = EXCLUDED.rec_dept_cd,
+
+	        noti_title      = EXCLUDED.noti_title,
+
+	        img_id1         = EXCLUDED.img_id1,
+
+	        file_id1        = EXCLUDED.file_id1,
+
+	        problem_desc    = EXCLUDED.problem_desc,
+
+	        require_desc    = EXCLUDED.require_desc,
+
+	        noti_lplc       = EXCLUDED.noti_lplc,
+
+	        noti_mplc       = EXCLUDED.noti_mplc,
+
+	        noti_splc       = EXCLUDED.noti_splc,
+
+	        noti_plc_desc   = EXCLUDED.noti_plc_desc,
+
+	        sago_div_m      = EXCLUDED.sago_div_m,
+
+	        subject_cd      = EXCLUDED.subject_cd,
+
+	        target_facility = EXCLUDED.target_facility,
+
+	        chk_asgn_cd		= EXCLUDED.chk_asgn_cd,
+
+	        chk_bsns_cd		= EXCLUDED.chk_bsns_cd,
+
+	        chk_emp_no      = EXCLUDED.chk_emp_no,
+
+	        chk_tel_no      = EXCLUDED.chk_tel_no,
+
+	        req_reply_dt    = TO_CHAR(TO_DATE(EXCLUDED.req_reply_dt, 'YYYYMMDD'), 'YYYYMMDD'),
+
+	        approve_id      = EXCLUDED.approve_id,
+
+	        act_rslt        = EXCLUDED.act_rslt,
+
+	        img_id2         = EXCLUDED.img_id2,
+
+	        file_id2        = EXCLUDED.file_id2,
+
+	        act_dept_cd     = EXCLUDED.act_dept_cd,
+
+	        act_asgn_cd     = EXCLUDED.act_asgn_cd,
+
+	        act_bsns_cd     = EXCLUDED.act_bsns_cd,
+
+	        act_emp_no      = EXCLUDED.act_emp_no,
+
+	        act_tel_no      = EXCLUDED.act_tel_no,
+
+	        status          = EXCLUDED.status,
+
+	        close_dt        = EXCLUDED.close_dt,
+
+	        close_asgn_cd   = EXCLUDED.close_asgn_cd,
+
+	        close_emp_no    = EXCLUDED.close_emp_no,
+
+	        sago_div_list   = EXCLUDED.sago_div_list,
+
+	        close_dept_cd   = EXCLUDED.close_dept_cd,
+
+	        chk_dept_cd    	= EXCLUDED.chk_dept_cd,
+
+	        rec_asgn_cd     = EXCLUDED.rec_asgn_cd,
+
+	        ship_no         = EXCLUDED.ship_no,
+
+	        company         = EXCLUDED.company,
+
+	        app_emp_no      = EXCLUDED.app_emp_no,
+
+	        sago_div_l_code = EXCLUDED.sago_div_l_code,
+
+	        sago_div_m_code = EXCLUDED.sago_div_m_code,
+
+	        sago_div_s_code = EXCLUDED.sago_div_s_code,
+
+	        app_same        = EXCLUDED.app_same,
+
+	        update_user_id  = #{USER_ID},
+
+	        update_date     = CURRENT_TIMESTAMP
+
+	    RETURNING mng_no
+
+	</insert>
+
+	<!-- 작업중지 등록/수정  -->
+
+	<insert id="SAFDC0010_SAVE06" parameterType="map">
+
+		WITH new_seq AS (
+
+	        SELECT
+
+	            COALESCE(
+
+	                NULLIF(TRIM(#{JSTOP_NO}::text), ''),
+
+	                TO_CHAR(CURRENT_DATE, 'YYYYMMDD') || LPAD(
+
+	                    CAST(
+
+	                        COALESCE(
+
+	                            MAX(CAST(SUBSTRING(jstop_no FROM 9 FOR 4) AS NUMERIC)),
+
+	                            0
+
+	                        ) + 1 AS VARCHAR
+
+	                    ),
+
+	                    4,
+
+	                    '0'
+
+	                )
+
+	            ) AS final_jstop_no
+
+	        FROM (SELECT 1) dummy
+
+	        LEFT JOIN tfa1050c01
+
+	               ON cmpny_div = #{CMPNY_DIV}
+
+	              AND SUBSTRING(jstop_no FROM 1 FOR 8) = TO_CHAR(CURRENT_DATE, 'YYYYMMDD')
+
+	    )
+
+	    INSERT INTO tfa1050c01 (
+
+	        cmpny_div,
+
+	        jstop_no,
+
+	        jstop_time,
+
+	        bsns_cd,
+
+	        dept_cd,
+
+	        asgn_cd,
+
+	        chg_emp_no,
+
+	        chg_emp_nm,
+
+	        jstop_div,
+
+	        jstop_desc,
+
+	        job_lplc,
+
+	        job_mplc,
+
+	        job_splc,
+
+	        job_plc_desc,
+
+	        ship_no,
+
+	        worker_cnt,
+
+	        restart_time,
+
+	        restart_div,
+
+	        restart_desc,
+
+	        jstop_emp_no,
+
+	        jstop_asgn_cd,
+
+	        jstop_dept_cd,
+
+	        sago_div_l,
+
+	        sago_div_m,
+
+	        sago_div_s,
+
+	        company,
+
+	        file_id,
+
+	        file_id2,
+
+	        img_id,
+
+	        img_id2,
+
+	        insert_date,
+
+	        insert_user_id
+
+	    )
+
+	    SELECT
+
+	        #{CMPNY_DIV},
+
+	        s.final_jstop_no,
+
+	        -- JSTOP_TIME 변환
+
+	        CASE
+
+	            WHEN NULLIF(TRIM(#{JSTOP_DT1}::text), '') IS NOT NULL
+
+	            THEN TO_CHAR(TO_DATE(#{JSTOP_DT1}, 'YYYY-MM-DD'), 'YYYYMMDD') || REPLACE(COALESCE(#{JSTOP_TIME2}, ''), ':', '')
+
+	            ELSE NULL
+
+	        END,
+
+	        #{BSNS_CD},
+
+	        #{DEPT_CD},
+
+	        #{ASGN_CD},
+
+	        #{CHG_EMP_NO},
+
+	        #{CHG_EMP_NM},
+
+	        #{JSTOP_DIV},
+
+	        #{JSTOP_DESC},
+
+	        #{JOB_LPLC},
+
+	        #{JOB_MPLC},
+
+	        #{JOB_SPLC},
+
+	        #{JOB_PLC_DESC},
+
+	        #{SHIP_NO},
+
+	        -- 숫자형 변환
+
+	        CAST(NULLIF(TRIM(#{WORKER_CNT}::text), '') AS NUMERIC),
+
+	        -- RESTART_TIME 변환
+
+	        CASE
+
+	            WHEN NULLIF(TRIM(#{RESTART_DT1}::text), '') IS NOT NULL
+
+	            THEN TO_CHAR(TO_DATE(#{RESTART_DT1}, 'YYYY-MM-DD'), 'YYYYMMDD') || REPLACE(COALESCE(#{RESTART_TIME2}, ''), ':', '')
+
+	            ELSE NULL
+
+	        END,
+
+	        #{RESTART_DIV},
+
+	        #{RESTART_DESC},
+
+	        #{JSTOP_EMP_NO},
+
+	        #{JSTOP_ASGN_CD},
+
+	        #{JSTOP_DEPT_CD},
+
+	        #{SAGO_DIV_L},
+
+	        #{SAGO_DIV_M},
+
+	        #{SAGO_DIV_S},
+
+	        #{COMPANY},
+
+	        #{FILE_ID},
+
+	        #{FILE_ID2},
+
+	        #{IMG_ID},
+
+	        #{IMG_ID2},
+
+	        CURRENT_TIMESTAMP,
+
+	        #{USER_ID}
+
+	    FROM new_seq s
+
+	    ON CONFLICT (cmpny_div, jstop_no, company) DO UPDATE
+
+	    SET
+
+	        jstop_time      = EXCLUDED.jstop_time,
+
+	        bsns_cd         = EXCLUDED.bsns_cd,
+
+	        dept_cd         = EXCLUDED.dept_cd,
+
+	        asgn_cd         = EXCLUDED.asgn_cd,
+
+	        chg_emp_no      = EXCLUDED.chg_emp_no,
+
+	        chg_emp_nm      = EXCLUDED.chg_emp_nm,
+
+	        jstop_div       = EXCLUDED.jstop_div,
+
+	        jstop_desc      = EXCLUDED.jstop_desc,
+
+	        job_lplc        = EXCLUDED.job_lplc,
+
+	        job_mplc        = EXCLUDED.job_mplc,
+
+	        job_splc        = EXCLUDED.job_splc,
+
+	        job_plc_desc    = EXCLUDED.job_plc_desc,
+
+	        ship_no         = EXCLUDED.ship_no,
+
+	        worker_cnt      = EXCLUDED.worker_cnt,
+
+	        restart_time    = EXCLUDED.restart_time,
+
+	        restart_div     = EXCLUDED.restart_div,
+
+	        restart_desc    = EXCLUDED.restart_desc,
+
+	        jstop_emp_no    = EXCLUDED.jstop_emp_no,
+
+	        jstop_asgn_cd   = EXCLUDED.jstop_asgn_cd,
+
+	        jstop_dept_cd   = EXCLUDED.jstop_dept_cd,
+
+	        sago_div_l      = EXCLUDED.sago_div_l,
+
+	        sago_div_m      = EXCLUDED.sago_div_m,
+
+	        sago_div_s      = EXCLUDED.sago_div_s,
+
+	        company         = EXCLUDED.company,
+
+	        file_id         = EXCLUDED.file_id,
+
+	        file_id2        = EXCLUDED.file_id2,
+
+	        img_id          = EXCLUDED.img_id,
+
+	        img_id2         = EXCLUDED.img_id2,
+
+	        update_date     = CURRENT_TIMESTAMP,
+
+	        update_user_id  = EXCLUDED.insert_user_id
+
+	</insert>
+
+	<update id="SAFDC0010_SAVE15" parameterType="map">
+
+		UPDATE tfa1010c01
+
+		SET file_id1 = #{file_id1}
+
+		WHERE cmpny_div = #{cmpny_div}
+
+		AND vio_no = #{vio_no}
+
+		AND company = #{company}
+
+	</update>
+
+	<update id="SAFDC0010_SAVE16" parameterType="map">
+
+		UPDATE tfa1010c01
+
+		SET file_id2 = #{file_id2}
+
+		WHERE cmpny_div = #{cmpny_div}
+
+		AND vio_no = #{vio_no}
+
+	</update>
+
+	<!-- 삭제 (하위 분류 존재 시 division by zero → 예외 발생) -->
+
+	<update id="SAFDC0010_DELETE01" parameterType="map">
+
+		WITH child_check
+
+		AS (
+
+		SELECT COUNT(*) AS cnt
+
+		FROM tb_com_work_standard_type
+
+		WHERE
+
+		cmpny_div = #{CMPNY_DIV}
+
+		AND bsns_cd = #{BSNS_CD}
+
+		AND parent_comm_id =
+
+		#{COMM_ID}
+
+		)
+
+		DELETE FROM tb_com_work_standard_type
+
+		WHERE cmpny_div =
+
+		#{CMPNY_DIV}
+
+		AND bsns_cd = #{BSNS_CD}
+
+		AND comm_id = #{COMM_ID}
+
+		AND
+
+		(SELECT 1 / CASE WHEN cnt = 0 THEN 1 ELSE 0 END FROM child_check) = 1
+
+	</update>
+
+	<!-- 안전수칙위반 삭제 -->
+
+	<delete id="SAFDC0010_DELETE02" parameterType="map">
+
+	 DELETE
+
+          FROM TFA1010C01
+
+         WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+           AND VIO_NO    = #{VIO_NO};
+
+	</delete>
+
+	<!-- 작업중지 삭제 -->
+
+	<delete id="SAFDC0010_DELETE05" parameterType="map">
+
+	 DELETE
+
+          FROM TFA1050C01
+
+         WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+           AND JSTOP_NO  = #{JSTOP_NO}
+
+           AND COMPANY   = #{COMPANY};
+
+	</delete>
+
+	<update id="SAFDC0010_APPROVE01" parameterType="map">
+
+	UPDATE TFA1010C01
+
+	SET STATUS= #{STATUS}
+
+	WHERE CMPNY_DIV = #{CMPNY_DIV}
+
+           AND VIO_NO    = #{VIO_NO};
+
+	</update>
+
+</mapper>

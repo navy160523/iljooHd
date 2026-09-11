@@ -1,447 +1,669 @@
 <script setup>
+
 import { ref, reactive, onMounted, getCurrentInstance, watch } from 'vue'
+
 import { useLogsStore } from '@hiway/stores/logs'
+
 import { useUserStore } from '@hiway/stores/user'
+
 import { useI18n } from 'vue-i18n'
+
 import {
-  commonSearchApi,
-  commonExecuteApi,
-  getCodeList,
+
+  commonPgSearchApi,
+
+  commonPgExecuteApi,
+
+  getPgCodeList,
+
 } from '@hiway/api/commonApi'
+
 import RealGrid from '@/components/RealGrid.vue'
+
+import IGridTitle from '@/components/IGridTitle.vue'
+
+import IMenuTitle from '@/components/IMenuTitle.vue'
+
 import deleteFlowHelper from '@/utils/deleteFlowHelper'
+
 import queryFlowHelper from '@/utils/searchFlowHelper'
+
 import dayjs from 'dayjs'
+
 import Message from '@hiway/utils/notify'
-import SAFDC0030_01Popup01 from './SAFDC0030_01Popup01.vue'
+
+import SAFDC0030_Popup01 from './SAFDC0030_Popup01.vue'
 
 defineOptions({
+
   name: '30_safety-SAF_D-SAFDC0030',
+
 })
 
 const vm = getCurrentInstance().proxy
+
 const t = useI18n().t
+
+const menuTitle = ref(null)
+
 const grdMain = ref(null)
+
 const userStore = useUserStore()
-const sAFDC0030_01_Popup01 = ref(null)
+
+const sAFDC0030_Popup01 = ref(null)
 
 const searchParam = reactive({
+
   CMPNY_DIV: userStore.cmpnyDiv,
+
   JSTOP_DATE_FR: '',
+
   JSTOP_DATE_TO: '',
+
   BSNS_CD: userStore.bsnsCd,
+
   DEPT_CD: userStore.deptCd,
+
   ASGN_CD: '',
+
   RESTART_DIV: '',
+
 })
 
 const codeList = reactive({
+
   company: [],
+
   bsnsCd: [],
+
   deptCd: [],
+
   asgnCd: [],
+
   restartDiv: [],
+
 })
 
 const initCodeList = () => {
+
   Promise.all([
-    commonSearchApi({
-      queryId: 'searchCommonCode',
-      param: {
-        ALL_UP_CD: 'HHIZ000',
-        USE_FLAG: 'Y',
-        CODE_NAME_TYPE: '0',
-      },
+
+    //사업부조회
+
+    commonPgSearchApi({
+
+      queryId: 'searchBSNS',
+
+      param: { CMPNY_DIV: userStore.cmpnyDiv },
+
     }),
-    getCodeList('HHIF170'),
+
+    commonPgSearchApi({
+
+      queryId: 'searchDept3',
+
+      param: {
+
+        CMPNY_DIV: userStore.cmpnyDiv,
+
+        BSNS_CD: searchParam.BSNS_CD,
+
+        USE_DIV: 'Y'
+
+      },
+
+    }),
+
+    getPgCodeList('HHIG170'),
+
   ]).then((res) => {
-    codeList.company = res[0].ORESULT_CUR
-    codeList.restartDiv = res[1].ORESULT_CUR
-    
-    codeList.company.unshift({ TXT: '전체', COD: '' })
+
+    codeList.bsnsCd = res[0].ORESULT_CUR
+
+    codeList.bsnsCd.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
+
+    codeList.deptCd = res[1].ORESULT_CUR
+
+    codeList.deptCd.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+
+    //codeList.company.unshift({ TXT: '전체', COD: '' })
+
+    codeList.restartDiv = res[2].ORESULT_CUR
+
     codeList.restartDiv.unshift({ TXT: '전체', COD: '' })
-    
+
     // Trigger initial watch calls
+
     searchParam.CMPNY_DIV = userStore.cmpnyDiv
+
   })
+
 }
 
 const grdMainProps = reactive({
+
   gridViewOption: { checkBar: true },
+
   fields: [
-    { fieldName: 'JSTOP_NO', dataType: 'text' },
-    { fieldName: 'JSTOP_DT', dataType: 'text' },
-    { fieldName: 'JSTOP_TIME', dataType: 'text' },
-    { fieldName: 'RESTART_DT', dataType: 'text' },
-    { fieldName: 'RESTART_TIME', dataType: 'text' },
-    { fieldName: 'RESTART_DIV_NM', dataType: 'text' },
-    { fieldName: 'ASGN_NM', dataType: 'text' },
-    { fieldName: 'CHG_EMP_NM', dataType: 'text' },
-    { fieldName: 'WORKER_CNT', dataType: 'text' },
-    { fieldName: 'JSTOP_DESC', dataType: 'text' },
-    { fieldName: 'STOP_IMG_YN', dataType: 'text' },
-    { fieldName: 'STOP_FILE_YN', dataType: 'text' },
-    { fieldName: 'RESTART_DESC', dataType: 'text' },
-    { fieldName: 'ACT_IMG_YN', dataType: 'text' },
-    { fieldName: 'ACT_FILE_YN', dataType: 'text' },
-    { fieldName: 'JOB_SPLC_NM', dataType: 'text' },
-    { fieldName: 'JOB_PLC_DESC', dataType: 'text' },
-    { fieldName: 'SHIP_NO', dataType: 'text' },
-    { fieldName: 'LOSS_TIME', dataType: 'text' },
-    { fieldName: 'FILE_ID', dataType: 'text' },
-    { fieldName: 'FILE_ID2', dataType: 'text' },
+
+    { fieldName: 'JSTOP_DT', dataType: 'text', width: '120', editable: false, header: { text: t('중지일자') } },
+
+    { fieldName: 'JSTOP_TIME', dataType: 'text', width: '100', editable: false, header: { text: t('중지시간') } },
+
+    { fieldName: 'RESTART_DT', dataType: 'text', width: '120', editable: false, header: { text: t('재개일자') } },
+
+    { fieldName: 'RESTART_TIME', dataType: 'text', width: '100', editable: false, header: { text: t('재개시간') } },
+
+    { fieldName: 'RESTART_DIV_NM', dataType: 'text', width: '120', editable: false, header: { text: t('진행상태') } },
+
+    { fieldName: 'DEPT_NM', dataType: 'text', styleName: 'left-column', width: '250', editable: false, visible: false, header: { text: t('소속조직') } },
+
+    { fieldName: 'ASGN_NM', dataType: 'text', styleName: 'left-column', width: '250', editable: false, header: { text: t('작업담당소속') } },
+
+    { fieldName: 'CHG_EMP_NM', dataType: 'text', width: '100', editable: false, header: { text: t('작업담당자') } },
+
+    { fieldName: 'CHG_EMP_NO', dataType: 'text', width: '100', editable: false, visible: false, header: { text: t('작업담당자 사번') } },
+
+    { fieldName: 'JOB_TIT_NM', dataType: 'text', width: '100', editable: false, visible: false, header: { text: t('작업담당자 직위') } },
+
+    { fieldName: 'WORKER_CNT', dataType: 'text', width: '80', editable: false, styleName: 'right-column', header: { text: t('인원') } },
+
+    { fieldName: 'JSTOP_DESC', dataType: 'text', styleName: 'left-column', width: '350', editable: false, header: { text: t('중지사유') } },
+
+    { fieldName: 'STOP_IMG_YN', dataType: 'text', width: '60', editable: false, header: { text: t('사진') } },
+
+    { fieldName: 'STOP_FILE_YN', dataType: 'text', width: '60', editable: false, header: { text: t('자료') } },
+
+    { fieldName: 'RESTART_DIV', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('조치구분') } },
+
+    { fieldName: 'RESTART_DESC', dataType: 'text', styleName: 'left-column', width: '350', editable: false, header: { text: t('조치내용') } },
+
+    { fieldName: 'ACT_IMG_YN', dataType: 'text', width: '60', editable: false, header: { text: t('사진') } },
+
+    { fieldName: 'ACT_FILE_YN', dataType: 'text', width: '60', editable: false, header: { text: t('자료') } },
+
+    { fieldName: 'JOB_LPLC', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('작업장소(대)') } },
+
+    { fieldName: 'JOB_MPLC', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('작업장소(중)') } },
+
+    { fieldName: 'JOB_SPLC', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('작업장소(소)') } },
+
+    { fieldName: 'JOB_SPLC_NM', dataType: 'text', styleName: 'left-column', width: '150', editable: false, header: { text: t('장소') } },
+
+    { fieldName: 'JOB_PLC_DESC', dataType: 'text', styleName: 'left-column', width: '200', editable: false, header: { text: t('장소상세') } },
+
+    { fieldName: 'SHIP_NO', dataType: 'text', width: '150', editable: false, header: { text: t('호선/프로젝트No.') } },
+
+    { fieldName: 'LOSS_TIME', dataType: 'text', width: '100', editable: false, styleName: 'right-column', header: { text: t('시간손실') } },
+
+    { fieldName: 'JSTOP_NO', dataType: 'text', visible: false, header: { text: t('중지번호') } },
+
+    { fieldName: 'FILE_ID', dataType: 'text', visible: false, header: { text: t('중지첨부') } },
+
+    { fieldName: 'FILE_ID2', dataType: 'text', visible: false, header: { text: t('조치첨부') } },
+
+    { fieldName: 'JSTOP_EMP_NO', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 사번') } },
+
+    { fieldName: 'JSTOP_EMP_NM', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 성명') } },
+
+    { fieldName: 'JSTOP_BSNS_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 사업본부') } },
+
+    { fieldName: 'JSTOP_ASGN_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 소속코드') } },
+
+    { fieldName: 'JSTOP_ASGN_NM', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 소속') } },
+
+    { fieldName: 'JSTOP_DEPT_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 부서코드') } },
+
+    { fieldName: 'JSTOP_JOB_TIT_NM', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('단속자 직위') } },
+
+    { fieldName: 'IMG_ID', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('이미지 ID') } },
+
+    { fieldName: 'IMG_ID2', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('이미지 ID2') } },
+
+    { fieldName: 'COMPANY', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('사업장구분') } },
+
+    { fieldName: 'BSNS_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('사업장구분') } },
+
+    { fieldName: 'DEPT_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('사업장구분') } },
+
+    { fieldName: 'ASGN_CD', dataType: 'text', styleName: 'left-column', width: '350', editable: false, visible: false, header: { text: t('사업장구분') } },
+
   ],
-  columns: [
-    { name: 'JSTOP_DT', fieldName: 'JSTOP_DT', width: 120, header: { text: t('중지일자') } },
-    { name: 'JSTOP_TIME', fieldName: 'JSTOP_TIME', width: 100, header: { text: t('중지시간') } },
-    { name: 'RESTART_DT', fieldName: 'RESTART_DT', width: 120, header: { text: t('재개일자') } },
-    { name: 'RESTART_TIME', fieldName: 'RESTART_TIME', width: 100, header: { text: t('재개시간') } },
-    { name: 'RESTART_DIV_NM', fieldName: 'RESTART_DIV_NM', width: 150, header: { text: t('진행상태') } },
-    { name: 'ASGN_NM', fieldName: 'ASGN_NM', width: 250, header: { text: t('작업담당소속') } },
-    { name: 'CHG_EMP_NM', fieldName: 'CHG_EMP_NM', width: 120, header: { text: t('작업담당자') } },
-    { name: 'WORKER_CNT', fieldName: 'WORKER_CNT', width: 80, header: { text: t('인원') } },
-    { name: 'JSTOP_DESC', fieldName: 'JSTOP_DESC', width: 350, header: { text: t('중지사유') } },
-    { name: 'STOP_IMG_YN', fieldName: 'STOP_IMG_YN', width: 60, header: { text: t('사진') } },
-    { name: 'STOP_FILE_YN', fieldName: 'STOP_FILE_YN', width: 60, header: { text: t('자료') } },
-    { name: 'RESTART_DESC', fieldName: 'RESTART_DESC', width: 350, header: { text: t('조치결과') } },
-    { name: 'ACT_IMG_YN', fieldName: 'ACT_IMG_YN', width: 60, header: { text: t('사진') } },
-    { name: 'ACT_FILE_YN', fieldName: 'ACT_FILE_YN', width: 60, header: { text: t('자료') } },
-    { name: 'JOB_SPLC_NM', fieldName: 'JOB_SPLC_NM', width: 150, header: { text: t('장소') } },
-    { name: 'JOB_PLC_DESC', fieldName: 'JOB_PLC_DESC', width: 200, header: { text: t('장소상세') } },
-    { name: 'SHIP_NO', fieldName: 'SHIP_NO', width: 150, header: { text: t('호선/프로젝트No.') } },
-    { name: 'LOSS_TIME', fieldName: 'LOSS_TIME', width: 120, header: { text: t('시간손실') } },
-  ],
+
+  columns: [],
+
   columnLayout: [
+
+    'JSTOP_DT',
+
+    'JSTOP_TIME',
+
+    'RESTART_DT',
+
+    'RESTART_TIME',
+
+    'RESTART_DIV_NM',
+
+    'ASGN_NM',
+
+    'CHG_EMP_NM',
+
+    'WORKER_CNT',
+
+    'JSTOP_DESC',
+
     {
-      name: 'MainLayoutGroup',
-      direction: 'vertical',
-      header: { visible: false },
-      items: [
-        {
-          name: 'Row1',
-          direction: 'horizontal',
-          header: { visible: false },
-          items: [
-            'JSTOP_DT',
-            'JSTOP_TIME',
-            'RESTART_DT',
-            'RESTART_TIME',
-            'RESTART_DIV_NM',
-          ]
-        },
-        {
-          name: 'Row2',
-          direction: 'horizontal',
-          header: { visible: false },
-          items: [
-            'ASGN_NM',
-            'CHG_EMP_NM',
-            'WORKER_CNT',
-            'JSTOP_DESC',
-            {
-              name: 'StopGroup',
-              direction: 'horizontal',
-              items: ['STOP_IMG_YN', 'STOP_FILE_YN'],
-              header: { text: t('중지') }
-            }
-          ]
-        },
-        {
-          name: 'Row3',
-          direction: 'horizontal',
-          header: { visible: false },
-          items: [
-            'RESTART_DESC',
-            {
-              name: 'ActGroup',
-              direction: 'horizontal',
-              items: ['ACT_IMG_YN', 'ACT_FILE_YN'],
-              header: { text: t('조치') }
-            },
-            'JOB_SPLC_NM',
-            'JOB_PLC_DESC',
-            'SHIP_NO',
-          ]
-        },
-        {
-          name: 'Row4',
-          direction: 'horizontal',
-          header: { visible: false },
-          items: [
-            'LOSS_TIME',
-          ]
-        }
-      ]
-    }
-  ]
+
+      name: '중지',
+
+      direction: 'horizontal',
+
+      items: ['STOP_IMG_YN', 'STOP_FILE_YN'],
+
+    },
+
+    'RESTART_DESC',
+
+    {
+
+      name: '조치',
+
+      direction: 'horizontal',
+
+      items: ['ACT_IMG_YN', 'ACT_FILE_YN'],
+
+    },
+
+    'JOB_SPLC_NM',
+
+    'JOB_PLC_DESC',
+
+    'SHIP_NO',
+
+    'LOSS_TIME',
+
+  ],
+
 })
 
-const onGridLoaded = () => {
-  if (grdMain.value && grdMain.value.getGridView()) {
-    grdMain.value.getGridView().displayOptions.rowHeight = 120
-  }
-}
+grdMainProps.columns = grdMainProps.fields
 
 const onSearch = () => {
+
   new queryFlowHelper(vm, t).setQuery(searchData).setAfter(afterSearch).run()
+
 }
 
 const onRegister = () => {
-  sAFDC0030_01_Popup01.value.openPopup()
+
+  sAFDC0030_Popup01.value.openPopup()
+
 }
 
 const onDelete = () => {
+
   let checkedData = grdMain.value.getGridView().getCheckedRows(true)
+
   if (checkedData.length === 0) {
+
     Message.warn(t('삭제할 데이터를 선택해주세요.'))
+
     return
+
   }
 
   new deleteFlowHelper(vm, t)
+
     .setBefore(() => true)
+
     .setQuery(deleteData)
+
     .setAfter(() => {
+
       Message.success(t('삭제되었습니다.'))
+
       onSearch()
+
     })
+
     .run()
+
+}
+
+const onButtonsClick = (btn) => {
+
+  if (btn.id === 'btnSearch') {
+
+    onSearch()
+
+  } else if (btn.id === 'btnRegist') {
+
+    onRegister()
+
+  } else if (btn.id === 'btnDelete') {
+
+    onDelete()
+
+  }
+
 }
 
 const deleteData = () => {
+
   let deleteParam = []
+
   let checkedData = grdMain.value.getGridView().getCheckedRows(true)
+
   for (let i = 0; i < checkedData.length; i++) {
+
     let data = grdMain.value.getDataProvider().getJsonRow(checkedData[i])
+
     deleteParam.push({
-      CMPNY_DIV: data.CMPNY_DIV,
+
+      CMPNY_DIV: data.COMPANY,
+
       JSTOP_NO: data.JSTOP_NO,
-      COMPANY: data.CMPNY_DIV,
+
+      COMPANY: data.COMPANY,
+
     })
+
   }
 
-  return commonExecuteApi({
+  return commonPgExecuteApi({
+
     queryId: 'SAFDC0010_DELETE05',
+
     list: deleteParam,
+
   })
+
 }
 
 const searchData = () => {
-  return commonSearchApi({
+
+  return commonPgSearchApi({
+
     queryId: 'SAFDC0010_SEARCH_13',
+
     param: searchParam,
+
   })
+
 }
 
 const afterSearch = (res) => {
+
   let list = res.ORESULT_CUR || []
+
   list.forEach(row => {
-    row.STOP_IMG_YN = row.FILE_ID ? 'Y' : 'N'
+
+    row.STOP_IMG_YN = row.IMG_ID ? 'Y' : 'N'
+
     row.STOP_FILE_YN = row.FILE_ID ? 'Y' : 'N'
-    row.ACT_IMG_YN = row.FILE_ID2 ? 'Y' : 'N'
+
+    row.ACT_IMG_YN = row.IMG_ID2 ? 'Y' : 'N'
+
     row.ACT_FILE_YN = row.FILE_ID2 ? 'Y' : 'N'
+
     row.LOSS_TIME = row.LOSS_TIME || '-'
+
   })
+
   grdMain.value.getDataProvider().setRows(list)
+
 }
 
 const defaultDate = () => {
+
   let date = dayjs()
+
   let dateFrom = dayjs().subtract(7, 'day')
+
   searchParam.JSTOP_DATE_FR = dateFrom.format('YYYY-MM-DD')
+
   searchParam.JSTOP_DATE_TO = date.format('YYYY-MM-DD')
+
 }
 
 onMounted(() => {
+
   defaultDate()
+
   initCodeList()
+
   onSearch()
+
 })
 
+//셀 더블클릭 이벤트 관련 로직 시작
+
 const onCellDblClicked = (grid, clickData) => {
+
   let data = grdMain.value.getDataProvider().getJsonRow(clickData.dataRow)
-  sAFDC0030_01_Popup01.value.openPopup2(data)
+
+  // console.log("목록 > 팝업 data : ", data);
+
+  sAFDC0030_Popup01.value.openPopup2(data)
+
 }
 
+//셀 더블클릭 이벤트 관련 로직 끝
+
 const closedPopup = () => {
+
   onSearch()
+
 }
 
 // 대상조직 연동
+
 watch(
+
   () => searchParam.CMPNY_DIV,
+
   (newValue) => {
-    commonSearchApi({
+
+    commonPgSearchApi({
+
       queryId: 'searchBSNS',
+
       param: { CMPNY_DIV: newValue },
+
     }).then((res) => {
+
       searchParam.BSNS_CD = ''
+
       codeList.bsnsCd = res.ORESULT_CUR
+
       codeList.bsnsCd.unshift({ BSNS_NM: '전체', BSNS_CD: '' })
+
     })
+
   }
+
 )
+
 watch(
+
   () => searchParam.BSNS_CD,
+
   (newValue) => {
-    commonSearchApi({
+
+    commonPgSearchApi({
+
       queryId: 'searchDept3',
+
       param: { CMPNY_DIV: searchParam.CMPNY_DIV, BSNS_CD: newValue, USE_DIV: 'Y' },
+
     }).then((res) => {
+
       searchParam.DEPT_CD = ''
+
       codeList.deptCd = res.ORESULT_CUR
+
       codeList.deptCd.unshift({ DEPT_NM: '전체', DEPT_CD: '' })
+
     })
+
   }
+
 )
+
 watch(
+
   () => searchParam.DEPT_CD,
+
   (newValue) => {
-    commonSearchApi({
-      queryId: 'searchTeam',
-      param: { CMPNY_DIV: searchParam.CMPNY_DIV, BSNS_CD: searchParam.BSNS_CD, DEPT_CD: newValue, USE_DIV: 'Y' },
+
+    // 만약 부서가 선택되지 않았거나 빈 값('전체')이면 팀 목록을 비우고 차단
+
+    if (!newValue) {
+
+      searchParam.ASGN_CD = "";
+
+      codeList.asgnCd = [{ ASGN_NM: "전체", ASGN_CD: "" }];
+
+      return;
+
+    }
+
+    commonPgSearchApi({
+
+      queryId: "searchTeam",
+
+      param: {
+
+        CMPNY_DIV: searchParam.CMPNY_DIV || userStore.cmpnyDiv,
+
+        BSNS_CD: searchParam.BSNS_CD,
+
+        DEPT_CD: newValue,
+
+        USE_DIV: "Y"
+
+      },
+
     }).then((res) => {
-      searchParam.ASGN_CD = ''
-      codeList.asgnCd = res.ORESULT_CUR
-      codeList.asgnCd.unshift({ ASGN_NM: '전체', ASGN_CD: '' })
-    })
-  }
-)
+
+      searchParam.ASGN_CD = "";
+
+      // API 응답 구조 검증 및 대입
+
+      const teamData = res?.ORESULT_CUR || res || [];
+
+      codeList.asgnCd = Array.isArray(teamData) ? teamData : [];
+
+      // 중복 체크 후 배열의 맨 앞에 "전체" 항목 추가
+
+      if (codeList.asgnCd.length === 0 || codeList.asgnCd[0].ASGN_CD !== "") {
+
+        codeList.asgnCd.unshift({ ASGN_NM: "전체", ASGN_CD: "" });
+
+      }
+
+    });
+
+  },
+
+  { immediate: true }
+
+);
+
 </script>
 
 <template>
+
   <v-card class="pa-0 fill-height">
-    <!-- Header with Title and Actions aligned -->
-    <div class="d-flex align-center justify-space-between border-b bg-white px-4 py-2">
-      <div class="font-weight-bold text-h6">작업중지 등록/현황</div>
-      <div class="d-flex gap-2">
-        <v-btn color="primary" size="small" @click="onSearch" class="font-weight-bold">조회</v-btn>
-        <v-btn color="primary" size="small" @click="onRegister" class="font-weight-bold">등록</v-btn>
-        <v-btn color="error" size="small" @click="onDelete" class="font-weight-bold">삭제</v-btn>
-      </div>
-    </div>
+
+    <v-card-title class="pa-3 pb-0">
+
+      <IMenuTitle ref="menuTitle" :title="`${$t(useLogsStore().menuId)}`" />
+
+      <IGridTitle class="mt-0" :button-list="['btnSearch', 'btnRegist', 'btnDelete']" @click-button="onButtonsClick" />
+
+    </v-card-title>
 
     <v-card-text class="pa-3 pt-0 content-area">
+
       <div class="d-flex flex-column fill-height">
-        
-        <!-- Search Conditions Section -->
-        <v-sheet class="searchArea pa-4 bg-lightgrey mt-2 mb-2 rounded-5">
-          <div class="sheetTitle mb-2">{{ $t('조회조건') }}</div>
-          
-          <div class="d-flex mb-3 align-center flex-wrap gap-4">
-            <!-- 일자 -->
-            <div class="d-flex align-center">
-              <span class="mr-2 font-weight-bold text-body-2">{{ $t('일자') }}</span>
-              <i-input
-                width="140px"
-                type="date"
-                v-model="searchParam.JSTOP_DATE_FR"
-                hide-details
-              ></i-input>
-              <span class="mx-1">~</span>
-              <i-input
-                width="140px"
-                type="date"
-                v-model="searchParam.JSTOP_DATE_TO"
-                hide-details
-              ></i-input>
-            </div>
 
-            <!-- 대상조직 -->
-            <div class="d-flex align-center flex-wrap">
-              <span class="mr-2 font-weight-bold text-body-2">{{ $t('대상조직') }}</span>
-              <i-select
-                width="150px"
-                item-title="TXT"
-                item-value="COD"
-                :items="codeList.company"
-                v-model="searchParam.CMPNY_DIV"
-                hide-details
-                class="mr-1"
-              ></i-select>
-              <i-select
-                width="150px"
-                item-title="BSNS_NM"
-                item-value="BSNS_CD"
-                :items="codeList.bsnsCd"
-                v-model="searchParam.BSNS_CD"
-                hide-details
-                class="mr-1"
-              ></i-select>
-              <i-select
-                width="150px"
-                item-title="DEPT_NM"
-                item-value="DEPT_CD"
-                :items="codeList.deptCd"
-                v-model="searchParam.DEPT_CD"
-                hide-details
-              ></i-select>
-            </div>
+        <v-sheet class="searchArea d-flex mb-2">
 
-            <!-- 조치구분 -->
-            <div class="d-flex align-center">
-              <span class="mr-2 font-weight-bold text-body-2">{{ $t('조치구분') }}</span>
-              <i-select
-                width="150px"
-                item-title="TXT"
-                item-value="COD"
-                :items="codeList.restartDiv"
-                v-model="searchParam.RESTART_DIV"
-                hide-details
-              ></i-select>
-            </div>
-          </div>
+          <i-input v-model="searchParam.JSTOP_DATE_FR" label-width="25px" :label="$t('일자')" width="170px" class="mr-1"
+
+            type="date"></i-input>
+
+          <span class="mt-2">~</span>
+
+          <i-input v-model="searchParam.JSTOP_DATE_TO" class="ml-1" type="date" width="150px"></i-input>
+
+          <!-- <i-select v-model="searchParam.CMPNY_DIV" :label="$t('대상조직')" label-width="60px" width="220px"
+
+            :items="codeList.company" item-title="TXT" item-value="COD"></i-select> -->
+
+          <i-select v-model="searchParam.BSNS_CD" width="180px" :label="$t('대상조직')" :items="codeList.bsnsCd"
+
+            item-title="BSNS_NM" item-value="BSNS_CD"></i-select>
+
+          <i-select v-model="searchParam.DEPT_CD" width="220px" :items="codeList.deptCd" item-title="DEPT_NM"
+
+            item-value="DEPT_CD"></i-select>
+
+          <i-select v-model="searchParam.ASGN_CD" width="220px" :items="codeList.asgnCd" item-title="ASGN_NM"
+
+            item-value="ASGN_CD"></i-select>
+
+          <i-select v-model="searchParam.RESTART_DIV" :label="$t('조치구분')" label-width="60px" width="220px"
+
+            :items="codeList.restartDiv" item-title="TXT" item-value="COD"></i-select>
+
         </v-sheet>
 
-        <!-- Grid Header and Table Section -->
-        <div class="sheetTitle mb-2 mt-2 px-1">{{ $t('그리드헤더') }}</div>
         <v-sheet style="height: -webkit-fill-available">
-          <RealGrid
-            ref="grdMain"
-            :grid-view-option="grdMainProps.gridViewOption"
-            :fields="grdMainProps.fields"
-            :columns="grdMainProps.columns"
-            :column-layout="grdMainProps.columnLayout"
-            @loaded="onGridLoaded"
-            @onCellDblClicked="onCellDblClicked"
-          />
+
+          <RealGrid ref="grdMain" :grid-view-option="grdMainProps.gridViewOption" :keys="grdMainProps.keys"
+
+            :fields="grdMainProps.fields" :columns="grdMainProps.columns" :column-layout="grdMainProps.columnLayout"
+
+            @onCellDblClicked="onCellDblClicked" />
+
         </v-sheet>
 
       </div>
+
     </v-card-text>
+
   </v-card>
 
-  <SAFDC0030_01Popup01
-    ref="sAFDC0030_01_Popup01"
-    @closed="closedPopup"
-  ></SAFDC0030_01Popup01>
+  <SAFDC0030_Popup01 ref="sAFDC0030_Popup01" @closed="closedPopup"></SAFDC0030_Popup01>
+
 </template>
 
 <style scoped lang="scss">
-.content-area {
-  position: relative;
-  height: calc(100vh - 120px);
-  overflow-y: auto;
-  > div {
-    min-height: 500px;
-  }
-}
-.sheetTitle {
-  font-size: 14px;
-  font-weight: bold;
-  border-bottom: 2px solid #1a237e;
-  padding-bottom: 4px;
-}
-.bg-lightgrey {
-  background-color: #f5f5f5 !important;
-}
-.border-b {
-  border-bottom: 1px solid #e0e0e0;
-}
-.gap-2 {
-  gap: 8px;
-}
-.gap-4 {
-  gap: 16px;
-}
-</style>
 
+.content-area {
+
+  position: relative;
+
+  // 만약 타이틀 영역에 컴포넌트를 추가한다면
+
+  // calc(100vh - (180px + 컨텐츠영역 px)) 을 더해주세요.
+
+  height: calc(100vh - 293px);
+
+  overflow-y: auto;
+
+  >div {
+
+    // content-area 내부 컨텐츠의 최소 높이를 지정합니다.
+
+    // 지정하지 않을 경우 h-auto 클래스가 지정된 컨텐츠는 브라우저의 높이가 줄어들수록 0px까지 줄어듭니다.
+
+    min-height: 500px;
+
+  }
+
+}
+
+</style>
