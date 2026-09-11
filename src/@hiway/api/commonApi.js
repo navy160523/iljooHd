@@ -114,6 +114,15 @@ export function commonRequest(url, data, method = 'post', contentType = 'applica
       return
     }
 
+    if (data && data.queryId === 'SAFDC0010_CANCEL01') { //2026.09.11 수정
+      resolve({ //2026.09.11 수정
+        list: [{ //2026.09.11 수정
+          MNG_NO: data.list[0].MNG_NO //2026.09.11 수정
+        }] //2026.09.11 수정
+      }) //2026.09.11 수정
+      return //2026.09.11 수정
+    } //2026.09.11 수정
+
     resolve({ ORESULT_CUR: [] })
   })
 }
